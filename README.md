@@ -1,2 +1,2 @@
-# NearBy-Bringing-Busines
+# NearBy-Bridging-Business
 Web Insos
