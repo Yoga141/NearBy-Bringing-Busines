@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light" data-lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UMKM Nusantara – Rekomendasi UMKM Terdekat</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --yellow: #F5A623;
+  --orange: #E8821A;
+  --orange-deep: #C96A0A;
+  --navy: #1E3A5F;
+  --navy-mid: #2E5E8E;
+  --navy-light: #4A90D9;
+  --navy-pale: #EBF4FF;
+  --bg: #F8F9FA;
+  --bg2: #FFFFFF;
+  --bg3: #F1F3F5;
+  --text: #1A1D23;
+  --text2: #4A5568;
+  --text3: #718096;
+  --border: #E2E8F0;
+  --shadow: rgba(30,58,95,0.10);
+  --card-bg: #FFFFFF;
+  --input-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --sidebar-bg: #F8F9FA;
+  --tag-bg: #EBF4FF;
+  --tag-color: #2E5E8E;
+  --modal-bg: rgba(0,0,0,0.5);
+  --success: #38A169;
+  --danger: #E53E3E;
+  --warning: #DD6B20;
+  --star: #F5A623;
+}
+[data-theme="dark"] {
+  --bg: #0D1B2A;
+  --bg2: #112236;
+  --bg3: #1A2F47;
+  --text: #F0F4F8;
+  --text2: #A0B4C8;
+  --text3: #6B8499;
+  --border: #1E3A5F;
+  --shadow: rgba(0,0,0,0.35);
+  --card-bg: #112236;
+  --input-bg: #1A2F47;
+  --nav-bg: #0D1B2A;
+  --sidebar-bg: #0D1B2A;
+  --tag-bg: #1E3A5F;
+  --tag-color: #4A90D9;
+  --navy-pale: #1E3A5F;
+}
+
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+input,textarea,select{font-family:inherit}
+img{max-width:100%}
+.hidden{display:none!important}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--navy-light);border-radius:3px}
+
+/* ===== NAVBAR ===== */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:var(--nav-bg);border-bottom:1px solid var(--border);box-shadow:0 2px 12px var(--shadow);display:flex;align-items:center;padding:0 24px;height:64px;gap:16px;transition:background .3s}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.2rem;color:var(--navy);white-space:nowrap}
+.nav-logo span{background:linear-gradient(135deg,var(--orange),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--orange),var(--yellow));border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;font-weight:900;flex-shrink:0}
+.nav-search{flex:1;max-width:480px;position:relative}
+.nav-search input{width:100%;padding:9px 16px 9px 42px;border:1.5px solid var(--border);border-radius:24px;background:var(--input-bg);color:var(--text);font-size:.9rem;transition:border-color .2s,box-shadow .2s;outline:none}
+.nav-search input:focus{border-color:var(--navy-light);box-shadow:0 0 0 3px rgba(74,144,217,.15)}
+.nav-search input::placeholder{color:var(--text3)}
+.nav-search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:1rem;pointer-events:none}
+.nav-search-results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--card-bg);border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 24px var(--shadow);z-index:200;max-height:320px;overflow-y:auto;display:none}
+.nav-search-results.active{display:block}
+.search-result-item{padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
+.search-result-item:last-child{border-bottom:none}
+.search-result-item:hover{background:var(--bg3)}
+.search-result-item .sri-name{font-weight:600;font-size:.9rem;color:var(--text)}
+.search-result-item .sri-cat{font-size:.78rem;color:var(--text3)}
+.nav-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+.btn-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg3);color:var(--text2);font-size:1rem;transition:background .2s,color .2s;border:1px solid var(--border)}
+.btn-icon:hover{background:var(--navy-pale);color:var(--navy-mid)}
+.lang-toggle{padding:6px 12px;border-radius:20px;background:var(--bg3);color:var(--text2);font-size:.8rem;font-weight:600;border:1px solid var(--border);transition:all .2s}
+.lang-toggle:hover{background:var(--navy-pale);color:var(--navy-mid)}
+.btn-profile{display:flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;border-radius:24px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;font-size:.85rem;font-weight:600;transition:opacity .2s}
+.btn-profile:hover{opacity:.9}
+.profile-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--yellow));display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}
+.profile-avatar img{width:100%;height:100%;object-fit:cover}
+
+/* ===== MAIN LAYOUT ===== */
+.main-wrapper{display:flex;margin-top:64px;min-height:calc(100vh - 64px)}
+.sidebar{width:240px;flex-shrink:0;background:var(--sidebar-bg);border-right:1px solid var(--border);padding:20px 0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;transition:background .3s}
+.sidebar-section{padding:12px 16px 4px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3)}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 16px;color:var(--text2);font-size:.88rem;font-weight:500;cursor:pointer;border-left:3px solid transparent;transition:all .15s}
+.sidebar-item:hover{background:var(--navy-pale);color:var(--navy-mid);border-left-color:var(--navy-light)}
+.sidebar-item.active{background:var(--navy-pale);color:var(--navy-mid);border-left-color:var(--orange);font-weight:600}
+.sidebar-item .si-icon{font-size:1rem;width:20px;text-align:center}
+.sidebar-divider{height:1px;background:var(--border);margin:10px 16px}
+.hashtag-pill{display:inline-flex;align-items:center;margin:3px 4px;padding:4px 10px;border-radius:12px;background:var(--tag-bg);color:var(--tag-color);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;border:1.5px solid transparent}
+.hashtag-pill:hover,.hashtag-pill.active{background:var(--orange);color:#fff;border-color:var(--orange)}
+.hashtag-wrap{padding:8px 12px}
+.content-area{flex:1;padding:24px;min-width:0}
+
+/* ===== HERO ===== */
+.hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 50%,var(--navy-light) 100%);border-radius:20px;padding:40px;margin-bottom:28px;position:relative;overflow:hidden;color:#fff}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(245,166,35,.25),transparent 70%);border-radius:50%}
+.hero::after{content:'';position:absolute;bottom:-60px;right:80px;width:160px;height:160px;background:radial-gradient(circle,rgba(74,144,217,.2),transparent 70%);border-radius:50%}
+.hero-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.9rem;font-weight:800;margin-bottom:8px;line-height:1.2}
+.hero-title span{color:var(--yellow)}
+.hero-subtitle{font-size:.95rem;color:rgba(255,255,255,.75);margin-bottom:24px}
+.hero-search{display:flex;gap:10px;max-width:560px}
+.hero-search input{flex:1;padding:12px 18px;border-radius:14px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:.95rem;outline:none;backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,.2)}
+.hero-search input::placeholder{color:rgba(255,255,255,.6)}
+.hero-search input:focus{border-color:var(--yellow);background:rgba(255,255,255,.2)}
+.hero-search-btn{padding:12px 22px;border-radius:14px;background:linear-gradient(135deg,var(--orange),var(--yellow));color:#fff;font-weight:700;font-size:.9rem;transition:opacity .2s;white-space:nowrap;box-shadow:0 4px 12px rgba(232,130,26,.4)}
+.hero-search-btn:hover{opacity:.9}
+.hero-stats{display:flex;gap:24px;margin-top:24px;flex-wrap:wrap}
+.hero-stat{display:flex;flex-direction:column}
+.hero-stat-num{font-size:1.4rem;font-weight:800;color:var(--yellow);font-family:'Plus Jakarta Sans',sans-serif}
+.hero-stat-label{font-size:.75rem;color:rgba(255,255,255,.65)}
+
+/* ===== SECTION HEADERS ===== */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px}
+.section-title::before{content:'';width:4px;height:18px;background:linear-gradient(var(--orange),var(--yellow));border-radius:2px;display:inline-block}
+.section-link{font-size:.82rem;color:var(--navy-light);font-weight:600;cursor:pointer;padding:4px 10px;border-radius:8px;transition:background .2s}
+.section-link:hover{background:var(--navy-pale)}
+
+/* ===== UMKM CARDS GRID ===== */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-bottom:32px}
+.umkm-card{background:var(--card-bg);border-radius:18px;border:1px solid var(--border);overflow:hidden;transition:transform .25s,box-shadow .25s;cursor:pointer;display:flex;flex-direction:column}
+.umkm-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px var(--shadow)}
+.card-cover{height:160px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));position:relative;overflow:hidden;flex-shrink:0}
+.card-cover-img{width:100%;height:100%;object-fit:cover}
+.card-cover-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3.5rem}
+.card-badge{position:absolute;top:10px;left:10px;padding:3px 10px;border-radius:8px;font-size:.72rem;font-weight:700;background:linear-gradient(135deg,var(--orange),var(--yellow));color:#fff}
+.card-highlight-badge{position:absolute;top:10px;right:10px;padding:3px 10px;border-radius:8px;font-size:.72rem;font-weight:700;background:#FFD700;color:#333}
+.card-body{padding:16px;flex:1;display:flex;flex-direction:column}
+.card-name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1rem;color:var(--text);margin-bottom:4px}
+.card-category{font-size:.78rem;color:var(--text3);margin-bottom:8px}
+.card-rating{display:flex;align-items:center;gap:5px;margin-bottom:8px}
+.stars{display:flex;gap:2px}
+.star{color:var(--border);font-size:.85rem}
+.star.filled{color:var(--star)}
+.rating-num{font-size:.8rem;font-weight:600;color:var(--text2)}
+.rating-count{font-size:.75rem;color:var(--text3)}
+.card-location{display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--text3);margin-bottom:10px}
+.card-hashtags{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto}
+.card-tag{padding:2px 8px;border-radius:8px;background:var(--tag-bg);color:var(--tag-color);font-size:.72rem;font-weight:600}
+
+/* ===== HIGHLIGHT CAROUSEL ===== */
+.highlight-section{margin-bottom:28px}
+.highlight-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.highlight-card{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-mid) 100%);border-radius:18px;padding:20px;color:#fff;position:relative;overflow:hidden;cursor:pointer;transition:transform .2s}
+.highlight-card:hover{transform:scale(1.02)}
+.highlight-card::before{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:radial-gradient(circle,rgba(245,166,35,.3),transparent 70%);border-radius:50%}
+.highlight-card-icon{font-size:2.5rem;margin-bottom:10px}
+.highlight-card-name{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:4px}
+.highlight-card-cat{font-size:.8rem;color:rgba(255,255,255,.7);margin-bottom:12px}
+.highlight-card-tag{display:inline-block;padding:3px 10px;background:var(--orange);border-radius:8px;font-size:.75rem;font-weight:700}
+
+/* ===== MODAL ===== */
+.modal-overlay{position:fixed;inset:0;background:var(--modal-bg);z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.active{opacity:1;pointer-events:all}
+.modal{background:var(--bg2);border-radius:24px;width:100%;max-width:640px;max-height:90vh;overflow-y:auto;position:relative;transform:scale(.95);transition:transform .25s;box-shadow:0 24px 64px rgba(0,0,0,.3)}
+.modal-overlay.active .modal{transform:scale(1)}
+.modal-header{padding:24px 24px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:0;background:var(--bg2);z-index:10;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.modal-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.2rem;font-weight:800;color:var(--text)}
+.modal-close{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg3);color:var(--text2);font-size:1rem;flex-shrink:0;transition:background .2s}
+.modal-close:hover{background:var(--border)}
+.modal-body{padding:20px 24px 24px}
+.modal-cover{height:200px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:5rem;margin-bottom:20px;overflow:hidden}
+.modal-cover img{width:100%;height:100%;object-fit:cover}
+.modal-umkm-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:4px}
+.modal-category{color:var(--text3);font-size:.88rem;margin-bottom:12px}
+.modal-rating{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.modal-section-label{font-size:.8rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin:16px 0 8px}
+.modal-description{color:var(--text2);font-size:.9rem;line-height:1.6;margin-bottom:4px}
+.modal-address{display:flex;align-items:flex-start;gap:8px;color:var(--text2);font-size:.88rem;padding:10px;background:var(--bg3);border-radius:10px;margin-bottom:4px}
+.contact-links{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.contact-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;font-size:.82rem;font-weight:600;transition:all .2s;border:1.5px solid}
+.contact-btn.wa{background:#25D366;color:#fff;border-color:#25D366}
+.contact-btn.ig{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border-color:transparent}
+.contact-btn.shop{padding:7px 12px;background:var(--bg3);color:var(--text2);border-color:var(--border)}
+.contact-btn.shop:hover{background:var(--navy-pale);color:var(--navy-mid);border-color:var(--navy-light)}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-top:4px}
+.product-card{background:var(--bg3);border-radius:12px;overflow:hidden;transition:transform .2s;border:1px solid var(--border)}
+.product-card:hover{transform:translateY(-2px)}
+.product-img{height:100px;background:linear-gradient(135deg,var(--navy-pale),var(--tag-bg));display:flex;align-items:center;justify-content:center;font-size:2.5rem;overflow:hidden}
+.product-img img{width:100%;height:100%;object-fit:cover}
+.product-info{padding:10px}
+.product-name{font-weight:600;font-size:.82rem;color:var(--text);margin-bottom:3px}
+.product-price{color:var(--orange);font-weight:700;font-size:.85rem;margin-bottom:4px}
+.product-stock{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:6px;font-size:.7rem;font-weight:700}
+.product-stock.in-stock{background:#C6F6D5;color:#276749}
+.product-stock.out-of-stock{background:#FED7D7;color:#9B2C2C}
+.product-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.product-tag{padding:1px 6px;border-radius:5px;background:var(--tag-bg);color:var(--tag-color);font-size:.68rem;font-weight:600}
+
+/* ===== REVIEW SECTION ===== */
+.reviews-section{margin-top:8px}
+.review-item{padding:12px;background:var(--bg3);border-radius:12px;margin-bottom:8px;border:1px solid var(--border)}
+.review-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.review-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--navy-light),var(--navy));display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:#fff;flex-shrink:0}
+.review-user{font-weight:600;font-size:.85rem;color:var(--text)}
+.review-date{font-size:.73rem;color:var(--text3);margin-left:auto}
+.review-text{font-size:.83rem;color:var(--text2);line-height:1.5}
+.review-form{margin-top:12px;padding:14px;background:var(--navy-pale);border-radius:14px;border:1px solid var(--border)}
+.review-form-title{font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:10px}
+.star-picker{display:flex;gap:6px;margin-bottom:10px}
+.star-pick{font-size:1.4rem;cursor:pointer;color:var(--border);transition:color .15s}
+.star-pick.active,.star-pick:hover{color:var(--star)}
+.review-textarea{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text);font-size:.88rem;resize:vertical;min-height:80px;outline:none;transition:border-color .2s}
+.review-textarea:focus{border-color:var(--navy-light)}
+.review-submit-btn{margin-top:10px;padding:9px 20px;border-radius:12px;background:linear-gradient(135deg,var(--orange),var(--yellow));color:#fff;font-weight:700;font-size:.88rem;transition:opacity .2s}
+.review-submit-btn:hover{opacity:.9}
+.guest-review-notice{color:var(--text3);font-size:.83rem;font-style:italic;padding:10px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);margin-top:10px}
+
+/* ===== AUTH MODAL ===== */
+.auth-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:20px}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:10px;font-weight:600;font-size:.88rem;color:var(--text3);cursor:pointer;transition:all .2s}
+.auth-tab.active{background:var(--bg2);color:var(--text);box-shadow:0 2px 8px var(--shadow)}
+.role-selector{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.role-option{padding:14px;border-radius:14px;border:2px solid var(--border);cursor:pointer;transition:all .2s;text-align:center}
+.role-option:hover{border-color:var(--navy-light);background:var(--navy-pale)}
+.role-option.selected{border-color:var(--orange);background:rgba(245,166,35,.08)}
+.role-icon{font-size:1.8rem;margin-bottom:5px}
+.role-name{font-weight:700;font-size:.88rem;color:var(--text)}
+.role-desc{font-size:.73rem;color:var(--text3);margin-top:2px}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:.82rem;font-weight:600;color:var(--text2);margin-bottom:6px}
+.form-input{width:100%;padding:10px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--navy-light);box-shadow:0 0 0 3px rgba(74,144,217,.15)}
+.btn-primary{width:100%;padding:12px;border-radius:14px;background:linear-gradient(135deg,var(--navy),var(--navy-mid));color:#fff;font-weight:700;font-size:.95rem;transition:opacity .2s;margin-top:6px}
+.btn-primary:hover{opacity:.9}
+.btn-guest{width:100%;padding:10px;border-radius:14px;background:var(--bg3);color:var(--text2);font-weight:600;font-size:.88rem;border:1.5px solid var(--border);transition:all .2s;margin-top:8px}
+.btn-guest:hover{background:var(--border)}
+.auth-divider{text-align:center;color:var(--text3);font-size:.82rem;margin:10px 0;position:relative}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
+.auth-divider::before{left:0}
+.auth-divider::after{right:0}
+
+/* ===== DROPDOWN MENU ===== */
+.dropdown-menu{position:absolute;top:calc(100% + 8px);right:0;background:var(--card-bg);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 32px var(--shadow);min-width:200px;z-index:1500;overflow:hidden;opacity:0;pointer-events:none;transform:translateY(-8px);transition:all .2s}
+.dropdown-menu.active{opacity:1;pointer-events:all;transform:translateY(0)}
+.profile-menu-wrap{position:relative}
+.dropdown-header{padding:14px 16px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.dropdown-name{font-weight:700;font-size:.9rem;color:var(--text)}
+.dropdown-role{font-size:.75rem;color:var(--text3);display:flex;align-items:center;gap:4px;margin-top:2px}
+.role-badge{padding:1px 7px;border-radius:6px;font-size:.7rem;font-weight:700}
+.role-badge.guest{background:#E2E8F0;color:#4A5568}
+.role-badge.user{background:#C6F6D5;color:#276749}
+.role-badge.pengusaha{background:rgba(245,166,35,.2);color:var(--orange-deep)}
+.role-badge.admin{background:rgba(74,144,217,.2);color:var(--navy-mid)}
+.dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 16px;color:var(--text2);font-size:.875rem;cursor:pointer;transition:background .15s}
+.dropdown-item:hover{background:var(--bg3)}
+.dropdown-item.danger{color:var(--danger)}
+.dropdown-item.danger:hover{background:#FFF5F5}
+.dropdown-divider{height:1px;background:var(--border)}
+
+/* ===== DASHBOARD PENGUSAHA ===== */
+.dashboard-wrap{padding:0}
+.dashboard-header{background:linear-gradient(135deg,var(--navy),var(--navy-mid));padding:28px 24px;color:#fff;border-radius:0 0 24px 24px;margin-bottom:24px}
+.dashboard-header h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:1.5rem;font-weight:800}
+.dashboard-header p{font-size:.88rem;color:rgba(255,255,255,.75);margin-top:4px}
+.dashboard-nav{display:flex;gap:8px;flex-wrap:wrap;padding:0 20px;margin-bottom:20px}
+.dash-nav-btn{padding:8px 16px;border-radius:12px;font-size:.85rem;font-weight:600;color:var(--text2);background:var(--bg3);border:1.5px solid var(--border);transition:all .2s}
+.dash-nav-btn.active{background:linear-gradient(135deg,var(--orange),var(--yellow));color:#fff;border-color:transparent}
+.dashboard-content{padding:0 20px 20px}
+.dash-card{background:var(--card-bg);border-radius:18px;border:1px solid var(--border);padding:20px;margin-bottom:16px}
+.dash-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1rem;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stock-toggle{display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:.3s}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;left:3px;top:3px;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch input:checked + .toggle-slider{background:var(--success)}
+.toggle-switch input:checked + .toggle-slider::before{transform:translateX(20px)}
+.stock-label{font-size:.85rem;font-weight:600;color:var(--text2)}
+.stock-status{font-size:.78rem;font-weight:600}
+.btn-add{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:12px;background:linear-gradient(135deg,var(--orange),var(--yellow));color:#fff;font-weight:700;font-size:.88rem;transition:opacity .2s}
+.btn-add:hover{opacity:.9}
+.btn-danger{display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:12px;background:var(--danger);color:#fff;font-weight:700;font-size:.88rem;transition:opacity .2s}
+.btn-danger:hover{opacity:.9}
+.product-list-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg3);border-radius:12px;border:1px solid var(--border);margin-bottom:8px}
+.pli-img{width:50px;height:50px;border-radius:10px;background:var(--navy-pale);display:flex;align-items:center;justify-content:center;font-size:1.5rem;overflow:hidden;flex-shrink:0}
+.pli-img img{width:100%;height:100%;object-fit:cover}
+.pli-info{flex:1;min-width:0}
+.pli-name{font-weight:600;font-size:.88rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pli-price{color:var(--orange);font-size:.82rem;font-weight:700}
+.pli-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-sm{padding:5px 10px;border-radius:8px;font-size:.75rem;font-weight:600;transition:all .2s}
+.btn-sm.edit{background:var(--navy-pale);color:var(--navy-mid);border:1px solid var(--border)}
+.btn-sm.delete{background:#FFF5F5;color:var(--danger);border:1px solid #FED7D7}
+.btn-sm:hover{opacity:.8}
+
+/* ===== ADMIN DASHBOARD ===== */
+.admin-header{background:linear-gradient(135deg,#1A1A2E,#16213E);padding:28px 24px;color:#fff;border-radius:0 0 24px 24px;margin-bottom:24px}
+.hashtag-manager{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hashtag-input-row{display:flex;gap:8px;width:100%}
+.hashtag-input{flex:1;padding:8px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--input-bg);color:var(--text);font-size:.88rem;outline:none}
+.hashtag-input:focus{border-color:var(--navy-light)}
+.umkm-admin-list{display:flex;flex-direction:column;gap:10px}
+.umkm-admin-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--bg3);border-radius:14px;border:1px solid var(--border)}
+.uai-icon{font-size:2rem;flex-shrink:0;width:48px;height:48px;background:var(--navy-pale);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.uai-info{flex:1;min-width:0}
+.uai-name{font-weight:700;font-size:.9rem;color:var(--text)}
+.uai-cat{font-size:.78rem;color:var(--text3)}
+.highlight-toggle{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;padding:5px 10px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;transition:all .2s}
+.highlight-toggle.on{background:rgba(245,166,35,.15);color:var(--orange);border-color:var(--orange)}
+
+/* ===== TOAST ===== */
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 18px;border-radius:14px;font-size:.85rem;font-weight:600;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.2);transform:translateX(120%);transition:transform .3s;display:flex;align-items:center;gap:8px;max-width:300px}
+.toast.show{transform:translateX(0)}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+.toast.info{background:var(--navy-mid)}
+.toast.warning{background:var(--warning)}
+
+/* ===== WARNING DIALOG ===== */
+.warning-dialog{background:var(--card-bg);border-radius:18px;padding:24px;max-width:380px;text-align:center}
+.warning-icon{font-size:3rem;margin-bottom:12px}
+.warning-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:1.1rem;color:var(--text);margin-bottom:8px}
+.warning-msg{font-size:.88rem;color:var(--text2);line-height:1.5;margin-bottom:20px}
+.warning-btns{display:flex;gap:10px}
+.warning-btns button{flex:1;padding:10px;border-radius:12px;font-weight:700;font-size:.88rem;transition:all .2s}
+.btn-cancel{background:var(--bg3);color:var(--text2);border:1.5px solid var(--border)}
+.btn-confirm-danger{background:var(--danger);color:#fff}
+
+/* ===== EMPTY STATE ===== */
+.empty-state{text-align:center;padding:48px 24px;color:var(--text3)}
+.empty-icon{font-size:3.5rem;margin-bottom:12px}
+.empty-title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1.1rem;color:var(--text);margin-bottom:6px}
+.empty-desc{font-size:.88rem}
+
+/* ===== PROFILE EDITOR ===== */
+.profile-photo-upload{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--yellow));display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;position:relative;overflow:hidden;margin:0 auto 16px}
+.profile-photo-upload img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.profile-photo-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;font-size:1rem;color:#fff}
+.profile-photo-upload:hover .profile-photo-overlay{opacity:1}
+
+/* ===== PRODUCT FORM ===== */
+.product-img-upload{height:120px;border-radius:14px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);font-size:.88rem;background:var(--bg3);transition:border-color .2s;overflow:hidden;position:relative}
+.product-img-upload:hover{border-color:var(--navy-light)}
+.product-img-upload img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.product-img-overlay{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;color:#fff;font-size:.85rem;font-weight:600}
+.product-img-upload:hover .product-img-overlay{opacity:1}
+.price-input-wrap{position:relative}
+.price-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.9rem;font-weight:600}
+.price-input{padding-left:38px!important}
+
+/* ===== FILTER BAR ===== */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.filter-chip{padding:6px 14px;border-radius:20px;font-size:.82rem;font-weight:600;background:var(--bg3);color:var(--text2);border:1.5px solid var(--border);cursor:pointer;transition:all .2s}
+.filter-chip:hover{border-color:var(--navy-light);color:var(--navy-mid)}
+.filter-chip.active{background:linear-gradient(135deg,var(--orange),var(--yellow));color:#fff;border-color:transparent}
+
+/* ===== FOOTER ===== */
+.footer{background:var(--navy);color:rgba(255,255,255,.7);text-align:center;padding:20px;font-size:.8rem;margin-top:40px}
+.footer strong{color:var(--yellow)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:900px){.sidebar{display:none}.content-area{padding:16px}}
+@media(max-width:600px){.hero-title{font-size:1.4rem}.hero{padding:24px}.cards-grid{grid-template-columns:1fr 1fr}.info-grid{grid-template-columns:1fr}.role-selector{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){.cards-grid{grid-template-columns:1fr}.navbar{padding:0 12px}.nav-logo .logo-text{display:none}}
+
+/* ===== UTILITY ===== */
+.flex{display:flex}.items-center{align-items:center}.gap-2{gap:8px}.gap-3{gap:12px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}.mb-2{margin-bottom:8px}.w-full{width:100%}
+.text-sm{font-size:.85rem}.text-xs{font-size:.75rem}.font-bold{font-weight:700}.text-orange{color:var(--orange)}.text-navy{color:var(--navy-mid)}
+.rounded-xl{border-radius:14px}.p-3{padding:12px}.bg-3{background:var(--bg3)}.border{border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <div class="logo-icon">U</div>
+    <span class="logo-text"><span>UMKM</span> Nusantara</span>
+  </div>
+  <div class="nav-search" id="navSearchWrap">
+    <span class="nav-search-icon">🔍</span>
+    <input type="text" id="navSearchInput" placeholder="Cari UMKM, produk, hashtag..." autocomplete="off">
+    <div class="nav-search-results" id="navSearchResults"></div>
+  </div>
+  <div class="nav-actions">
+    <button class="lang-toggle" id="langToggleBtn" onclick="toggleLang()">EN</button>
+    <button class="btn-icon" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    <div class="profile-menu-wrap" id="profileMenuWrap">
+      <button class="btn-profile" id="profileBtn" onclick="toggleProfileMenu()">
+        <div class="profile-avatar" id="navAvatar">👤</div>
+        <span id="navUserName">Login</span>
+      </button>
+      <div class="dropdown-menu" id="profileDropdown">
+        <div class="dropdown-header">
+          <div class="dropdown-name" id="ddName">Tamu</div>
+          <div class="dropdown-role">
+            <span class="role-badge guest" id="ddRoleBadge">Guest</span>
+          </div>
+        </div>
+        <div id="ddMenuItems"></div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN WRAPPER -->
+<div class="main-wrapper">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="mainSidebar">
+    <div class="sidebar-section" id="sb-nav-label">NAVIGASI</div>
+    <div class="sidebar-item active" onclick="showSection('home')" id="sb-home">
+      <span class="si-icon">🏠</span><span id="sb-home-text">Beranda</span>
+    </div>
+    <div class="sidebar-item" onclick="showSection('umkm-list')" id="sb-umkm">
+      <span class="si-icon">🏪</span><span id="sb-umkm-text">Semua UMKM</span>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section" id="sb-hashtag-label">KATEGORI PRODUK</div>
+    <div class="hashtag-wrap" id="hashtagWrap"></div>
+  </aside>
+
+  <!-- CONTENT AREA -->
+  <main class="content-area">
+    <!-- HOME SECTION -->
+    <section id="section-home">
+      <div class="hero">
+        <div class="hero-title" id="hero-title">Temukan <span>UMKM Terbaik</span> di Sekitarmu</div>
+        <div class="hero-subtitle" id="hero-subtitle">Dukung ekonomi lokal dengan belanja produk UMKM berkualitas</div>
+        <div class="hero-search">
+          <input type="text" id="heroSearchInput" placeholder="Cari produk, UMKM, atau kategori...">
+          <button class="hero-search-btn" onclick="doHeroSearch()" id="hero-search-btn">Cari Sekarang</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-num" id="stat-umkm">3</div><div class="hero-stat-label" id="stat-umkm-label">UMKM Terdaftar</div></div>
+          <div class="hero-stat"><div class="hero-stat-num" id="stat-produk">12</div><div class="hero-stat-label" id="stat-produk-label">Produk Tersedia</div></div>
+          <div class="hero-stat"><div class="hero-stat-num" id="stat-hashtag">8</div><div class="hero-stat-label" id="stat-hashtag-label">Kategori Aktif</div></div>
+        </div>
+      </div>
+      <!-- HIGHLIGHT -->
+      <div class="highlight-section" id="highlightSection">
+        <div class="section-header">
+          <div class="section-title" id="hl-title">UMKM Unggulan</div>
+        </div>
+        <div class="highlight-grid" id="highlightGrid"></div>
+      </div>
+      <!-- ALL UMKM -->
+      <div>
+        <div class="section-header">
+          <div class="section-title" id="all-umkm-title">Semua UMKM</div>
+          <span class="section-link" onclick="showSection('umkm-list')" id="see-all-link">Lihat Semua →</span>
+        </div>
+        <div class="filter-bar" id="homeFilterBar"></div>
+        <div class="cards-grid" id="homeUmkmGrid"></div>
+      </div>
+    </section>
+
+    <!-- UMKM LIST SECTION -->
+    <section id="section-umkm-list" class="hidden">
+      <div class="section-header" style="margin-bottom:16px">
+        <div class="section-title" id="all-page-title">Semua UMKM</div>
+      </div>
+      <div class="filter-bar" id="listFilterBar"></div>
+      <div class="cards-grid" id="listUmkmGrid"></div>
+    </section>
+
+    <!-- SEARCH RESULTS SECTION -->
+    <section id="section-search" class="hidden">
+      <div class="section-header">
+        <div class="section-title" id="search-result-title">Hasil Pencarian</div>
+        <span class="section-link" onclick="showSection('home')">← Kembali</span>
+      </div>
+      <div class="cards-grid" id="searchResultGrid"></div>
+    </section>
+
+    <!-- DASHBOARD PENGUSAHA -->
+    <section id="section-dashboard" class="hidden">
+      <div class="dashboard-header">
+        <h1 id="dash-title">Dashboard Pengusaha</h1>
+        <p id="dash-subtitle">Kelola UMKM dan produk Anda</p>
+      </div>
+      <div class="dashboard-nav" id="dashNav">
+        <button class="dash-nav-btn active" onclick="showDashTab('overview')" data-tab="overview" id="dash-tab-overview">📊 Overview</button>
+        <button class="dash-nav-btn" onclick="showDashTab('profile')" data-tab="profile" id="dash-tab-profile">👤 Profil</button>
+        <button class="dash-nav-btn" onclick="showDashTab('products')" data-tab="products" id="dash-tab-products">📦 Produk</button>
+        <button class="dash-nav-btn" onclick="showDashTab('info')" data-tab="info" id="dash-tab-info">📍 Info UMKM</button>
+      </div>
+      <div class="dashboard-content" id="dashboardContent"></div>
+    </section>
+
+    <!-- DASHBOARD ADMIN -->
+    <section id="section-admin" class="hidden">
+      <div class="admin-header">
+        <h1 id="admin-title">Admin Dashboard</h1>
+        <p id="admin-subtitle">Kelola seluruh platform UMKM Nusantara</p>
+      </div>
+      <div class="dashboard-nav" id="adminNav">
+        <button class="dash-nav-btn active" onclick="showAdminTab('highlights')" data-tab="highlights" id="admin-tab-highlights">⭐ Highlight</button>
+        <button class="dash-nav-btn" onclick="showAdminTab('hashtags')" data-tab="hashtags" id="admin-tab-hashtags">🏷️ Hashtag</button>
+        <button class="dash-nav-btn" onclick="showAdminTab('manage')" data-tab="manage" id="admin-tab-manage">🏪 Kelola UMKM</button>
+      </div>
+      <div class="dashboard-content" id="adminContent"></div>
+    </section>
+  </main>
+</div>
+
+<div class="footer"><strong>UMKM Nusantara</strong> &copy; 2025 – Mendukung Ekonomi Lokal Indonesia 🇮🇩</div>
+
+<!-- MODALS -->
+<!-- Auth Modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="auth-modal-title">Masuk / Daftar</div>
+      <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="auth-tabs" id="authTabs">
+        <div class="auth-tab active" onclick="switchAuthTab('login')" id="tab-login">Masuk</div>
+        <div class="auth-tab" onclick="switchAuthTab('register')" id="tab-register">Daftar</div>
+      </div>
+      <div id="authLoginForm">
+        <div class="form-group">
+          <label class="form-label" id="label-email">Email</label>
+          <input type="email" class="form-input" id="loginEmail" placeholder="email@contoh.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-password">Password</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="••••••••">
+        </div>
+        <button class="btn-primary" onclick="doLogin()" id="btn-login-submit">Masuk</button>
+        <div class="auth-divider" id="auth-or">atau</div>
+        <button class="btn-guest" onclick="loginAsGuest()" id="btn-guest">👋 Lanjutkan sebagai Tamu</button>
+      </div>
+      <div id="authRegisterForm" class="hidden">
+        <div class="form-group">
+          <label class="form-label" id="label-name">Nama Lengkap</label>
+          <input type="text" class="form-input" id="regName" placeholder="Nama Anda">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-reg-email">Email</label>
+          <input type="email" class="form-input" id="regEmail" placeholder="email@contoh.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-reg-password">Password</label>
+          <input type="password" class="form-input" id="regPassword" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="label-role">Daftar sebagai</label>
+          <div class="role-selector" id="roleSelectorReg">
+            <div class="role-option selected" onclick="selectRole('user')" id="role-user">
+              <div class="role-icon">👤</div>
+              <div class="role-name" id="role-user-name">User</div>
+              <div class="role-desc" id="role-user-desc">Beri komentar & rating</div>
+            </div>
+            <div class="role-option" onclick="selectRole('pengusaha')" id="role-pengusaha">
+              <div class="role-icon">🏪</div>
+              <div class="role-name" id="role-pengusaha-name">Pengusaha</div>
+              <div class="role-desc" id="role-pengusaha-desc">Kelola UMKM Anda</div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="doRegister()" id="btn-register-submit">Daftar Sekarang</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UMKM Detail Modal -->
+<div class="modal-overlay" id="umkmModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="umkmModalTitle">Detail UMKM</div>
+      <button class="modal-close" onclick="closeModal('umkmModal')">✕</button>
+    </div>
+    <div class="modal-body" id="umkmModalBody"></div>
+  </div>
+</div>
+
+<!-- Generic Modal -->
+<div class="modal-overlay" id="genericModal">
+  <div class="modal" id="genericModalContent">
+    <div class="modal-header">
+      <div class="modal-title" id="genericModalTitle"></div>
+      <button class="modal-close" onclick="closeModal('genericModal')">✕</button>
+    </div>
+    <div class="modal-body" id="genericModalBody"></div>
+  </div>
+</div>
+
+<!-- Warning Modal -->
+<div class="modal-overlay" id="warningModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-body" style="padding:24px">
+      <div class="warning-dialog">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-title" id="warningTitle">Konfirmasi Hapus</div>
+        <div class="warning-msg" id="warningMsg">Apakah Anda yakin ingin menghapus ini? Tindakan ini tidak dapat dibatalkan.</div>
+        <div class="warning-btns">
+          <button class="btn-cancel" onclick="closeModal('warningModal')" id="btn-cancel-warn">Batal</button>
+          <button class="btn-confirm-danger" id="btn-confirm-warn">Hapus</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// =============================================
+// DATABASE
+// =============================================
+const DB = {
+  hashtags: ['#kuliner','#fashion','#kerajinan','#digital','#pertanian','#kecantikan','#elektronik','#minuman'],
+  
+  umkm: [
+    {
+      id: 1,
+      name: 'Warung Nasi Mama Sari',
+      icon: '🍛',
+      category: 'Kuliner',
+      description: 'Warung nasi rumahan dengan cita rasa autentik Jawa. Tersedia berbagai menu masakan tradisional yang dimasak dengan bahan-bahan segar setiap hari. Favorit warga sekitar selama 10 tahun!',
+      address: 'Jl. Pahlawan No.12, Balikpapan Selatan, Kalimantan Timur 76114',
+      rating: 4.7,
+      reviews: [
+        {user:'Budi S.',role:'user',stars:5,text:'Makanannya enak banget, porsinya besar dan harganya terjangkau!',date:'20 Jun 2025'},
+        {user:'Rina P.',role:'user',stars:4,text:'Nasi gudegnya juara, mirip yang di Yogya. Tempatnya juga bersih.',date:'15 Jun 2025'},
+      ],
+      highlight: true,
+      wa: '628113456789',
+      instagram: 'warungmamasari',
+      shopee: 'https://shopee.co.id/warungmamasari',
+      tokopedia: '',
+      lazada: '',
+      hashtags:['#kuliner','#minuman'],
+      products: [
+        {id:101,name:'Nasi Gudeg Komplit',price:25000,stock:true,img:'',emoji:'🍛',desc:'Nasi gudeg dengan ayam, telur, dan sambal krecek. Pilihan pedas tersedia.',tags:['#kuliner']},
+        {id:102,name:'Es Dawet Ayu',price:8000,stock:true,img:'',emoji:'🥤',desc:'Minuman tradisional dawet dengan santan segar dan gula jawa asli.',tags:['#minuman','#kuliner']},
+        {id:103,name:'Paket Catering Harian',price:150000,stock:false,img:'',emoji:'🍱',desc:'Paket makan siang untuk 5 orang, tersedia hari Senin-Sabtu dengan konfirmasi H-1.',tags:['#kuliner']},
+      ]
+    },
+    {
+      id: 2,
+      name: 'Batik Cantik Nusantara',
+      icon: '👗',
+      category: 'Fashion',
+      description: 'Produsen batik handmade berkualitas premium dengan motif khas Kalimantan dan Jawa. Setiap kain dikerjakan dengan teknik tulis tangan oleh pengrajin berpengalaman. Tersedia ready-to-wear dan custom.',
+      address: 'Jl. Ahmad Yani No.45, Balikpapan Tengah, Kalimantan Timur 76123',
+      rating: 4.5,
+      reviews: [
+        {user:'Sinta M.',role:'user',stars:5,text:'Kualitas batiknya sangat bagus! Motifnya unik dan tidak pasaran. Sangat puas.',date:'18 Jun 2025'},
+        {user:'Joko W.',role:'user',stars:4,text:'Beli untuk acara pernikahan, hasilnya memuaskan. Pengiriman juga cepat.',date:'10 Jun 2025'},
+      ],
+      highlight: true,
+      wa: '628521234567',
+      instagram: 'batikcantik.nusantara',
+      shopee: 'https://shopee.co.id/batikcantik',
+      tokopedia: 'https://tokopedia.com/batikcantik',
+      lazada: '',
+      hashtags:['#fashion','#kerajinan'],
+      products: [
+        {id:201,name:'Batik Tulis Kalimantan',price:350000,stock:true,img:'',emoji:'👗',desc:'Kain batik tulis motif khas Dayak, ukuran 2m x 1.15m. Pewarna alami ramah lingkungan.',tags:['#fashion','#kerajinan']},
+        {id:202,name:'Kemeja Batik Pria',price:195000,stock:true,img:'',emoji:'👔',desc:'Kemeja batik pria lengan panjang, bahan katun premium, tersedia S-XXL.',tags:['#fashion']},
+        {id:203,name:'Set Batik Custom Wedding',price:750000,stock:true,img:'',emoji:'💍',desc:'Paket seragam batik custom untuk keluarga, min. 5 set, proses 2-3 minggu.',tags:['#fashion','#kerajinan']},
+        {id:204,name:'Tas Batik Kombinasi',price:120000,stock:false,img:'',emoji:'👜',desc:'Tas tote bag berbahan batik dengan kombinasi kanvas, cocok untuk sehari-hari.',tags:['#fashion','#kerajinan']},
+      ]
+    },
+    {
+      id: 3,
+      name: 'TechCraft Studio',
+      icon: '💻',
+      category: 'Digital & Elektronik',
+      description: 'Studio kreatif digital yang menyediakan jasa desain grafis, pembuatan website, dan produk elektronik DIY. Kami juga menjual aksesori gadget dan komputer rakitan custom sesuai kebutuhan.',
+      address: 'Jl. Sudirman No.88, Balikpapan Utara, Kalimantan Timur 76125',
+      rating: 4.8,
+      reviews: [
+        {user:'Dani A.',role:'user',stars:5,text:'Jasanya profesional, website saya jadi dalam 2 minggu. Desain keren dan responsif!',date:'22 Jun 2025'},
+        {user:'Maya R.',role:'user',stars:5,text:'Beli PC rakitan di sini, harganya kompetitif dan garansinya jelas. Recommended!',date:'17 Jun 2025'},
+      ],
+      highlight: false,
+      wa: '628987654321',
+      instagram: 'techcraft.studio',
+      shopee: 'https://shopee.co.id/techcraft',
+      tokopedia: 'https://tokopedia.com/techcraft',
+      lazada: 'https://lazada.co.id/shop/techcraft',
+      hashtags:['#digital','#elektronik'],
+      products: [
+        {id:301,name:'Jasa Desain Logo',price:200000,stock:true,img:'',emoji:'🎨',desc:'Desain logo profesional, revisi 3x, format PNG/SVG/AI, proses 3-5 hari kerja.',tags:['#digital']},
+        {id:302,name:'Website Company Profile',price:1500000,stock:true,img:'',emoji:'🌐',desc:'Website company profile responsif dengan CMS, hosting 1 tahun sudah termasuk.',tags:['#digital']},
+        {id:303,name:'PC Gaming Rakitan',price:8500000,stock:true,img:'',emoji:'🖥️',desc:'PC gaming custom, spesifikasi sesuai budget, garansi komponen 1 tahun. Konsultasi gratis.',tags:['#elektronik']},
+        {id:304,name:'Aksesori RGB Set',price:350000,stock:false,img:'',emoji:'⌨️',desc:'Set aksesori gaming: keyboard + mouse + mousepad RGB, berkualitas tinggi.',tags:['#elektronik']},
+        {id:305,name:'Jasa Setting Jaringan',price:300000,stock:true,img:'',emoji:'📡',desc:'Setting WiFi, LAN, dan CCTV untuk rumah/kantor. Garansi 6 bulan.',tags:['#digital','#elektronik']},
+      ]
+    }
+  ],
+
+  users: [
+    {id:'u1',name:'Admin Sistem',email:'admin@umkm.id',password:'admin123',role:'admin',avatar:'👑',bio:'Administrator platform'},
+    {id:'u2',name:'Sari Pengusaha',email:'sari@umkm.id',password:'sari123',role:'pengusaha',umkmId:1,avatar:'🏪',bio:'Pemilik Warung Nasi Mama Sari'},
+    {id:'u3',name:'Budi User',email:'budi@user.id',password:'budi123',role:'user',avatar:'😊',bio:''},
+  ]
+};
+
+// =============================================
+// APP STATE
+// =============================================
+let APP = {
+  lang: 'id',
+  theme: 'light',
+  user: null,
+  selectedRole: 'user',
+  currentSection: 'home',
+  activeHashtag: null,
+  dashTab: 'overview',
+  adminTab: 'highlights',
+  pendingDeleteId: null,
+  pendingDeleteType: null,
+  productEditId: null,
+  reviewStars: 0,
+  currentUmkmId: null,
+};
+
+// =============================================
+// TRANSLATIONS
+// =============================================
+const T = {
+  id: {
+    appName:'UMKM Nusantara',
+    login:'Login',
+    logout:'Keluar',
+    home:'Beranda',
+    allUmkm:'Semua UMKM',
+    heroTitle:'Temukan <span>UMKM Terbaik</span> di Sekitarmu',
+    heroSubtitle:'Dukung ekonomi lokal dengan belanja produk UMKM berkualitas',
+    searchPlaceholder:'Cari produk, UMKM, atau kategori...',
+    searchNow:'Cari Sekarang',
+    umkmRegistered:'UMKM Terdaftar',
+    productsAvail:'Produk Tersedia',
+    activeCategories:'Kategori Aktif',
+    featured:'UMKM Unggulan',
+    seeAll:'Lihat Semua →',
+    navLabel:'NAVIGASI',
+    hashLabel:'KATEGORI PRODUK',
+    products:'Produk',
+    location:'Lokasi',
+    contact:'Kontak',
+    reviews:'Ulasan',
+    writeReview:'Tulis Ulasan',
+    submit:'Kirim',
+    guestNote:'Login untuk memberi ulasan dan rating.',
+    inStock:'Tersedia',
+    outOfStock:'Habis',
+    dashboard:'Dashboard',
+    profile:'Profil',
+    info:'Info UMKM',
+    overview:'Overview',
+    highlight:'Highlight',
+    manage:'Kelola UMKM',
+    deleteWarn:'Hapus UMKM ini secara permanen? Semua produk dan ulasan akan ikut terhapus.',
+    deleteConfirm:'Hapus',
+    cancel:'Batal',
+    save:'Simpan',
+    addProduct:'Tambah Produk',
+    editProduct:'Edit Produk',
+    noResults:'Tidak ada hasil untuk pencarian ini.',
+    welcomeAdmin:'Selamat datang, Admin!',
+    adminSubtitle:'Kelola seluruh platform UMKM Nusantara',
+    signIn:'Masuk',
+    register:'Daftar',
+    registerNow:'Daftar Sekarang',
+    guestContinue:'👋 Lanjutkan sebagai Tamu',
+    orText:'atau',
+    email:'Email',
+    password:'Password',
+    fullName:'Nama Lengkap',
+    registerAs:'Daftar sebagai',
+    dashTitle:'Dashboard Pengusaha',
+    dashSubtitle:'Kelola UMKM dan produk Anda',
+    hashtags:'Hashtag',
+    manageHashtags:'Kelola Hashtag',
+    addHashtag:'Tambah Hashtag',
+    searchResult:'Hasil Pencarian',
+    back:'← Kembali',
+    whatsapp:'WhatsApp',
+    instagram:'Instagram',
+    shopee:'Shopee',
+    tokopedia:'Tokopedia',
+    lazada:'Lazada',
+    stockToggle:'Status Stok Produk',
+    bio:'Bio',
+    editProfile:'Edit Profil',
+    umkmInfo:'Info UMKM',
+    address:'Alamat',
+    desc:'Deskripsi',
+    productName:'Nama Produk',
+    price:'Harga',
+    category:'Kategori Produk',
+    productDesc:'Deskripsi Produk',
+    productPhoto:'Foto Produk',
+    stockStatus:'Status Stok',
+    allCategory:'Semua',
+    roleUser:'User',
+    roleUserDesc:'Beri komentar & rating',
+    rolePengusaha:'Pengusaha',
+    rolePengusahaDesc:'Kelola UMKM Anda',
+  },
+  en: {
+    appName:'UMKM Nusantara',
+    login:'Login',
+    logout:'Sign Out',
+    home:'Home',
+    allUmkm:'All UMKM',
+    heroTitle:'Discover the <span>Best Local Businesses</span> Near You',
+    heroSubtitle:'Support the local economy by shopping quality UMKM products',
+    searchPlaceholder:'Search products, UMKM, or categories...',
+    searchNow:'Search Now',
+    umkmRegistered:'Registered UMKM',
+    productsAvail:'Products Available',
+    activeCategories:'Active Categories',
+    featured:'Featured UMKM',
+    seeAll:'See All →',
+    navLabel:'NAVIGATION',
+    hashLabel:'PRODUCT CATEGORIES',
+    products:'Products',
+    location:'Location',
+    contact:'Contact',
+    reviews:'Reviews',
+    writeReview:'Write a Review',
+    submit:'Submit',
+    guestNote:'Login to leave a review and rating.',
+    inStock:'In Stock',
+    outOfStock:'Out of Stock',
+    dashboard:'Dashboard',
+    profile:'Profile',
+    info:'UMKM Info',
+    overview:'Overview',
+    highlight:'Highlight',
+    manage:'Manage UMKM',
+    deleteWarn:'Permanently delete this UMKM? All products and reviews will be removed.',
+    deleteConfirm:'Delete',
+    cancel:'Cancel',
+    save:'Save',
+    addProduct:'Add Product',
+    editProduct:'Edit Product',
+    noResults:'No results found for this search.',
+    welcomeAdmin:'Welcome, Admin!',
+    adminSubtitle:'Manage the entire UMKM Nusantara platform',
+    signIn:'Sign In',
+    register:'Register',
+    registerNow:'Register Now',
+    guestContinue:'👋 Continue as Guest',
+    orText:'or',
+    email:'Email',
+    password:'Password',
+    fullName:'Full Name',
+    registerAs:'Register as',
+    dashTitle:'Business Dashboard',
+    dashSubtitle:'Manage your UMKM and products',
+    hashtags:'Hashtags',
+    manageHashtags:'Manage Hashtags',
+    addHashtag:'Add Hashtag',
+    searchResult:'Search Results',
+    back:'← Back',
+    whatsapp:'WhatsApp',
+    instagram:'Instagram',
+    shopee:'Shopee',
+    tokopedia:'Tokopedia',
+    lazada:'Lazada',
+    stockToggle:'Product Stock Status',
+    bio:'Bio',
+    editProfile:'Edit Profile',
+    umkmInfo:'UMKM Info',
+    address:'Address',
+    desc:'Description',
+    productName:'Product Name',
+    price:'Price',
+    category:'Product Category',
+    productDesc:'Product Description',
+    productPhoto:'Product Photo',
+    stockStatus:'Stock Status',
+    allCategory:'All',
+    roleUser:'User',
+    roleUserDesc:'Leave comments & ratings',
+    rolePengusaha:'Business Owner',
+    rolePengusahaDesc:'Manage your UMKM',
+  }
+};
+
+function t(key){ return (T[APP.lang]||T['id'])[key] || key; }
+
+// =============================================
+// THEME / LANG
+// =============================================
+function toggleTheme(){
+  APP.theme = APP.theme==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',APP.theme);
+  document.getElementById('themeToggleBtn').textContent = APP.theme==='light'?'🌙':'☀️';
+}
+function toggleLang(){
+  APP.lang = APP.lang==='id'?'en':'id';
+  document.documentElement.setAttribute('data-lang',APP.lang);
+  document.getElementById('langToggleBtn').textContent = APP.lang==='id'?'EN':'ID';
+  applyTranslations();
+  renderAll();
+}
+function applyTranslations(){
+  const l = T[APP.lang];
+  setT('hero-title', l.heroTitle, true);
+  setT('hero-subtitle', l.heroSubtitle);
+  setT('hero-search-btn', l.searchNow);
+  setT('stat-umkm-label', l.umkmRegistered);
+  setT('stat-produk-label', l.productsAvail);
+  setT('stat-hashtag-label', l.activeCategories);
+  setT('hl-title', l.featured);
+  setT('all-umkm-title', l.allUmkm);
+  setT('see-all-link', l.seeAll);
+  setT('all-page-title', l.allUmkm);
+  setT('sb-nav-label', l.navLabel);
+  setT('sb-hashtag-label', l.hashLabel);
+  setT('sb-home-text', l.home);
+  setT('sb-umkm-text', l.allUmkm);
+  setT('auth-modal-title', l.signIn+' / '+l.register);
+  setT('tab-login', l.signIn);
+  setT('tab-register', l.register);
+  setT('btn-login-submit', l.signIn);
+  setT('btn-register-submit', l.registerNow);
+  setT('btn-guest', l.guestContinue);
+  setT('auth-or', l.orText);
+  setT('label-email', l.email);
+  setT('label-password', l.password);
+  setT('label-name', l.fullName);
+  setT('label-reg-email', l.email);
+  setT('label-reg-password', l.password);
+  setT('label-role', l.registerAs);
+  setT('role-user-name', l.roleUser);
+  setT('role-user-desc', l.roleUserDesc);
+  setT('role-pengusaha-name', l.rolePengusaha);
+  setT('role-pengusaha-desc', l.rolePengusahaDesc);
+  setT('btn-cancel-warn', l.cancel);
+  setT('btn-confirm-warn', l.deleteConfirm);
+  setT('search-result-title', l.searchResult);
+  setT('dash-title', l.dashTitle);
+  setT('dash-subtitle', l.dashSubtitle);
+  setT('dash-tab-overview', '📊 '+l.overview);
+  setT('dash-tab-profile', '👤 '+l.profile);
+  setT('dash-tab-products', '📦 '+l.products);
+  setT('dash-tab-info', '📍 '+l.umkmInfo);
+  setT('admin-title', l.welcomeAdmin);
+  setT('admin-subtitle', l.adminSubtitle);
+  setT('admin-tab-highlights', '⭐ '+l.highlight);
+  setT('admin-tab-hashtags', '🏷️ '+l.hashtags);
+  setT('admin-tab-manage', '🏪 '+l.manage);
+  const navSearch = document.getElementById('navSearchInput');
+  if(navSearch) navSearch.placeholder = 'Cari UMKM, produk, hashtag...' ;
+  const heroSearch = document.getElementById('heroSearchInput');
+  if(heroSearch) heroSearch.placeholder = l.searchPlaceholder;
+  updateNavBar();
+}
+function setT(id, text, html=false){
+  const el = document.getElementById(id);
+  if(el){ if(html) el.innerHTML=text; else el.textContent=text; }
+}
+
+// =============================================
+// AUTH
+// =============================================
+function openAuthModal(){
+  openModal('authModal');
+  switchAuthTab('login');
+}
+function switchAuthTab(tab){
+  document.getElementById('authLoginForm').classList.toggle('hidden',tab!=='login');
+  document.getElementById('authRegisterForm').classList.toggle('hidden',tab!=='register');
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-register').classList.toggle('active',tab==='register');
+}
+function selectRole(role){
+  APP.selectedRole = role;
+  document.querySelectorAll('.role-option').forEach(el=>el.classList.remove('selected'));
+  const el = document.getElementById('role-'+role);
+  if(el) el.classList.add('selected');
+}
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  const found = DB.users.find(u=>u.email===email && u.password===pass);
+  if(!found){ showToast(APP.lang==='id'?'Email atau password salah!':'Wrong email or password!','error'); return; }
+  setUser(found);
+  closeModal('authModal');
+  showToast((APP.lang==='id'?'Selamat datang, ':'Welcome, ')+found.name+'!','success');
+}
+function doRegister(){
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPassword').value;
+  const role = APP.selectedRole;
+  if(!name||!email||!pass){ showToast(APP.lang==='id'?'Lengkapi semua data!':'Fill in all fields!','error'); return; }
+  if(DB.users.find(u=>u.email===email)){ showToast(APP.lang==='id'?'Email sudah terdaftar!':'Email already registered!','error'); return; }
+  const newUser = {id:'u'+Date.now(),name,email,password:pass,role,avatar:'😊',bio:''};
+  if(role==='pengusaha'){
+    // Create empty UMKM for new business owner
+    const newUmkm = {
+      id:Date.now(),name:name+" UMKM",icon:'🏪',category:'Umum',
+      description:'Belum ada deskripsi.',address:'Alamat belum diisi',
+      rating:0,reviews:[],highlight:false,wa:'',instagram:'',shopee:'',tokopedia:'',lazada:'',
+      hashtags:[],products:[]
+    };
+    DB.umkm.push(newUmkm);
+    newUser.umkmId = newUmkm.id;
+  }
+  DB.users.push(newUser);
+  setUser(newUser);
+  closeModal('authModal');
+  showToast((APP.lang==='id'?'Akun berhasil dibuat! Selamat datang, ':'Account created! Welcome, ')+name,'success');
+  if(role==='pengusaha') setTimeout(()=>showSection('dashboard'),500);
+}
+function loginAsGuest(){
+  setUser({id:'guest',name:APP.lang==='id'?'Tamu':'Guest',role:'guest',avatar:'👤',bio:''});
+  closeModal('authModal');
+  showToast(APP.lang==='id'?'Masuk sebagai Tamu':'Logged in as Guest','info');
+}
+function setUser(u){
+  APP.user = u;
+  updateNavBar();
+  renderDropdownMenu();
+  if(APP.currentSection==='home'||APP.currentSection==='umkm-list') renderAll();
+}
+function doLogout(){
+  APP.user = null;
+  APP.currentSection = 'home';
+  updateNavBar();
+  renderDropdownMenu();
+  closeDropdown();
+  showSection('home');
+  showToast(APP.lang==='id'?'Berhasil keluar':'Signed out successfully','info');
+}
+function updateNavBar(){
+  const btn = document.getElementById('profileBtn');
+  const nav = document.getElementById('navAvatar');
+  const name = document.getElementById('navUserName');
+  if(APP.user){
+    nav.textContent = APP.user.avatar||'👤';
+    name.textContent = APP.user.name.split(' ')[0];
+  } else {
+    nav.textContent = '👤';
+    name.textContent = t('login');
+  }
+}
+function renderDropdownMenu(){
+  const dd = document.getElementById('profileDropdown');
+  if(!APP.user){
+    document.getElementById('ddName').textContent = 'Login';
+    document.getElementById('ddRoleBadge').textContent = 'Guest';
+    document.getElementById('ddRoleBadge').className = 'role-badge guest';
+    document.getElementById('ddMenuItems').innerHTML = `<div class="dropdown-item" onclick="openAuthModal();closeDropdown()">🔑 ${t('login')}</div>`;
+    return;
+  }
+  document.getElementById('ddName').textContent = APP.user.name;
+  const roleLabels = {guest:'Guest',user:'User',pengusaha:'Pengusaha',admin:'Admin'};
+  const rl = roleLabels[APP.user.role]||'';
+  document.getElementById('ddRoleBadge').textContent = rl;
+  document.getElementById('ddRoleBadge').className = 'role-badge '+APP.user.role;
+  let items = '';
+  if(APP.user.role==='pengusaha') items += `<div class="dropdown-item" onclick="showSection('dashboard');closeDropdown()">🏪 ${t('dashboard')}</div>`;
+  if(APP.user.role==='admin') items += `<div class="dropdown-item" onclick="showSection('admin');closeDropdown()">⚙️ Admin Panel</div>`;
+  if(APP.user.role!=='guest') items += `<div class="dropdown-item" onclick="openProfileEditor();closeDropdown()">✏️ ${t('editProfile')}</div>`;
+  items += `<div class="dropdown-divider"></div><div class="dropdown-item danger" onclick="doLogout()">🚪 ${t('logout')}</div>`;
+  document.getElementById('ddMenuItems').innerHTML = items;
+}
+function toggleProfileMenu(){
+  if(!APP.user){ openAuthModal(); return; }
+  document.getElementById('profileDropdown').classList.toggle('active');
+}
+function closeDropdown(){
+  document.getElementById('profileDropdown').classList.remove('active');
+}
+
+// =============================================
+// MODAL HELPERS
+// =============================================
+function openModal(id){
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow='hidden';
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow='';
+}
+
+// =============================================
+// SECTIONS
+// =============================================
+function showSection(name){
+  ['home','umkm-list','search','dashboard','admin'].forEach(s=>{
+    document.getElementById('section-'+s).classList.toggle('hidden',s!==name);
+  });
+  APP.currentSection = name;
+  closeDropdown();
+  ['sb-home','sb-umkm'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.classList.remove('active');
+  });
+  if(name==='home') document.getElementById('sb-home').classList.add('active');
+  if(name==='umkm-list') document.getElementById('sb-umkm').classList.add('active');
+  if(name==='home') renderHome();
+  if(name==='umkm-list') renderUmkmList();
+  if(name==='dashboard') renderDashboard();
+  if(name==='admin') renderAdmin();
+  window.scrollTo(0,0);
+}
+
+// =============================================
+// RENDER HOME
+// =============================================
+function renderAll(){ if(APP.currentSection==='home') renderHome(); else if(APP.currentSection==='umkm-list') renderUmkmList(); }
+function renderHome(){
+  renderHighlights();
+  renderHomeGrid();
+  renderSidebar();
+  renderFilterBar('homeFilterBar','home');
+}
+function renderHighlights(){
+  const grid = document.getElementById('highlightGrid');
+  const hs = DB.umkm.filter(u=>u.highlight);
+  if(!hs.length){ grid.innerHTML=''; return; }
+  grid.innerHTML = hs.map(u=>`
+    <div class="highlight-card" onclick="openUmkm(${u.id})">
+      <div class="highlight-card-icon">${u.icon}</div>
+      <div class="highlight-card-name">${u.name}</div>
+      <div class="highlight-card-cat">${u.category}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${u.hashtags.map(h=>`<span class="highlight-card-tag">${h}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+function renderHomeGrid(){
+  const grid = document.getElementById('homeUmkmGrid');
+  let data = APP.activeHashtag ? DB.umkm.filter(u=>u.hashtags.includes(APP.activeHashtag)) : DB.umkm;
+  grid.innerHTML = data.map(u=>umkmCardHtml(u)).join('') || emptyState();
+}
+function renderUmkmList(){
+  const grid = document.getElementById('listUmkmGrid');
+  let data = APP.activeHashtag ? DB.umkm.filter(u=>u.hashtags.includes(APP.activeHashtag)) : DB.umkm;
+  grid.innerHTML = data.map(u=>umkmCardHtml(u)).join('') || emptyState();
+  renderFilterBar('listFilterBar','list');
+  renderSidebar();
+}
+function renderSidebar(){
+  const wrap = document.getElementById('hashtagWrap');
+  wrap.innerHTML = `<span class="hashtag-pill ${!APP.activeHashtag?'active':''}" onclick="filterByHashtag(null)">${t('allCategory')}</span>`
+    + DB.hashtags.map(h=>`<span class="hashtag-pill ${APP.activeHashtag===h?'active':''}" onclick="filterByHashtag('${h}')">${h}</span>`).join('');
+}
+function renderFilterBar(containerId, ctx){
+  const bar = document.getElementById(containerId);
+  if(!bar) return;
+  bar.innerHTML = `<span class="filter-chip ${!APP.activeHashtag?'active':''}" onclick="filterByHashtag(null)">${t('allCategory')}</span>`
+    + DB.hashtags.map(h=>`<span class="filter-chip ${APP.activeHashtag===h?'active':''}" onclick="filterByHashtag('${h}')">${h}</span>`).join('');
+}
+function filterByHashtag(h){
+  APP.activeHashtag = h;
+  renderAll();
+  renderSidebar();
+  if(APP.currentSection==='umkm-list') renderFilterBar('listFilterBar','list');
+  if(APP.currentSection==='home') renderFilterBar('homeFilterBar','home');
+}
+function emptyState(){
+  return `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🔍</div><div class="empty-title">${t('noResults')}</div></div>`;
+}
+function umkmCardHtml(u){
+  const avgRating = u.rating;
+  const stars = renderStars(avgRating);
+  const reviewCount = u.reviews.length;
+  return `<div class="umkm-card" onclick="openUmkm(${u.id})">
+    <div class="card-cover">
+      <div class="card-cover-placeholder">${u.icon}</div>
+      <span class="card-badge">${u.category}</span>
+      ${u.highlight?`<span class="card-highlight-badge">⭐ ${t('featured')}</span>`:''}
+    </div>
+    <div class="card-body">
+      <div class="card-name">${u.name}</div>
+      <div class="card-category">${u.description.substring(0,60)}...</div>
+      <div class="card-rating">
+        <div class="stars">${stars}</div>
+        <span class="rating-num">${avgRating.toFixed(1)}</span>
+        <span class="rating-count">(${reviewCount})</span>
+      </div>
+      <div class="card-location">📍 ${u.address.split(',')[0]}</div>
+      <div class="card-hashtags">${u.hashtags.map(h=>`<span class="card-tag">${h}</span>`).join('')}</div>
+    </div>
+  </div>`;
+}
+function renderStars(n, size=''){
+  let html='';
+  for(let i=1;i<=5;i++) html+=`<span class="star ${i<=Math.round(n)?'filled':''}">★</span>`;
+  return html;
+}
+
+// =============================================
+// UMKM DETAIL MODAL
+// =============================================
+function openUmkm(id){
+  const u = DB.umkm.find(x=>x.id===id);
+  if(!u) return;
+  APP.currentUmkmId = id;
+  document.getElementById('umkmModalTitle').textContent = u.name;
+  document.getElementById('umkmModalBody').innerHTML = buildUmkmDetail(u);
+  openModal('umkmModal');
+}
+function buildUmkmDetail(u){
+  const stars = renderStars(u.rating);
+  const canReview = APP.user && APP.user.role==='user';
+  const isGuest = !APP.user || APP.user.role==='guest';
+
+  const productHtml = u.products.length ? `
+    <div class="products-grid">${u.products.map(p=>`
+      <div class="product-card">
+        <div class="product-img">${p.img?`<img src="${p.img}" alt="${p.name}">`:`<span>${p.emoji||'📦'}</span>`}</div>
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-price">Rp ${p.price.toLocaleString('id-ID')}</div>
+          <span class="product-stock ${p.stock?'in-stock':'out-of-stock'}">${p.stock?('✓ '+t('inStock')):('✕ '+t('outOfStock'))}</span>
+          <div class="product-tags">${p.tags.map(tag=>`<span class="product-tag">${tag}</span>`).join('')}</div>
+          <div style="font-size:.73rem;color:var(--text3);margin-top:5px">${p.desc}</div>
+        </div>
+      </div>
+    `).join('')}</div>
+  ` : `<div style="color:var(--text3);font-size:.85rem">Belum ada produk.</div>`;
+
+  const reviewsHtml = u.reviews.length ? u.reviews.map(r=>`
+    <div class="review-item">
+      <div class="review-header">
+        <div class="review-avatar">${r.user[0]}</div>
+        <div class="review-user">${r.user}</div>
+        <div class="stars" style="margin-left:6px">${renderStars(r.stars)}</div>
+        <div class="review-date">${r.date}</div>
+      </div>
+      <div class="review-text">${r.text}</div>
+    </div>
+  `).join('') : `<div style="color:var(--text3);font-size:.85rem">Belum ada ulasan.</div>`;
+
+  const reviewFormHtml = canReview ? `
+    <div class="review-form">
+      <div class="review-form-title">✍️ ${t('writeReview')}</div>
+      <div class="star-picker" id="starPicker">
+        ${[1,2,3,4,5].map(i=>`<span class="star-pick" onclick="pickStar(${i})" id="sp-${i}">★</span>`).join('')}
+      </div>
+      <textarea class="review-textarea" id="reviewText" placeholder="${APP.lang==='id'?'Tulis pengalamanmu...':'Write your experience...'}"></textarea>
+      <button class="review-submit-btn" onclick="submitReview(${u.id})">${t('submit')}</button>
+    </div>
+  ` : `<div class="guest-review-notice">🔒 ${t('guestNote')}</div>`;
+
+  let shopLinks = '';
+  if(u.shopee) shopLinks += `<a class="contact-btn shop" href="${u.shopee}" target="_blank">🛒 ${t('shopee')}</a>`;
+  if(u.tokopedia) shopLinks += `<a class="contact-btn shop" href="${u.tokopedia}" target="_blank">🟢 ${t('tokopedia')}</a>`;
+  if(u.lazada) shopLinks += `<a class="contact-btn shop" href="${u.lazada}" target="_blank">🔵 ${t('lazada')}</a>`;
+
+  return `
+    <div class="modal-cover">${u.icon}</div>
+    <div class="modal-umkm-name">${u.name}</div>
+    <div class="modal-category">${u.category}</div>
+    <div class="modal-rating">
+      <div class="stars">${stars}</div>
+      <span style="font-weight:700;font-size:.95rem">${u.rating.toFixed(1)}</span>
+      <span style="color:var(--text3);font-size:.82rem">(${u.reviews.length} ulasan)</span>
+    </div>
+    <div class="modal-section-label">📝 ${t('desc')}</div>
+    <div class="modal-description">${u.description}</div>
+    <div class="modal-section-label">📍 ${t('location')}</div>
+    <div class="modal-address">🗺️ ${u.address}</div>
+    <div class="modal-section-label">📞 ${t('contact')}</div>
+    <div class="contact-links">
+      ${u.wa?`<a class="contact-btn wa" href="https://wa.me/${u.wa}" target="_blank">💬 ${t('whatsapp')}</a>`:''}
+      ${u.instagram?`<a class="contact-btn ig" href="https://instagram.com/${u.instagram}" target="_blank">📸 ${t('instagram')}</a>`:''}
+      ${shopLinks}
+    </div>
+    <div class="modal-section-label">📦 ${t('products')}</div>
+    ${productHtml}
+    <div class="modal-section-label">⭐ ${t('reviews')}</div>
+    <div class="reviews-section">${reviewsHtml}${reviewFormHtml}</div>
+  `;
+}
+function pickStar(n){
+  APP.reviewStars = n;
+  for(let i=1;i<=5;i++){
+    const el=document.getElementById('sp-'+i);
+    if(el) el.classList.toggle('active',i<=n);
+  }
+}
+function submitReview(umkmId){
+  if(!APP.reviewStars){ showToast(APP.lang==='id'?'Pilih bintang rating!':'Select a star rating!','error'); return; }
+  const text = document.getElementById('reviewText').value.trim();
+  if(!text){ showToast(APP.lang==='id'?'Tulis ulasanmu!':'Write your review!','error'); return; }
+  const u = DB.umkm.find(x=>x.id===umkmId);
+  if(!u) return;
+  const today = new Date().toLocaleDateString(APP.lang==='id'?'id-ID':'en-US',{day:'numeric',month:'short',year:'numeric'});
+  u.reviews.push({user:APP.user.name,role:'user',stars:APP.reviewStars,text,date:today});
+  const avgNew = u.reviews.reduce((a,r)=>a+r.stars,0)/u.reviews.length;
+  u.rating = parseFloat(avgNew.toFixed(1));
+  APP.reviewStars = 0;
+  showToast(APP.lang==='id'?'Ulasan berhasil dikirim!':'Review submitted!','success');
+  document.getElementById('umkmModalBody').innerHTML = buildUmkmDetail(u);
+}
+
+// =============================================
+// SEARCH
+// =============================================
+function doHeroSearch(){
+  const q = document.getElementById('heroSearchInput').value.trim();
+  if(!q) return;
+  performSearch(q);
+}
+function performSearch(q){
+  const ql = q.toLowerCase();
+  const results = DB.umkm.filter(u=>
+    u.name.toLowerCase().includes(ql)||
+    u.category.toLowerCase().includes(ql)||
+    u.description.toLowerCase().includes(ql)||
+    u.hashtags.some(h=>h.toLowerCase().includes(ql))||
+    u.products.some(p=>p.name.toLowerCase().includes(ql)||p.desc.toLowerCase().includes(ql))
+  );
+  showSection('search');
+  document.getElementById('search-result-title').textContent = `${t('searchResult')}: "${q}" (${results.length})`;
+  const grid = document.getElementById('searchResultGrid');
+  grid.innerHTML = results.map(u=>umkmCardHtml(u)).join('') || emptyState();
+}
+
+// Nav search
+document.getElementById('navSearchInput').addEventListener('input', function(){
+  const q = this.value.trim();
+  const res = document.getElementById('navSearchResults');
+  if(!q){ res.classList.remove('active'); return; }
+  const ql = q.toLowerCase();
+  const found = DB.umkm.filter(u=>u.name.toLowerCase().includes(ql)||u.category.toLowerCase().includes(ql)||u.hashtags.some(h=>h.includes(ql)));
+  if(!found.length){ res.classList.remove('active'); return; }
+  res.innerHTML = found.map(u=>`<div class="search-result-item" onclick="openUmkm(${u.id});document.getElementById('navSearchResults').classList.remove('active');document.getElementById('navSearchInput').value=''">
+    <div class="sri-name">${u.icon} ${u.name}</div><div class="sri-cat">${u.category}</div>
+  </div>`).join('');
+  res.classList.add('active');
+});
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#navSearchWrap')) document.getElementById('navSearchResults').classList.remove('active');
+  if(!e.target.closest('#profileMenuWrap')) closeDropdown();
+});
+document.getElementById('heroSearchInput').addEventListener('keydown',function(e){ if(e.key==='Enter') doHeroSearch(); });
+document.getElementById('navSearchInput').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){ performSearch(this.value); this.value=''; document.getElementById('navSearchResults').classList.remove('active'); }
+});
+
+// =============================================
+// DASHBOARD PENGUSAHA
+// =============================================
+function renderDashboard(){
+  if(!APP.user||APP.user.role!=='pengusaha'){ showSection('home'); return; }
+  const umkm = DB.umkm.find(u=>u.id===APP.user.umkmId);
+  if(!umkm){ showToast('UMKM tidak ditemukan','error'); return; }
+  showDashTab(APP.dashTab);
+}
+function showDashTab(tab){
+  APP.dashTab = tab;
+  document.querySelectorAll('#dashNav .dash-nav-btn').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.tab===tab);
+  });
+  const umkm = DB.umkm.find(u=>u.id===APP.user.umkmId);
+  if(!umkm) return;
+  const content = document.getElementById('dashboardContent');
+  if(tab==='overview') content.innerHTML = renderDashOverview(umkm);
+  if(tab==='profile') content.innerHTML = renderDashProfile(umkm);
+  if(tab==='products') content.innerHTML = renderDashProducts(umkm);
+  if(tab==='info') content.innerHTML = renderDashInfo(umkm);
+}
+function renderDashOverview(u){
+  const inStock = u.products.filter(p=>p.stock).length;
+  const outStock = u.products.filter(p=>!p.stock).length;
+  return `
+    <div class="dash-card">
+      <div class="dash-card-title">📊 Statistik UMKM</div>
+      <div class="info-grid">
+        <div style="background:var(--navy-pale);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:2rem;font-weight:800;color:var(--navy-mid)">${u.products.length}</div>
+          <div style="font-size:.8rem;color:var(--text3)">${t('products')}</div>
+        </div>
+        <div style="background:rgba(56,161,105,.1);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:2rem;font-weight:800;color:var(--success)">${inStock}</div>
+          <div style="font-size:.8rem;color:var(--text3)">${t('inStock')}</div>
+        </div>
+        <div style="background:rgba(229,62,62,.08);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:2rem;font-weight:800;color:var(--danger)">${outStock}</div>
+          <div style="font-size:.8rem;color:var(--text3)">${t('outOfStock')}</div>
+        </div>
+        <div style="background:rgba(245,166,35,.12);border-radius:12px;padding:16px;text-align:center">
+          <div style="font-size:2rem;font-weight:800;color:var(--orange)">${u.rating.toFixed(1)}⭐</div>
+          <div style="font-size:.8rem;color:var(--text3)">Rating</div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-title">👁️ Preview UMKM</div>
+      <div style="background:var(--bg3);border-radius:14px;overflow:hidden;cursor:pointer" onclick="openUmkm(${u.id})">
+        ${umkmCardHtml(u).replace('<div class="umkm-card"','<div class="umkm-card" style="max-width:300px"')}
+      </div>
+    </div>
+  `;
+}
+function renderDashProfile(u){
+  return `
+    <div class="dash-card">
+      <div class="dash-card-title">👤 Edit Profil Akun</div>
+      <div class="profile-photo-upload" onclick="pickProfilePhoto()">
+        <span id="profilePhotoPreview">${APP.user.avatar||'👤'}</span>
+        <div class="profile-photo-overlay">📷</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${t('fullName')}</label>
+        <input class="form-input" id="editProfileName" value="${APP.user.name}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">${t('bio')}</label>
+        <textarea class="form-input" id="editProfileBio" rows="3" style="resize:vertical">${APP.user.bio||''}</textarea>
+      </div>
+      <button class="btn-primary" onclick="saveProfile()">${t('save')} Profil</button>
+    </div>
+  `;
+}
+function saveProfile(){
+  const name = document.getElementById('editProfileName').value.trim();
+  const bio = document.getElementById('editProfileBio').value.trim();
+  if(!name){ showToast('Nama tidak boleh kosong!','error'); return; }
+  APP.user.name = name;
+  APP.user.bio = bio;
+  const idx = DB.users.findIndex(u=>u.id===APP.user.id);
+  if(idx>-1){ DB.users[idx].name=name; DB.users[idx].bio=bio; }
+  updateNavBar();
+  showToast(APP.lang==='id'?'Profil berhasil disimpan!':'Profile saved!','success');
+}
+function renderDashProducts(u){
+  const list = u.products.map(p=>`
+    <div class="product-list-item" id="pli-${p.id}">
+      <div class="pli-img">${p.img?`<img src="${p.img}" alt="${p.name}">`:`<span>${p.emoji||'📦'}</span>`}</div>
+      <div class="pli-info">
+        <div class="pli-name">${p.name}</div>
+        <div class="pli-price">Rp ${p.price.toLocaleString('id-ID')}</div>
+        <span class="product-stock ${p.stock?'in-stock':'out-of-stock'}">${p.stock?('✓ '+t('inStock')):('✕ '+t('outOfStock'))}</span>
+      </div>
+      <div class="pli-actions">
+        <button class="btn-sm edit" onclick="editProduct(${u.id},${p.id})">✏️</button>
+        <button class="btn-sm delete" onclick="deleteProduct(${u.id},${p.id})">🗑️</button>
+      </div>
+    </div>
+  `).join('')||`<div style="color:var(--text3);padding:12px">Belum ada produk.</div>`;
+  return `
+    <div class="dash-card">
+      <div class="dash-card-title" style="justify-content:space-between">
+        📦 ${t('products')}
+        <button class="btn-add" onclick="openAddProductForm(${u.id})">+ ${t('addProduct')}</button>
+      </div>
+      ${list}
+    </div>
+  `;
+}
+function renderDashInfo(u){
+  return `
+    <div class="dash-card">
+      <div class="dash-card-title">📍 Info UMKM</div>
+      <div class="form-group">
+        <label class="form-label">Nama UMKM</label>
+        <input class="form-input" id="editUmkmName" value="${u.name}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">${t('category')}</label>
+        <input class="form-input" id="editUmkmCat" value="${u.category}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">${t('desc')}</label>
+        <textarea class="form-input" id="editUmkmDesc" rows="4" style="resize:vertical">${u.description}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">${t('address')}</label>
+        <input class="form-input" id="editUmkmAddr" value="${u.address}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">💬 WhatsApp</label>
+        <input class="form-input" id="editUmkmWa" value="${u.wa}" placeholder="628xxx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">📸 Instagram</label>
+        <input class="form-input" id="editUmkmIg" value="${u.instagram}" placeholder="username_ig">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🛒 Shopee URL</label>
+        <input class="form-input" id="editUmkmShopee" value="${u.shopee}" placeholder="https://shopee.co.id/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🟢 Tokopedia URL</label>
+        <input class="form-input" id="editUmkmTokped" value="${u.tokopedia}" placeholder="https://tokopedia.com/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🔵 Lazada URL</label>
+        <input class="form-input" id="editUmkmLazada" value="${u.lazada}" placeholder="https://lazada.co.id/...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">🏷️ Hashtag (pisah koma)</label>
+        <input class="form-input" id="editUmkmHashtags" value="${u.hashtags.join(',')}">
+      </div>
+      <button class="btn-primary" onclick="saveUmkmInfo(${u.id})">${t('save')} Info</button>
+    </div>
+  `;
+}
+function saveUmkmInfo(id){
+  const u = DB.umkm.find(x=>x.id===id);
+  if(!u) return;
+  u.name = document.getElementById('editUmkmName').value.trim()||u.name;
+  u.category = document.getElementById('editUmkmCat').value.trim()||u.category;
+  u.description = document.getElementById('editUmkmDesc').value.trim()||u.description;
+  u.address = document.getElementById('editUmkmAddr').value.trim()||u.address;
+  u.wa = document.getElementById('editUmkmWa').value.trim();
+  u.instagram = document.getElementById('editUmkmIg').value.trim();
+  u.shopee = document.getElementById('editUmkmShopee').value.trim();
+  u.tokopedia = document.getElementById('editUmkmTokped').value.trim();
+  u.lazada = document.getElementById('editUmkmLazada').value.trim();
+  const tags = document.getElementById('editUmkmHashtags').value.split(',').map(h=>h.trim()).filter(h=>h);
+  u.hashtags = tags;
+  showToast(APP.lang==='id'?'Info UMKM disimpan!':'UMKM info saved!','success');
+}
+function openAddProductForm(umkmId){ openProductForm(umkmId, null); }
+function editProduct(umkmId, productId){ openProductForm(umkmId, productId); }
+function openProductForm(umkmId, productId){
+  const u = DB.umkm.find(x=>x.id===umkmId);
+  if(!u) return;
+  const p = productId ? u.products.find(x=>x.id===productId) : null;
+  const title = p ? t('editProduct') : t('addProduct');
+  document.getElementById('genericModalTitle').textContent = title;
+  document.getElementById('genericModalContent').style.maxWidth = '520px';
+  document.getElementById('genericModalBody').innerHTML = `
+    <div class="form-group">
+      <label class="form-label">${t('productPhoto')}</label>
+      <div class="product-img-upload" onclick="pickProductImage(this)" id="productImgUpload" style="cursor:pointer">
+        ${p&&p.img?`<img src="${p.img}" alt="">`:`<span style="font-size:2.5rem">${p?p.emoji||'📦':'📷'}</span>`}
+        <div class="product-img-overlay">📷 ${APP.lang==='id'?'Ganti Foto':'Change Photo'}</div>
+        <input type="file" style="display:none" accept="image/*" onchange="previewProductImage(this)">
+      </div>
+      <div class="form-group" style="margin-top:10px">
+        <label class="form-label">Emoji Produk (opsional)</label>
+        <input class="form-input" id="productEmoji" value="${p?p.emoji||'📦':'📦'}" placeholder="📦">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">${t('productName')}</label>
+      <input class="form-input" id="productName" value="${p?p.name:''}" placeholder="${APP.lang==='id'?'Nama produk...':'Product name...'}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">${t('price')}</label>
+      <div class="price-input-wrap">
+        <span class="price-prefix">Rp</span>
+        <input class="form-input price-input" id="productPrice" type="number" value="${p?p.price:''}" placeholder="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">${t('productDesc')}</label>
+      <textarea class="form-input" id="productDesc" rows="3" style="resize:vertical" placeholder="${APP.lang==='id'?'Deskripsi produk...':'Product description...'}">${p?p.desc:''}</textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">${t('category')} (Hashtag, pisah koma)</label>
+      <input class="form-input" id="productTags" value="${p?p.tags.join(','):''}" placeholder="#kuliner,#minuman">
+    </div>
+    <div class="form-group">
+      <label class="form-label">${t('stockStatus')}</label>
+      <label class="stock-toggle" style="cursor:pointer">
+        <label class="toggle-switch"><input type="checkbox" id="productStock" ${p&&p.stock?'checked':''}><span class="toggle-slider"></span></label>
+        <span class="stock-label" id="stockLabelText">${p&&p.stock?(t('inStock')):(t('outOfStock'))}</span>
+      </label>
+    </div>
+    <button class="btn-primary" onclick="saveProduct(${umkmId},${productId||'null'})">${t('save')}</button>
+  `;
+  document.getElementById('productStock').addEventListener('change',function(){
+    document.getElementById('stockLabelText').textContent = this.checked?t('inStock'):t('outOfStock');
+  });
+  openModal('genericModal');
+}
+function previewProductImage(input){
+  if(!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const upload = document.getElementById('productImgUpload');
+    let img = upload.querySelector('img');
+    if(!img){ img=document.createElement('img'); upload.prepend(img); }
+    img.src = e.target.result;
+    img.style.position='absolute';img.style.inset='0';img.style.width='100%';img.style.height='100%';img.style.objectFit='cover';
+    const span = upload.querySelector('span:not(.product-img-overlay)');
+    if(span) span.style.display='none';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function pickProductImage(el){ el.querySelector('input[type=file]').click(); }
+function saveProduct(umkmId, productId){
+  const name=document.getElementById('productName').value.trim();
+  const price=parseInt(document.getElementById('productPrice').value)||0;
+  const desc=document.getElementById('productDesc').value.trim();
+  const emoji=document.getElementById('productEmoji').value.trim()||'📦';
+  const stock=document.getElementById('productStock').checked;
+  const tags=document.getElementById('productTags').value.split(',').map(t=>t.trim()).filter(t=>t);
+  const imgEl=document.querySelector('#productImgUpload img');
+  const img=imgEl?imgEl.src:'';
+  if(!name||!price){ showToast(APP.lang==='id'?'Nama dan harga wajib diisi!':'Name and price required!','error'); return; }
+  const u=DB.umkm.find(x=>x.id===umkmId);
+  if(!u) return;
+  if(productId){
+    const p=u.products.find(x=>x.id===productId);
+    if(p){ p.name=name;p.price=price;p.desc=desc;p.emoji=emoji;p.stock=stock;p.tags=tags;if(img)p.img=img; }
+  } else {
+    u.products.push({id:Date.now(),name,price,desc,emoji,stock,tags,img});
+  }
+  closeModal('genericModal');
+  showToast(APP.lang==='id'?'Produk disimpan!':'Product saved!','success');
+  showDashTab('products');
+}
+function deleteProduct(umkmId, productId){
+  showWarning(
+    APP.lang==='id'?'Hapus Produk?':'Delete Product?',
+    APP.lang==='id'?'Produk ini akan dihapus permanen.':'This product will be permanently deleted.',
+    ()=>{
+      const u=DB.umkm.find(x=>x.id===umkmId);
+      if(u) u.products=u.products.filter(p=>p.id!==productId);
+      showToast(APP.lang==='id'?'Produk dihapus!':'Product deleted!','success');
+      showDashTab('products');
+    }
+  );
+}
+function openProfileEditor(){
+  document.getElementById('genericModalTitle').textContent = t('editProfile');
+  document.getElementById('genericModalContent').style.maxWidth='440px';
+  document.getElementById('genericModalBody').innerHTML=`
+    <div class="profile-photo-upload" onclick="this.querySelector('input').click()">
+      <span>${APP.user.avatar||'👤'}</span>
+      <div class="profile-photo-overlay">📷</div>
+      <input type="file" style="display:none" accept="image/*">
+    </div>
+    <div class="form-group">
+      <label class="form-label">${t('fullName')}</label>
+      <input class="form-input" id="gEditName" value="${APP.user.name}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">${t('bio')}</label>
+      <textarea class="form-input" id="gEditBio" rows="3" style="resize:vertical">${APP.user.bio||''}</textarea>
+    </div>
+    <button class="btn-primary" onclick="saveProfileFromGeneric()">${t('save')}</button>
+  `;
+  openModal('genericModal');
+}
+function saveProfileFromGeneric(){
+  const name=document.getElementById('gEditName').value.trim();
+  const bio=document.getElementById('gEditBio').value.trim();
+  if(!name){ showToast('Nama tidak boleh kosong!','error'); return; }
+  APP.user.name=name; APP.user.bio=bio;
+  updateNavBar();
+  closeModal('genericModal');
+  showToast(APP.lang==='id'?'Profil disimpan!':'Profile saved!','success');
+}
+
+// =============================================
+// ADMIN DASHBOARD
+// =============================================
+function renderAdmin(){
+  if(!APP.user||APP.user.role!=='admin'){ showSection('home'); return; }
+  showAdminTab(APP.adminTab);
+}
+function showAdminTab(tab){
+  APP.adminTab=tab;
+  document.querySelectorAll('#adminNav .dash-nav-btn').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.tab===tab);
+  });
+  const content=document.getElementById('adminContent');
+  if(tab==='highlights') content.innerHTML=renderAdminHighlights();
+  if(tab==='hashtags') content.innerHTML=renderAdminHashtags();
+  if(tab==='manage') content.innerHTML=renderAdminManage();
+}
+function renderAdminHighlights(){
+  const list=DB.umkm.map(u=>`
+    <div class="umkm-admin-item">
+      <div class="uai-icon">${u.icon}</div>
+      <div class="uai-info">
+        <div class="uai-name">${u.name}</div>
+        <div class="uai-cat">${u.category}</div>
+      </div>
+      <button class="highlight-toggle ${u.highlight?'on':''}" onclick="toggleHighlight(${u.id})">
+        ${u.highlight?'⭐ Highlighted':'☆ Set Highlight'}
+      </button>
+    </div>
+  `).join('');
+  return `<div class="dash-card"><div class="dash-card-title">⭐ Kelola Highlight Beranda</div><div class="umkm-admin-list">${list}</div></div>`;
+}
+function toggleHighlight(id){
+  const u=DB.umkm.find(x=>x.id===id);
+  if(!u) return;
+  u.highlight=!u.highlight;
+  showToast(`${u.name} ${u.highlight?(APP.lang==='id'?'ditambahkan ke highlight':'added to highlights'):(APP.lang==='id'?'dihapus dari highlight':'removed from highlights')}`, u.highlight?'success':'info');
+  showAdminTab('highlights');
+  renderHighlights();
+}
+function renderAdminHashtags(){
+  const pills=DB.hashtags.map((h,i)=>`
+    <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:10px;background:var(--tag-bg);color:var(--tag-color);font-size:.82rem;font-weight:600;margin:3px">
+      ${h}
+      <button onclick="deleteHashtag(${i})" style="color:var(--danger);font-size:.8rem;font-weight:700;margin-left:2px">✕</button>
+    </span>
+  `).join('');
+  return `
+    <div class="dash-card">
+      <div class="dash-card-title">🏷️ ${t('manageHashtags')}</div>
+      <div class="hashtag-input-row" style="margin-bottom:14px">
+        <input class="form-input hashtag-input" id="newHashtagInput" placeholder="#kategori-baru">
+        <button class="btn-add" onclick="addHashtag()">+ ${t('addHashtag')}</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">${pills}</div>
+    </div>
+  `;
+}
+function addHashtag(){
+  let val=document.getElementById('newHashtagInput').value.trim();
+  if(!val) return;
+  if(!val.startsWith('#')) val='#'+val;
+  val=val.toLowerCase().replace(/\s+/g,'-');
+  if(DB.hashtags.includes(val)){ showToast(APP.lang==='id'?'Hashtag sudah ada!':'Hashtag already exists!','warning'); return; }
+  DB.hashtags.push(val);
+  document.getElementById('newHashtagInput').value='';
+  showToast(`${val} ${APP.lang==='id'?'ditambahkan!':'added!'}`, 'success');
+  showAdminTab('hashtags');
+  renderSidebar();
+}
+function deleteHashtag(idx){
+  showWarning(
+    APP.lang==='id'?'Hapus Hashtag?':'Delete Hashtag?',
+    APP.lang==='id'?'Hashtag ini akan dihapus dari sistem.':'This hashtag will be removed from the system.',
+    ()=>{
+      DB.hashtags.splice(idx,1);
+      showToast(APP.lang==='id'?'Hashtag dihapus!':'Hashtag deleted!','success');
+      showAdminTab('hashtags');
+      renderSidebar();
+    }
+  );
+}
+function renderAdminManage(){
+  const list=DB.umkm.map(u=>`
+    <div class="umkm-admin-item">
+      <div class="uai-icon">${u.icon}</div>
+      <div class="uai-info">
+        <div class="uai-name">${u.name}</div>
+        <div class="uai-cat">${u.category} • ${u.products.length} produk • ⭐${u.rating}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-sm edit" onclick="openUmkm(${u.id})">👁️</button>
+        <button class="btn-sm delete" onclick="adminDeleteUmkm(${u.id})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+  return `<div class="dash-card"><div class="dash-card-title">🏪 Kelola UMKM</div><div class="umkm-admin-list">${list}</div></div>`;
+}
+function adminDeleteUmkm(id){
+  const u=DB.umkm.find(x=>x.id===id);
+  if(!u) return;
+  showWarning(
+    (APP.lang==='id'?'Hapus UMKM':'Delete UMKM')+': '+u.name,
+    t('deleteWarn'),
+    ()=>{
+      DB.umkm=DB.umkm.filter(x=>x.id!==id);
+      showToast(`${u.name} ${APP.lang==='id'?'berhasil dihapus!':'deleted!'}`, 'success');
+      showAdminTab('manage');
+    }
+  );
+}
+
+// =============================================
+// WARNING / CONFIRM
+// =============================================
+function showWarning(title, msg, onConfirm){
+  document.getElementById('warningTitle').textContent = title;
+  document.getElementById('warningMsg').textContent = msg;
+  document.getElementById('btn-confirm-warn').textContent = t('deleteConfirm');
+  document.getElementById('btn-cancel-warn').textContent = t('cancel');
+  document.getElementById('btn-confirm-warn').onclick = ()=>{ closeModal('warningModal'); onConfirm(); };
+  openModal('warningModal');
+}
+
+// =============================================
+// TOAST
+// =============================================
+function showToast(msg, type='info'){
+  const icons={success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
+  const toast=document.createElement('div');
+  toast.className=`toast ${type}`;
+  toast.innerHTML=`${icons[type]||'ℹ️'} ${msg}`;
+  document.getElementById('toastContainer').appendChild(toast);
+  requestAnimationFrame(()=>{ setTimeout(()=>toast.classList.add('show'),10); });
+  setTimeout(()=>{ toast.classList.remove('show'); setTimeout(()=>toast.remove(),400); },3200);
+}
+
+// =============================================
+// INIT
+// =============================================
+function init(){
+  applyTranslations();
+  renderDropdownMenu();
+  renderSidebar();
+  renderFilterBar('homeFilterBar','home');
+  renderHighlights();
+  renderHomeGrid();
+  // Update stats
+  document.getElementById('stat-umkm').textContent = DB.umkm.length;
+  document.getElementById('stat-produk').textContent = DB.umkm.reduce((a,u)=>a+u.products.length,0);
+  document.getElementById('stat-hashtag').textContent = DB.hashtags.length;
+}
+init();
+</script>
+</body>
+</html>
