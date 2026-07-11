@@ -39,7 +39,7 @@ class UmkmController extends Controller
             });
         }
 
-        $umkms = $query->orderByDesc('rating')->get();
+        $umkms = $query->with('items')->orderByDesc('rating')->get();
 
         return UmkmResource::collection($umkms);
     }
