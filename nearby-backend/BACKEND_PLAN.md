@@ -3,11 +3,30 @@
 # NearBy — Backend API (Laravel)
 
 Backend REST API untuk aplikasi **NearBy** (direktori UMKM Balikpapan).
-Folder ini **terpisah** dari frontend Vue (`../NearBy-Bringing-Busines-front-end`).
+Frontend Vue-nya ada di **branch `front-end`** repo ini (bukan di branch `Back-end`).
 
-> ⚠️ Folder ini masih berisi **dokumentasi & rencana** saja.
-> Laravel belum di-generate karena PHP & Composer belum terinstall di komputer.
-> Setelah tools siap, jalankan langkah di bagian **"Cara Membuat"** di bawah.
+> ✅ **Backend sudah dibuat & jalan.** Laravel 13 + Sanctum, database **SQLite**.
+> Semua tabel, model, controller, resource, route, dan seeder di dokumen ini
+> sudah diimplementasikan. Cara jalan cepat lihat bagian **"Menjalankan"** di bawah.
+
+## Menjalankan
+
+```bash
+cd nearby-backend
+composer install
+cp .env.example .env         # sudah pakai SQLite
+php artisan key:generate
+php artisan migrate:fresh --seed
+php artisan serve            # http://127.0.0.1:8000
+```
+
+## Akun demo (password semua: `password`)
+
+| Email                 | Role  | Nama          |
+|-----------------------|-------|---------------|
+| `rizky.p@mail.com`    | user  | Rizky Pratama |
+| `dewi.umkm@mail.com`  | owner | Dewi Anjani (punya UMKM #1 & #4) |
+| `admin@nearby.id`     | admin | Admin NearBy  |
 
 ---
 
