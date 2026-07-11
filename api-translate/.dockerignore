@@ -1,0 +1,11 @@
+node_modules
+dist
+logs
+models_cache
+.env
+.env.local
+*.log
+.git
+.gitignore
+docs
+postman

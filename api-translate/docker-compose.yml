@@ -1,0 +1,21 @@
+services:
+  api-translate:
+    build: .
+    image: api-translate:latest
+    container_name: api-translate
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      MODELS_CACHE_DIR: /app/models_cache
+      LOG_DIR: /app/logs
+    volumes:
+      # Persist downloaded models and logs across container restarts/rebuilds.
+      - models_cache:/app/models_cache
+      - ./logs:/app/logs
+
+volumes:
+  models_cache:
