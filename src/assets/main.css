@@ -88,6 +88,33 @@
   animation: drift 9s ease-in-out infinite;
 }
 
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 0.8, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 0.8, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+  .animate-drift,
+  .animate-float-up {
+    animation: none;
+  }
+}
+
 .page-enter-active,
 .page-leave-active {
   transition: opacity 0.32s ease;

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useUmkmStore } from '@/stores/umkm'
 import { CATEGORY_FILTERS } from '@/data/categories'
 import PlaceholderThumb from '@/components/shared/PlaceholderThumb.vue'
+import HeroCanvas from '@/components/home/HeroCanvas.vue'
 
 const router = useRouter()
 const umkm = useUmkmStore()
@@ -21,17 +22,21 @@ function doHeroSearch() {
     class="relative overflow-hidden"
     style="background: linear-gradient(160deg, #16324b 0%, #1e4372 55%, #2c5ead 100%)"
   >
+    <div class="pointer-events-none absolute inset-0 z-0">
+      <HeroCanvas />
+    </div>
+
     <div
-      class="absolute -top-[120px] -right-20 h-[420px] w-[420px] rounded-full"
+      class="pointer-events-none absolute -top-[120px] -right-20 z-0 h-[420px] w-[420px] rounded-full animate-drift"
       style="background: radial-gradient(circle, rgba(214, 162, 74, 0.35), transparent 70%)"
     />
     <div
-      class="absolute -bottom-[140px] -left-[60px] h-[360px] w-[360px] rounded-full"
-      style="background: radial-gradient(circle, rgba(62, 142, 130, 0.4), transparent 70%)"
+      class="pointer-events-none absolute -bottom-[140px] -left-[60px] z-0 h-[360px] w-[360px] rounded-full animate-drift"
+      style="background: radial-gradient(circle, rgba(62, 142, 130, 0.4), transparent 70%); animation-delay: -4.5s"
     />
 
     <div
-      class="relative mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-6 py-[76px] pb-[88px] tablet:grid-cols-[1.15fr_.85fr]"
+      class="relative z-10 mx-auto grid max-w-[1200px] grid-cols-1 items-center gap-12 px-6 py-[76px] pb-[88px] tablet:grid-cols-[1.15fr_.85fr]"
     >
       <div class="animate-float-up">
         <div

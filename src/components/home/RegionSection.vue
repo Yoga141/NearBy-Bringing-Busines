@@ -13,14 +13,15 @@ function open(full: string) {
 
 <template>
   <section class="mx-auto max-w-[1200px] px-6 pt-[54px] pb-5">
-    <div class="mb-[26px]">
+    <div v-reveal class="mb-[26px]">
       <div class="text-[13px] font-bold tracking-[.08em] text-gold uppercase">Berdasarkan lokasi</div>
       <h2 class="mt-1.5 text-[24px] font-extrabold tracking-[-.02em] mobile:text-[28px] tablet:text-[32px]">Jelajahi per wilayah</h2>
     </div>
     <div class="grid grid-cols-2 gap-3.5 mobile:grid-cols-3 tablet:grid-cols-6">
       <div
-        v-for="r in umkm.regionCards"
+        v-for="(r, i) in umkm.regionCards"
         :key="r.full"
+        v-reveal="{ delay: i * 60 }"
         class="relative h-[150px] cursor-pointer overflow-hidden rounded-[18px]"
         style="background: repeating-linear-gradient(135deg, #26456b 0 12px, #2c5079 12px 24px)"
         @click="open(r.full)"

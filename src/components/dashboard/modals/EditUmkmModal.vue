@@ -36,7 +36,6 @@ const draft = reactive({
   hours: '',
   desc: '',
   photos: BLANK_PHOTOS(),
-  docs: { siup: '', ktp: '' },
   menu: [{ name: '', price: '', img: '', avail: true }] as DraftMenuItem[],
 })
 
@@ -53,7 +52,6 @@ watch(
       draft.hours = item.hours || ''
       draft.desc = item.tag || ''
       draft.photos = BLANK_PHOTOS()
-      draft.docs = { siup: '', ktp: '' }
       draft.menu = (item.items ?? []).map((it: { name: string; price: string; img?: string; avail?: boolean }) => ({
         name: it.name,
         price: it.price,
@@ -70,7 +68,6 @@ watch(
       draft.hours = ''
       draft.desc = ''
       draft.photos = BLANK_PHOTOS()
-      draft.docs = { siup: '', ktp: '' }
       draft.menu = [{ name: '', price: '', img: '', avail: true }]
     }
   },
@@ -99,23 +96,6 @@ function clearPhoto(i: number) {
   draft.photos[i].img = ''
 }
 
-function onSiup(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  draft.docs.siup = file.name
-}
-function onKtp(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  draft.docs.ktp = file.name
-}
-const siupBoxStyle = computed(() =>
-  draft.docs.siup ? { borderColor: '#8FC3B8', background: '#EEF6F3' } : { borderColor: '#D6CFC0', background: '#FBF8F2' },
-)
-const ktpBoxStyle = computed(() =>
-  draft.docs.ktp ? { borderColor: '#8FC3B8', background: '#EEF6F3' } : { borderColor: '#D6CFC0', background: '#FBF8F2' },
-)
-
 function addMenuRow() {
   draft.menu.push({ name: '', price: '', img: '', avail: true })
 }
@@ -136,14 +116,6 @@ function toggleMenuAvail(i: number) {
 function saveUmkm() {
   if (photoCount.value < 3) {
     alert(`Unggah tepat 3 foto UMKM. Saat ini baru ${photoCount.value} foto.`)
-    return
-  }
-  if (!draft.docs.siup) {
-    alert('Unggah berkas Surat Izin Usaha untuk verifikasi.')
-    return
-  }
-  if (!draft.docs.ktp) {
-    alert('Unggah berkas KTP pemilik untuk verifikasi.')
     return
   }
   ui.closeModal()
@@ -168,7 +140,7 @@ function saveUmkm() {
           <span class="text-[17px]">🛡️</span>
           <div class="text-[12.5px] leading-relaxed text-[#7A5B1E]">
             UMKM baru <b class="text-[#8A5A12]">menunggu verifikasi admin</b> sebelum tampil ke publik. Lengkapi 3
-            foto, berkas izin usaha, dan KTP agar cepat disetujui dan aktif.
+            foto agar cepat disetujui dan aktif.
           </div>
         </div>
 
@@ -232,25 +204,6 @@ function saveUmkm() {
         <input v-model="draft.hours" placeholder="08.00 – 22.00 WITA" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
         <label class="mb-1.5 block text-[13px] font-bold">Deskripsi</label>
         <textarea v-model="draft.desc" class="mb-4 min-h-20 w-full resize-y rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
-
-        <label class="mb-0.5 block text-[13px] font-bold">Berkas legalitas <span class="font-semibold text-text-faint">· wajib untuk verifikasi</span></label>
-        <div class="mb-2.5 text-xs text-text-faint">Unggah dokumen (PDF/JPG). Data ini hanya dilihat admin saat verifikasi.</div>
-        <div class="mb-4 grid grid-cols-1 gap-3 mobile:grid-cols-2">
-          <label class="flex flex-col items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-dashed px-2.5 py-4" :style="siupBoxStyle">
-            <div class="text-center text-[12.5px] leading-tight font-bold text-brand-navy">Surat Izin Usaha</div>
-            <div class="max-w-full overflow-hidden text-center text-[11px] font-semibold text-ellipsis whitespace-nowrap" :style="{ color: draft.docs.siup ? '#2E7D6E' : '#8A8578' }">
-              {{ draft.docs.siup || 'Klik untuk unggah' }}
-            </div>
-            <input type="file" accept="image/*,application/pdf" class="hidden" @change="onSiup" />
-          </label>
-          <label class="flex flex-col items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-dashed px-2.5 py-4" :style="ktpBoxStyle">
-            <div class="text-center text-[12.5px] leading-tight font-bold text-brand-navy">KTP Pemilik</div>
-            <div class="max-w-full overflow-hidden text-center text-[11px] font-semibold text-ellipsis whitespace-nowrap" :style="{ color: draft.docs.ktp ? '#2E7D6E' : '#8A8578' }">
-              {{ draft.docs.ktp || 'Klik untuk unggah' }}
-            </div>
-            <input type="file" accept="image/*,application/pdf" class="hidden" @change="onKtp" />
-          </label>
-        </div>
 
         <div class="mb-2.5 flex items-center justify-between">
           <label class="text-[13px] font-bold">Menu / produk &amp; harga <span class="font-semibold text-text-faint">· klik kotak foto untuk tambah gambar</span></label>

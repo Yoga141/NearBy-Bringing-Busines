@@ -14,6 +14,7 @@ function goRegisterOwner() {
 <template>
   <section class="mx-auto max-w-[1200px] px-6 pt-[60px] pb-20">
     <div
+      v-reveal
       class="relative flex flex-wrap items-center justify-between gap-[30px] overflow-hidden rounded-[26px] p-9 px-14"
       style="background: linear-gradient(120deg, #3e8e82, #2c5ead)"
     >
