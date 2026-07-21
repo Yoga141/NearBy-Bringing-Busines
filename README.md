@@ -17,13 +17,7 @@ NearBy-Bringing-Busines/
 
 ## 1. Siapkan database
 
-Buat database kosong bernama `nearby_db` (lewat phpMyAdmin, atau command line):
-
-```bash
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS nearby_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-```
-
-Struktur tabel & data awal (seed) dibuat otomatis di langkah 2 lewat migration Laravel — **tidak perlu** import file `.sql` manual untuk menjalankan proyek ini.
+Buat database kosong bernama `nearby_db` (lewat phpMyAdmin) lalu import file yang berada di `db_required\nearby_db.sql`
 
 ## 2. Jalankan backend (Laravel)
 
