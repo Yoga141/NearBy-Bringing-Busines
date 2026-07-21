@@ -1,4 +1,4 @@
-#INSOS Nearby
+# INSOS Nearby
 
 INSOS Nearby adalah website yang dirancang untuk membantu masyarakat menemukan dan mengenal Usaha Mikro, Kecil, dan Menengah (UMKM) di Kalimantan Timur. Platform ini bertujuan untuk mendukung digitalisasi UMKM dengan menyediakan informasi usaha yang lengkap, mudah diakses, dan berbasis lokasi.
 
