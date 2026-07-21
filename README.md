@@ -1,65 +1,103 @@
-# INSOS Nearby
+# INSOS Nearby Database
 
-INSOS Nearby adalah website yang dirancang untuk membantu masyarakat menemukan dan mengenal Usaha Mikro, Kecil, dan Menengah (UMKM) di Kalimantan Timur. Platform ini bertujuan untuk mendukung digitalisasi UMKM dengan menyediakan informasi usaha yang lengkap, mudah diakses, dan berbasis lokasi.
+Direktori UMKM Balikpapan — **NearBy**. Frontend Vue 3 + backend Laravel API, dua proyek terpisah dalam satu folder induk ini.
 
-🎯 Tujuan Proyek
+```
+NearBy-Bringing-Busines/
+├── frontend/           ← Vue 3 + Vite (tampilan website)
+├── nearby-backend/     ← Laravel 13 + Sanctum (REST API)
+└── db_required/        ← skema database referensi (lihat catatan di bawah)
+```
 
-- Mempermudah masyarakat menemukan UMKM di sekitarnya.
-- Mendukung promosi dan digitalisasi UMKM lokal.
-- Menyediakan informasi UMKM yang akurat dan mudah diakses.
-- Meningkatkan eksposur UMKM kepada masyarakat.
+## Prasyarat
 
-✨ Fitur
+- **XAMPP** (Apache tidak wajib jalan, tapi **MySQL wajib jalan**) — pastikan modul MySQL di XAMPP Control Panel berstatus *Running*.
+- **PHP 8.3+** dan **Composer** (biasanya sudah dibawa XAMPP, `C:\xampp\php`).
+- **Node.js** (untuk `npm`), disarankan versi 18+.
 
-- 🏠 Landing Page
-- 📋 Katalog UMKM
-- 🔍 Pencarian UMKM
-- 📍 Lokasi dan UMKM Terdekat
-- ⭐ Rekomendasi UMKM
-- 🏪 Detail UMKM
-- 👤 Profil UMKM
-- 🛠 Dashboard Admin
-- 📱 Responsive Design
+## 1. Siapkan database
 
-🛠 Teknologi
+Buat database kosong bernama `nearby_db` (lewat phpMyAdmin, atau command line):
 
-Frontend
+```bash
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS nearby_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
 
-- HTML
-- CSS
-- JavaScript
+Struktur tabel & data awal (seed) dibuat otomatis di langkah 2 lewat migration Laravel — **tidak perlu** import file `.sql` manual untuk menjalankan proyek ini.
 
-Backend
+## 2. Jalankan backend (Laravel)
 
-- PHP
+```bash
+cd nearby-backend
+composer install
+copy .env.example .env        # kalau belum ada file .env
+php artisan key:generate
+php artisan migrate:fresh --seed
+php artisan serve --host=127.0.0.1 --port=8000
+```
 
-Database
+Cek konfigurasi database di `nearby-backend/.env` sebelum migrate, pastikan sesuai dengan MySQL di komputer kamu:
 
-- MySQL
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=nearby_db
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-🛡 Keamanan
+Backend akan aktif di **http://127.0.0.1:8000** (endpoint API di `http://127.0.0.1:8000/api/...`). Biarkan terminal ini tetap terbuka selama development.
 
-- Validasi input pengguna.
-- Perlindungan terhadap SQL Injection.
-- Perlindungan terhadap Cross Site Scripting (XSS).
-- Sanitasi data sebelum disimpan ke database.
+## 3. Jalankan frontend (Vue)
 
-🚀 Cara Menjalankan
+Buka terminal baru:
 
-1. Clone repository ini.
-2. Jalankan web server (XAMPP, Laragon, atau sejenisnya).
-3. Import database ke MySQL.
-4. Sesuaikan konfigurasi koneksi database.
-5. Akses aplikasi melalui browser.
+```bash
+cd frontend
+npm install
+```
 
-👥 Tim Pengembang
+Buat file `frontend/.env` (kalau belum ada) berisi:
 
-Proyek ini dikembangkan oleh mahasiswa Institut Teknologi Kalimantan (ITK) dalam rangka pengembangan sistem informasi berbasis web untuk mendukung digitalisasi UMKM melalui program INSOS Nearby.
+```env
+VITE_API_URL=http://127.0.0.1:8000/api
+```
 
-📌 Status Proyek
+Lalu jalankan:
 
-🚧 Development — Proyek masih dalam tahap pengembangan dan penyempurnaan fitur.
+```bash
+npm run dev
+```
 
-📄 Lisensi
+Vite akan menampilkan URL lokalnya di terminal, biasanya **http://localhost:5173** (kalau port itu terpakai proses lain, Vite otomatis pindah ke port berikutnya seperti 5174 — pakai URL persis yang tertulis di terminal).
 
-Proyek ini dibuat untuk tujuan akademik dan pengembangan pembelajaran.
+> Kalau port yang dipakai bukan 5173/5174, tambahkan origin tersebut ke `allowed_origins` di `nearby-backend/config/cors.php` supaya frontend tidak diblokir CORS saat memanggil API.
+
+## 4. Buka websitenya
+
+Kunjungi URL dari langkah 3 di browser (**bukan** port 8000 — itu backend API saja, tidak ada tampilan visualnya).
+
+**Akun demo** (password semua: `password`):
+
+| Email | Role |
+|---|---|
+| `rizky.p@mail.com` | Pengguna |
+| `dewi.umkm@mail.com` | Pemilik UMKM |
+| `admin@nearby.id` | Administrator |
+
+Atau pakai tombol "masuk cepat sebagai" di halaman `/login`.
+
+## Menjalankan ulang di lain waktu
+
+Setelah setup pertama kali selesai, cukup jalankan (di dua terminal terpisah):
+
+```bash
+# terminal 1
+cd nearby-backend && php artisan serve --host=127.0.0.1 --port=8000
+
+# terminal 2
+cd frontend && npm run dev
+```
+
+Pastikan MySQL di XAMPP sudah *Running* sebelum menjalankan backend.
