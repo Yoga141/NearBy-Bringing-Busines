@@ -6,7 +6,7 @@ Direktori UMKM Balikpapan — **NearBy**. Frontend Vue 3 + backend Laravel API, 
 NearBy-Bringing-Busines/
 ├── frontend/           ← Vue 3 + Vite (tampilan website)
 ├── nearby-backend/     ← Laravel 13 + Sanctum (REST API)
-└── db_required/        ← skema database referensi (lihat catatan di bawah)
+└── db_required/        ← ekspor database (.sql) untuk di-import manual
 ```
 
 ## Prasyarat
@@ -26,11 +26,16 @@ cd nearby-backend
 composer install
 copy .env.example .env        # kalau belum ada file .env
 php artisan key:generate
-php artisan migrate:fresh --seed
 php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Cek konfigurasi database di `nearby-backend/.env` sebelum migrate, pastikan sesuai dengan MySQL di komputer kamu:
+> ⚠️ **Tidak perlu `php artisan migrate`.** Struktur tabel + seluruh data sudah
+> lengkap dari import `nearby_db.sql` di langkah 1. **Jangan** jalankan
+> `php artisan migrate:fresh` — perintah itu akan **menghapus** data hasil import.
+> Seeder (`php artisan db:seed`) juga sengaja dikosongkan; data proyek ini hanya
+> berasal dari file `db_required/nearby_db.sql`.
+
+Sebelum menjalankan, pastikan konfigurasi database di `nearby-backend/.env` sesuai dengan MySQL di komputer kamu (nilai default dari `.env.example` biasanya sudah benar):
 
 ```env
 DB_CONNECTION=mysql
