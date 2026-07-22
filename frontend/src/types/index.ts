@@ -38,6 +38,12 @@ export interface Umkm {
   ig: string
   listLabel: string
   items: UmkmItem[]
+  // Field tambahan dari API (opsional supaya data seed lama tetap valid)
+  views?: number
+  status?: string
+  verification?: string
+  isFavorite?: boolean
+  reviewsList?: Review[]
 }
 
 export type UmkmStatus = 'Aktif' | 'Libur' | 'Tutup'
@@ -50,13 +56,21 @@ export interface Review {
   stars: number
   date: string
   text: string
+  reply?: string | null
 }
 
 export type Role = 'user' | 'owner' | 'admin'
 
 export interface AuthUser {
+  id?: number
   name: string
   role: Role
+  email?: string
+  phone?: string | null
+  roleLabel?: string
+  status?: string
+  initial?: string
+  joined?: string
 }
 
 // ---- Dashboard ----

@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { UMKM_SEED, FEATURED_IDS, DEFAULT_HIDDEN_UMKM } from '@/data/umkm'
+import { api, type Wrapped } from '@/lib/api'
+import { FEATURED_IDS, DEFAULT_HIDDEN_UMKM } from '@/data/umkm'
 import { CAT, CATEGORY_NAMES, REGION_CARDS } from '@/data/categories'
 import type { Umkm, UmkmStatus } from '@/types'
 
@@ -11,13 +12,16 @@ export interface EnrichedUmkm extends Umkm {
 }
 
 function enrich(u: Umkm): EnrichedUmkm {
-  const style = CAT[u.cat]
+  const style = CAT[u.cat] ?? { accent: '#8A8578', soft: '#EEEADF', initial: '?' }
   return { ...u, accent: style.accent, soft: style.soft, initial: style.initial }
 }
 
 export const useUmkmStore = defineStore('umkm', () => {
-  const all = ref<Umkm[]>(UMKM_SEED)
+  const all = ref<Umkm[]>([])
   const favorites = ref<number[]>([])
+
+  const loaded = ref(false)
+  const loading = ref(false)
 
   // Directory filter state (also seeded by home-page category/region clicks)
   const cat = ref('Semua')
@@ -28,6 +32,30 @@ export const useUmkmStore = defineStore('umkm', () => {
 
   function byId(id: number): EnrichedUmkm | undefined {
     return enrichedAll.value.find((u) => u.id === id)
+  }
+
+  /** Ambil daftar UMKM publik dari API (sekali, kecuali force). */
+  async function loadAll(force = false) {
+    if ((loaded.value || loading.value) && !force) return
+    loading.value = true
+    try {
+      const res = await api.get<Wrapped<Umkm[]>>('/umkm')
+      all.value = res.data
+      loaded.value = true
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** Ambil detail satu UMKM (items + ulasan) dan gabungkan ke daftar. */
+  async function loadDetail(id: number) {
+    const res = await api.get<Wrapped<Umkm>>(`/umkm/${id}`)
+    const detail = res.data
+    const idx = all.value.findIndex((u) => u.id === id)
+    if (idx === -1) all.value.push(detail)
+    else all.value[idx] = { ...all.value[idx], ...detail }
+    if (detail.isFavorite && !favorites.value.includes(id)) favorites.value.push(id)
+    return detail
   }
 
   const featured = computed(() =>
@@ -73,10 +101,27 @@ export const useUmkmStore = defineStore('umkm', () => {
     return favorites.value.includes(id)
   }
 
-  function toggleFavorite(id: number) {
+  /** Ambil daftar favorit milik user yang sedang login. */
+  async function loadFavorites() {
+    try {
+      const res = await api.get<Wrapped<Umkm[]>>('/favorites')
+      favorites.value = res.data.map((u) => u.id)
+    } catch {
+      // Tamu / belum login — abaikan.
+    }
+  }
+
+  function clearFavorites() {
+    favorites.value = []
+  }
+
+  /** Toggle favorit lewat API (butuh login). */
+  async function toggleFavorite(id: number) {
+    const res = await api.post<{ umkmId: number; isFavorite: boolean }>(`/umkm/${id}/favorite`)
     const idx = favorites.value.indexOf(id)
-    if (idx === -1) favorites.value.push(id)
-    else favorites.value.splice(idx, 1)
+    if (res.isFavorite && idx === -1) favorites.value.push(id)
+    else if (!res.isFavorite && idx !== -1) favorites.value.splice(idx, 1)
+    return res.isFavorite
   }
 
   function filterByCategory(name: string) {
@@ -102,12 +147,18 @@ export const useUmkmStore = defineStore('umkm', () => {
 
   return {
     all,
+    loaded,
+    loading,
     enrichedAll,
     byId,
+    loadAll,
+    loadDetail,
     favorites,
     favList,
     favCount,
     isFavorite,
+    loadFavorites,
+    clearFavorites,
     toggleFavorite,
     cat,
     loc,

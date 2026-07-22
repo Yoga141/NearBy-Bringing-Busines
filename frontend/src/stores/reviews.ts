@@ -1,23 +1,36 @@
 import { reactive } from 'vue'
 import { defineStore } from 'pinia'
-import { seedReviewsFor } from '@/data/reviews'
+import { api, type Wrapped } from '@/lib/api'
 import type { Review } from '@/types'
 
 export const useReviewsStore = defineStore('reviews', () => {
   const byUmkm = reactive(new Map<number, Review[]>())
 
+  /** Daftar ulasan yang sudah dimuat untuk sebuah UMKM (kosong sebelum loadFor). */
   function reviewsFor(umkmId: number): Review[] {
-    if (!byUmkm.has(umkmId)) {
-      byUmkm.set(umkmId, seedReviewsFor(umkmId))
-    }
+    if (!byUmkm.has(umkmId)) byUmkm.set(umkmId, [])
     return byUmkm.get(umkmId)!
   }
 
-  function addReview(umkmId: number, review: Omit<Review, 'id' | 'umkmId'>) {
-    const list = reviewsFor(umkmId)
-    list.unshift({ ...review, id: `${umkmId}-${Date.now()}`, umkmId })
+  /** Ambil ulasan sebuah UMKM dari API. */
+  async function loadFor(umkmId: number) {
+    const res = await api.get<Wrapped<Review[]>>(`/umkm/${umkmId}/reviews`)
+    byUmkm.set(umkmId, res.data)
+    return res.data
   }
 
+  /** Kirim ulasan baru (butuh login). */
+  async function addReview(umkmId: number, input: { stars: number; text: string }) {
+    const res = await api.post<Wrapped<Review>>(`/umkm/${umkmId}/reviews`, {
+      stars: input.stars,
+      text: input.text,
+    })
+    reviewsFor(umkmId).unshift(res.data)
+    return res.data
+  }
+
+  // Catatan: backend belum punya endpoint edit/hapus ulasan oleh pengguna,
+  // jadi kedua aksi ini hanya mengubah cache lokal (tidak tersimpan permanen).
   function updateReview(umkmId: number, reviewId: string, changes: { stars: number; text: string }) {
     const rv = reviewsFor(umkmId).find((r) => r.id === reviewId)
     if (rv) {
@@ -32,5 +45,5 @@ export const useReviewsStore = defineStore('reviews', () => {
     if (idx !== -1) list.splice(idx, 1)
   }
 
-  return { reviewsFor, addReview, updateReview, deleteReview }
+  return { reviewsFor, loadFor, addReview, updateReview, deleteReview }
 })

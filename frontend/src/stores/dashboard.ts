@@ -1,10 +1,23 @@
 import { computed, reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
+import { api, type Wrapped } from '@/lib/api'
 import { useUmkmStore } from './umkm'
 import { useAccountStore } from './account'
 import { CAT } from '@/data/categories'
-import { MY_UMKM_RAW, SUBMISSIONS_RAW, USERS_RAW, PROBLEM_REPORTS_RAW } from '@/data/dashboardSeed'
-import type { OwnerTrashEntry, ProblemReport, ProblemReportStatus, UmkmStatus } from '@/types'
+import { PROBLEM_REPORTS_RAW } from '@/data/dashboardSeed'
+import type {
+  CategoryName,
+  MyUmkmRaw,
+  OwnerReview,
+  ProblemReport,
+  ProblemReportStatus,
+  Review,
+  StatCard,
+  SubmissionRaw,
+  Umkm,
+  UmkmStatus,
+  UserRaw,
+} from '@/types'
 
 const STATUS_META: Record<UmkmStatus, { c: string; b: string }> = {
   Aktif: { c: '#2E7D6E', b: '#E3EFED' },
@@ -12,38 +25,166 @@ const STATUS_META: Record<UmkmStatus, { c: string; b: string }> = {
   Tutup: { c: '#C0472F', b: '#F8E6E0' },
 }
 
+// Pemetaan status lowercase dari API → label kapitalisasi yang dipakai UI.
+const UMKM_STATUS_MAP: Record<string, UmkmStatus> = { aktif: 'Aktif', libur: 'Libur', tutup: 'Tutup' }
+const USER_STATUS_MAP: Record<string, UserRaw['status']> = {
+  aktif: 'Aktif',
+  menunggu: 'Menunggu',
+  nonaktif: 'Nonaktif',
+}
+
+/** Respons GET /owner/summary. */
+interface OwnerSummary {
+  stats: { views: number; rating: number; reviews: number; favorites: number; umkmCount: number }
+  umkms: Umkm[]
+}
+
+/** Baris submission dengan id (untuk aksi setujui/tolak). */
+type SubmissionRow = SubmissionRaw & { id: number }
+
 export const useDashboardStore = defineStore('dashboard', () => {
   const umkm = useUmkmStore()
   const account = useAccountStore()
 
-  // ---- Owner: UMKM Saya / Ringkasan ----
+  // =========================================================================
+  // Sumber data dari API (menggantikan seed statis)
+  // =========================================================================
+  const myUmkmRaw = ref<(MyUmkmRaw & { id: number })[]>([])
+  const ownerReviewsRaw = ref<OwnerReview[]>([])
+  const ownerStats = ref<StatCard[]>([])
+
+  const usersRaw = ref<UserRaw[]>([])
+  const submissionsRaw = ref<SubmissionRow[]>([])
+  const adminUmkmRaw = ref<Umkm[]>([])
+  const adminStats = ref<StatCard[]>([])
+
+  const loadingOwner = ref(false)
+  const loadingAdmin = ref(false)
+
+  /** Muat data dashboard pemilik UMKM. */
+  async function loadOwner() {
+    if (loadingOwner.value) return
+    loadingOwner.value = true
+    try {
+      const summary = await api.get<OwnerSummary>('/owner/summary')
+      myUmkmRaw.value = summary.umkms.map((u) => ({
+        id: u.id,
+        name: u.name,
+        cat: u.cat,
+        loc: u.loc,
+        rating: u.rating,
+        reviews: u.reviews,
+        views: String(u.views ?? 0),
+        status: UMKM_STATUS_MAP[u.status ?? 'aktif'] ?? 'Aktif',
+      }))
+      ownerStats.value = [
+        { icon: '👁', value: String(summary.stats.views), label: 'Kunjungan profil', accent: '#2C5EAD', soft: '#E6EDF8' },
+        { icon: '★', value: String(summary.stats.rating), label: 'Rating rata-rata', accent: '#C98A2E', soft: '#F7EDDC' },
+        { icon: '✎', value: String(summary.stats.reviews), label: 'Ulasan', accent: '#3E8E82', soft: '#E3EFED' },
+        { icon: '♡', value: String(summary.stats.favorites), label: 'Disimpan favorit', accent: '#1591DC', soft: '#E1F1FB' },
+      ]
+
+      const nameById = new Map(summary.umkms.map((u) => [u.id, u.name]))
+      const res = await api.get<Wrapped<(Review & { umkmId: number })[]>>('/owner/reviews')
+      ownerReviewsRaw.value = res.data.map((r) => ({
+        initial: r.initial,
+        name: r.name,
+        umkm: nameById.get(r.umkmId) ?? 'UMKM',
+        stars: r.stars,
+        date: r.date,
+        text: r.text,
+      }))
+    } finally {
+      loadingOwner.value = false
+    }
+  }
+
+  /** Muat data dashboard admin. */
+  async function loadAdmin() {
+    if (loadingAdmin.value) return
+    loadingAdmin.value = true
+    try {
+      await umkm.loadAll()
+
+      const users = await api.get<Wrapped<Array<{
+        name: string
+        email: string
+        roleLabel: string
+        status: string
+        joined: string
+        initial: string
+      }>>>('/admin/users')
+      usersRaw.value = users.data.map((u) => ({
+        name: u.name,
+        email: u.email,
+        role: (u.roleLabel as UserRaw['role']) ?? 'Pengguna',
+        status: USER_STATUS_MAP[u.status] ?? 'Aktif',
+        joined: u.joined,
+        initial: u.initial,
+      }))
+
+      const subs = await api.get<Wrapped<Array<SubmissionRow>>>('/admin/submissions')
+      submissionsRaw.value = subs.data.map((s) => ({
+        id: s.id,
+        name: s.name,
+        owner: s.owner,
+        cat: s.cat,
+        loc: s.loc,
+        date: s.date,
+        checks: Array.isArray(s.checks) ? s.checks : [],
+        files: Array.isArray(s.files) ? s.files : [],
+      }))
+
+      const all = await api.get<Wrapped<Umkm[]>>('/admin/umkm')
+      adminUmkmRaw.value = all.data
+
+      const reports = await api.get<{
+        stats: { umkmCount: number; userCount: number; reviewCount: number; avgRating: number }
+      }>('/admin/reports')
+      adminStats.value = [
+        { icon: '▦', value: String(reports.stats.umkmCount), label: 'UMKM terdaftar', accent: '#2C5EAD', soft: '#E6EDF8' },
+        { icon: '◍', value: String(reports.stats.userCount), label: 'Total pengguna', accent: '#1591DC', soft: '#E1F1FB' },
+        { icon: '✎', value: String(reports.stats.reviewCount), label: 'Total ulasan', accent: '#3E8E82', soft: '#E3EFED' },
+        { icon: '★', value: String(reports.stats.avgRating), label: 'Rata-rata rating', accent: '#C98A2E', soft: '#F7EDDC' },
+      ]
+    } finally {
+      loadingAdmin.value = false
+    }
+  }
+
+  // =========================================================================
+  // Owner: UMKM Saya / Ringkasan
+  // =========================================================================
   const deletedMyUmkm = ref<string[]>([])
-  const ownerTrash = ref<OwnerTrashEntry[]>([])
+  const ownerTrash = ref<{ tid: string; name: string; sub: string; when: string }[]>([])
 
   const myUmkm = computed(() =>
-    MY_UMKM_RAW.filter((u) => !deletedMyUmkm.value.includes(u.name)).map((u) => {
-      const status = umkm.statusOf(u.name)
-      const sm = STATUS_META[status]
-      return {
-        ...u,
-        status,
-        statusColor: sm.c,
-        statusBg: sm.b,
-        catAccent: CAT[u.cat].accent,
-        catSoft: CAT[u.cat].soft,
-        statusOptions: (['Aktif', 'Libur', 'Tutup'] as UmkmStatus[]).map((opt) => ({
-          label: opt,
-          active: opt === status,
-          bg: opt === status ? STATUS_META[opt].b : '#F4F0E7',
-          color: opt === status ? STATUS_META[opt].c : '#8A8578',
-          onClick: () => {
-            umkm.umkmStatus[u.name] = opt
-          },
-        })),
-      }
-    }),
+    myUmkmRaw.value
+      .filter((u) => !deletedMyUmkm.value.includes(u.name))
+      .map((u) => {
+        const status = umkm.statusOf(u.name) === 'Aktif' ? u.status : umkm.statusOf(u.name)
+        const sm = STATUS_META[status]
+        return {
+          ...u,
+          status,
+          statusColor: sm.c,
+          statusBg: sm.b,
+          catAccent: CAT[u.cat]?.accent ?? '#8A8578',
+          catSoft: CAT[u.cat]?.soft ?? '#EEEADF',
+          statusOptions: (['Aktif', 'Libur', 'Tutup'] as UmkmStatus[]).map((opt) => ({
+            label: opt,
+            active: opt === status,
+            bg: opt === status ? STATUS_META[opt].b : '#F4F0E7',
+            color: opt === status ? STATUS_META[opt].c : '#8A8578',
+            onClick: () => {
+              umkm.umkmStatus[u.name] = opt
+            },
+          })),
+        }
+      }),
   )
 
+  // Catatan: hapus/pulihkan UMKM pemilik masih lokal (belum tersimpan ke server).
   function ownerDeleteUmkm(name: string, cat: string, loc: string) {
     if (!confirm(`Pindahkan UMKM "${name}" ke Tempat Sampah?`)) return
     deletedMyUmkm.value.push(name)
@@ -65,18 +206,34 @@ export const useDashboardStore = defineStore('dashboard', () => {
     ownerTrash.value = []
   }
 
-  // ---- Admin: Semua UMKM ----
+  // =========================================================================
+  // Admin: Semua UMKM
+  // =========================================================================
   const STATUS_LABEL_META: Record<string, { c: string; b: string }> = {
     Tampil: { c: '#2E7D6E', b: '#E3EFED' },
     Disembunyikan: { c: '#8A8578', b: '#EEEADF' },
     Ditinjau: { c: '#B07A1E', b: '#F7EDDC' },
   }
   const allUmkmAdmin = computed(() =>
-    umkm.enrichedAll.map((u) => {
+    adminUmkmRaw.value.map((u) => {
+      const style = CAT[u.cat] ?? { accent: '#8A8578', soft: '#EEEADF', initial: '?' }
       const hidden = umkm.hiddenUmkm.includes(u.id)
-      const status = hidden ? 'Disembunyikan' : u.id === 8 ? 'Ditinjau' : 'Tampil'
+      const status = hidden
+        ? 'Disembunyikan'
+        : u.verification === 'menunggu'
+          ? 'Ditinjau'
+          : 'Tampil'
       const meta = STATUS_LABEL_META[status]
-      return { ...u, status, statusColor: meta.c, statusBg: meta.b, hidden }
+      return {
+        ...u,
+        accent: style.accent,
+        soft: style.soft,
+        initial: style.initial,
+        status,
+        statusColor: meta.c,
+        statusBg: meta.b,
+        hidden,
+      }
     }),
   )
 
@@ -87,9 +244,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     alert(`UMKM "${name}" ${hidden ? 'diaktifkan kembali.' : 'dinonaktifkan.'}`)
   }
 
-  // ---- Admin: Pengguna ----
-  // Admin can only activate/deactivate accounts, not delete them — deletion is
-  // strictly self-service (DeleteAccountTab) or owner-initiated for their own UMKM.
+  // =========================================================================
+  // Admin: Pengguna
+  // =========================================================================
   const ROLE_META = {
     Pengguna: { c: '#1591DC', b: '#E1F1FB' },
     'Pemilik UMKM': { c: '#3E8E82', b: '#E3EFED' },
@@ -104,7 +261,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const userStatusOverride = reactive<Record<string, 'Aktif' | 'Nonaktif'>>({})
 
   const users = computed(() => {
-    const active = USERS_RAW.map((u) => {
+    const active = usersRaw.value.map((u) => {
       const status = userStatusOverride[u.email] ?? u.status
       return {
         ...u,
@@ -144,16 +301,18 @@ export const useDashboardStore = defineStore('dashboard', () => {
     alert(`Tautan reset password dikirim ke ${email}`)
   }
   function userToggleActive(email: string, name: string) {
-    const current = userStatusOverride[email] ?? USERS_RAW.find((u) => u.email === email)?.status ?? 'Aktif'
+    const current = userStatusOverride[email] ?? usersRaw.value.find((u) => u.email === email)?.status ?? 'Aktif'
     const next = current === 'Nonaktif' ? 'Aktif' : 'Nonaktif'
     userStatusOverride[email] = next
     alert(`Akun "${name}" ${next === 'Nonaktif' ? 'dinonaktifkan.' : 'diaktifkan kembali.'}`)
   }
 
-  // ---- Admin: Laporan ----
+  // =========================================================================
+  // Admin: Laporan
+  // =========================================================================
   const catBreakdown = computed(() => {
     const counts = umkm.categoryCards
-    const max = Math.max(...counts.map((c) => c.count))
+    const max = Math.max(1, ...counts.map((c) => c.count))
     return counts.map((c) => ({ ...c, pct: Math.round((c.count / max) * 100) }))
   })
   const topUmkm = computed(() =>
@@ -163,32 +322,36 @@ export const useDashboardStore = defineStore('dashboard', () => {
       .map((u, i) => ({ ...u, rank: i + 1 })),
   )
 
-  const pendingSubmissions = SUBMISSIONS_RAW.map((sub) => {
-    const okCount = sub.checks.filter((c) => c[1]).length
-    const total = sub.checks.length
-    const complete = okCount === total
-    const minor = okCount >= total - 2
-    return {
-      ...sub,
-      checks: sub.checks.map(([label, ok]) => ({
-        label,
-        mark: ok ? '✓' : '✕',
-        color: ok ? '#2E7D6E' : '#C0472F',
-        bg: ok ? '#E3EFED' : '#F8E6E0',
-      })),
-      okCount,
-      total,
-      pct: Math.round((okCount / total) * 100),
-      barColor: complete ? '#3E8E82' : minor ? '#C98A2E' : '#C0472F',
-      verdict: complete ? 'Data lengkap' : minor ? 'Kurang lengkap' : 'Data belum memadai',
-      verdictColor: complete ? '#2E7D6E' : minor ? '#B07A1E' : '#C0472F',
-      verdictBg: complete ? '#E3EFED' : minor ? '#F7EDDC' : '#F8E6E0',
-      catAccent: CAT[sub.cat].accent,
-      catSoft: CAT[sub.cat].soft,
-    }
-  })
+  const pendingSubmissions = computed(() =>
+    submissionsRaw.value.map((sub) => {
+      const okCount = sub.checks.filter((c) => c[1]).length
+      const total = sub.checks.length
+      const complete = total > 0 && okCount === total
+      const minor = okCount >= total - 2
+      return {
+        ...sub,
+        checks: sub.checks.map(([label, ok]) => ({
+          label,
+          mark: ok ? '✓' : '✕',
+          color: ok ? '#2E7D6E' : '#C0472F',
+          bg: ok ? '#E3EFED' : '#F8E6E0',
+        })),
+        okCount,
+        total,
+        pct: total > 0 ? Math.round((okCount / total) * 100) : 0,
+        barColor: complete ? '#3E8E82' : minor ? '#C98A2E' : '#C0472F',
+        verdict: total === 0 ? 'Belum ada data' : complete ? 'Data lengkap' : minor ? 'Kurang lengkap' : 'Data belum memadai',
+        verdictColor: complete ? '#2E7D6E' : minor ? '#B07A1E' : '#C0472F',
+        verdictBg: complete ? '#E3EFED' : minor ? '#F7EDDC' : '#F8E6E0',
+        catAccent: CAT[sub.cat as CategoryName]?.accent ?? '#8A8578',
+        catSoft: CAT[sub.cat as CategoryName]?.soft ?? '#EEEADF',
+      }
+    }),
+  )
 
-  // ---- Admin: Laporan Masalah (bug/issue reports from HelpWidget) ----
+  // =========================================================================
+  // Admin: Laporan Masalah (murni lokal — belum ada endpoint backend)
+  // =========================================================================
   const PROBLEM_STATUS_META: Record<ProblemReportStatus, { c: string; b: string }> = {
     Baru: { c: '#B07A1E', b: '#F7EDDC' },
     Ditinjau: { c: '#2C5EAD', b: '#E6EDF8' },
@@ -221,17 +384,36 @@ export const useDashboardStore = defineStore('dashboard', () => {
     if (report) report.status = status
   }
 
-  function approveSubmission(name: string) {
-    alert(`UMKM "${name}" disetujui dan akan ditampilkan di website.`)
+  // ---- Aksi verifikasi (tersambung ke API) ----
+  async function approveSubmission(sub: { id: number; name: string }) {
+    try {
+      await api.post(`/admin/submissions/${sub.id}/approve`)
+      submissionsRaw.value = submissionsRaw.value.filter((s) => s.id !== sub.id)
+      await umkm.loadAll(true)
+      alert(`UMKM "${sub.name}" disetujui dan akan ditampilkan di website.`)
+    } catch {
+      alert('Gagal menyetujui pengajuan.')
+    }
   }
-  function rejectSubmission(name: string) {
-    alert(`Pengajuan "${name}" ditolak.`)
+  async function rejectSubmission(sub: { id: number; name: string }) {
+    if (!confirm(`Tolak pengajuan "${sub.name}"?`)) return
+    try {
+      await api.post(`/admin/submissions/${sub.id}/reject`)
+      submissionsRaw.value = submissionsRaw.value.filter((s) => s.id !== sub.id)
+      alert(`Pengajuan "${sub.name}" ditolak.`)
+    } catch {
+      alert('Gagal menolak pengajuan.')
+    }
   }
   function requestFix(name: string) {
     alert(`Permintaan perbaikan data dikirim ke pemilik "${name}".`)
   }
 
   return {
+    loadOwner,
+    loadAdmin,
+    ownerStats,
+    ownerReviewsRaw,
     myUmkm,
     ownerTrash,
     ownerDeleteUmkm,
@@ -239,6 +421,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     ownerPurgeUmkm,
     emptyOwnerTrash,
     allUmkmAdmin,
+    adminStats,
     adminToggleHidden,
     users,
     userRestore,

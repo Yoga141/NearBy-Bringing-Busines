@@ -2,7 +2,6 @@
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
-import { ADMIN_STATS } from '@/data/dashboardSeed'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -16,7 +15,7 @@ const dashboard = useDashboardStore()
   </div>
 
   <div class="mb-[26px] grid grid-cols-2 gap-4 tablet:grid-cols-4">
-    <div v-for="s in ADMIN_STATS" :key="s.label" class="rounded-2xl border border-border-card bg-white p-[18px]">
+    <div v-for="s in dashboard.adminStats" :key="s.label" class="rounded-2xl border border-border-card bg-white p-[18px]">
       <div class="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] text-[17px] font-extrabold" :style="{ background: s.soft, color: s.accent }">
         {{ s.icon }}
       </div>
@@ -27,8 +26,14 @@ const dashboard = useDashboardStore()
   </div>
 
   <div class="mb-3.5 text-lg font-extrabold">Menunggu ditinjau</div>
+  <div
+    v-if="!dashboard.pendingSubmissions.length"
+    class="rounded-[18px] border border-border-card bg-white px-6 py-14 text-center font-semibold text-text-faint"
+  >
+    Tidak ada pengajuan yang menunggu ditinjau.
+  </div>
   <div class="flex flex-col gap-4">
-    <div v-for="p in dashboard.pendingSubmissions" :key="p.name" class="rounded-[18px] border border-border-card bg-white p-5 shadow-[0_4px_16px_rgba(19,50,77,.04)]">
+    <div v-for="p in dashboard.pendingSubmissions" :key="p.id" class="rounded-[18px] border border-border-card bg-white p-5 shadow-[0_4px_16px_rgba(19,50,77,.04)]">
       <div class="flex items-start gap-[15px]">
         <div class="h-[66px] w-[66px] flex-none rounded-[13px]" style="background: repeating-linear-gradient(135deg, #ece6da 0 9px, #f4efe6 9px 18px)" />
         <div class="flex-1">
@@ -60,13 +65,13 @@ const dashboard = useDashboardStore()
       </div>
 
       <div class="flex flex-wrap gap-2.5 border-t border-border-divider-2 pt-3.5">
-        <button type="button" class="rounded-[11px] bg-teal px-5 py-2.5 font-bold text-white" @click="dashboard.approveSubmission(p.name)">
+        <button type="button" class="rounded-[11px] bg-teal px-5 py-2.5 font-bold text-white" @click="dashboard.approveSubmission(p)">
           ✓ Setujui &amp; tampilkan
         </button>
         <button type="button" class="rounded-[11px] border border-[#E7C97F] bg-white px-[18px] py-2.5 font-bold text-[#B07A1E]" @click="dashboard.requestFix(p.name)">
           ⟳ Minta perbaikan data
         </button>
-        <button type="button" class="rounded-[11px] border border-danger-border bg-white px-[18px] py-2.5 font-bold text-danger" @click="dashboard.rejectSubmission(p.name)">
+        <button type="button" class="rounded-[11px] border border-danger-border bg-white px-[18px] py-2.5 font-bold text-danger" @click="dashboard.rejectSubmission(p)">
           ✕ Tolak
         </button>
         <button

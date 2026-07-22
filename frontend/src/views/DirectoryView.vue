@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useUmkmStore } from '@/stores/umkm'
 import { CATEGORY_FILTERS, LOCATION_FILTERS } from '@/data/categories'
 import UmkmCard from '@/components/shared/UmkmCard.vue'
@@ -6,6 +7,8 @@ import FilterChip from '@/components/shared/FilterChip.vue'
 import EmptyState from '@/components/shared/EmptyState.vue'
 
 const umkm = useUmkmStore()
+
+onMounted(() => umkm.loadAll())
 </script>
 
 <template>

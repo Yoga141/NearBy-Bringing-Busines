@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useUmkmStore } from '@/stores/umkm'
 import { useReviewsStore } from '@/stores/reviews'
 import CategoryPill from '@/components/shared/CategoryPill.vue'
@@ -10,20 +10,45 @@ import ReviewList from '@/components/detail/ReviewList.vue'
 import ReviewForm from '@/components/detail/ReviewForm.vue'
 import DetailSidebar from '@/components/detail/DetailSidebar.vue'
 import Lightbox from '@/components/detail/Lightbox.vue'
+import EmptyState from '@/components/shared/EmptyState.vue'
 
 const props = defineProps<{ id: string }>()
 
 const umkm = useUmkmStore()
 const reviewsStore = useReviewsStore()
 
-const sel = computed(() => umkm.byId(Number(props.id)) ?? umkm.enrichedAll[0])
+const loading = ref(true)
 
-const desc = computed(
-  () =>
-    `${sel.value.tag} Berlokasi di ${sel.value.loc}, tempat ini menjadi salah satu favorit warga sekitaran karena kualitas dan pelayanannya yang konsisten. Cocok dikunjungi bersama keluarga maupun teman.`,
+async function load(id: number) {
+  loading.value = true
+  try {
+    await umkm.loadAll()
+    await umkm.loadDetail(id)
+    await reviewsStore.loadFor(id)
+  } catch {
+    // UMKM tidak ditemukan / gagal dimuat — ditangani lewat guard di template.
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => load(Number(props.id)))
+watch(
+  () => props.id,
+  (v) => load(Number(v)),
 )
 
-const waLink = computed(() => `https://wa.me/62${sel.value.phone.replace(/[^0-9]/g, '').replace(/^0/, '')}`)
+const sel = computed(() => umkm.byId(Number(props.id)))
+
+const desc = computed(() =>
+  sel.value
+    ? `${sel.value.tag} Berlokasi di ${sel.value.loc}, tempat ini menjadi salah satu favorit warga sekitaran karena kualitas dan pelayanannya yang konsisten. Cocok dikunjungi bersama keluarga maupun teman.`
+    : '',
+)
+
+const waLink = computed(() =>
+  sel.value ? `https://wa.me/62${sel.value.phone.replace(/[^0-9]/g, '').replace(/^0/, '')}` : '#',
+)
 
 const STATUS_META = {
   Aktif: { c: '#2E7D6E', b: '#E3EFED', pub: 'Buka' },
@@ -31,9 +56,9 @@ const STATUS_META = {
   Tutup: { c: '#C0472F', b: '#F8E6E0', pub: 'Tutup Sementara' },
 } as const
 
-const statusMeta = computed(() => STATUS_META[umkm.statusOf(sel.value.name)])
+const statusMeta = computed(() => STATUS_META[umkm.statusOf(sel.value?.name ?? '')])
 
-const reviews = computed(() => reviewsStore.reviewsFor(sel.value.id))
+const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id) : []))
 </script>
 
 <template>
@@ -42,6 +67,14 @@ const reviews = computed(() => reviewsStore.reviewsFor(sel.value.id))
       ← Kembali ke daftar
     </RouterLink>
 
+    <div v-if="!sel && loading" class="py-24 text-center font-semibold text-text-faint">Memuat…</div>
+    <EmptyState
+      v-else-if="!sel"
+      title="UMKM tidak ditemukan"
+      subtitle="Data mungkin sudah dihapus atau belum diverifikasi."
+    />
+
+    <template v-else>
     <DetailGallery :img-label="sel.imgLabel" />
 
     <div class="grid grid-cols-1 items-start gap-[34px] tablet:grid-cols-[1.6fr_.9fr]">
@@ -77,6 +110,7 @@ const reviews = computed(() => reviewsStore.reviewsFor(sel.value.id))
 
       <DetailSidebar :umkm="sel" :wa-link="waLink" />
     </div>
+    </template>
 
     <Lightbox />
   </main>

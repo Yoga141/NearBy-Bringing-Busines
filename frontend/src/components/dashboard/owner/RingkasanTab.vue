@@ -1,15 +1,19 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { useUmkmStore } from '@/stores/umkm'
 import { useDashboardStore } from '@/stores/dashboard'
-import { DASH_STATS, CHART_BARS, DASH_REVIEWS } from '@/data/dashboardSeed'
+import { CHART_BARS } from '@/data/dashboardSeed'
 import { starsLabel } from '@/data/reviews'
 
 const auth = useAuthStore()
 const ui = useUiStore()
 const umkm = useUmkmStore()
 const dashboard = useDashboardStore()
+
+const stats = computed(() => dashboard.ownerStats)
+const recentReviews = computed(() => dashboard.ownerReviewsRaw.slice(0, 3))
 
 function addUmkm() {
   ui.openModal('editUmkm', { isNew: true })
@@ -35,7 +39,7 @@ function manage(name: string) {
   </div>
 
   <div class="mb-[22px] grid grid-cols-2 gap-4 tablet:grid-cols-4">
-    <div v-for="s in DASH_STATS" :key="s.label" class="rounded-2xl border border-border-card bg-white p-5">
+    <div v-for="s in stats" :key="s.label" class="rounded-2xl border border-border-card bg-white p-5">
       <div class="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] text-[17px] font-extrabold" :style="{ background: s.soft, color: s.accent }">
         {{ s.icon }}
       </div>
@@ -60,7 +64,7 @@ function manage(name: string) {
     </div>
     <div class="rounded-[18px] border border-border-card bg-white p-[22px]">
       <div class="mb-3.5 text-[17px] font-extrabold">Ulasan terbaru</div>
-      <div v-for="r in DASH_REVIEWS" :key="r.name" class="flex gap-2.5 border-t border-border-divider-2 py-3 first:border-t-0">
+      <div v-for="r in recentReviews" :key="`${r.name}-${r.date}`" class="flex gap-2.5 border-t border-border-divider-2 py-3 first:border-t-0">
         <div class="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-[#F7EDDC] text-[13px] font-extrabold text-gold">{{ r.initial }}</div>
         <div>
           <div class="flex items-center gap-2">

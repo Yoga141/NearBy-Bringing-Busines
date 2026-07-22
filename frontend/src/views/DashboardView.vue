@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useUmkmStore } from '@/stores/umkm'
+import { useDashboardStore } from '@/stores/dashboard'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
 import DashboardModals from '@/components/dashboard/DashboardModals.vue'
 import VerifikasiTab from '@/components/dashboard/admin/VerifikasiTab.vue'
@@ -17,8 +19,16 @@ import ProfileEditCard from '@/components/dashboard/shared/ProfileEditCard.vue'
 const props = defineProps<{ tab?: string }>()
 
 const auth = useAuthStore()
+const umkm = useUmkmStore()
+const dashboard = useDashboardStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
 const tab = computed(() => props.tab ?? (isAdmin.value ? 'verif' : 'ringkasan'))
+
+onMounted(() => {
+  umkm.loadAll()
+  if (isAdmin.value) dashboard.loadAdmin()
+  else dashboard.loadOwner()
+})
 </script>
 
 <template>

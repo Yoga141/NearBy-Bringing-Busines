@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import type { Role } from '@/types'
+import { ApiError } from '@/lib/api'
 import AuthLayout from '@/components/auth/AuthLayout.vue'
 import ForgotPasswordModal from '@/components/auth/ForgotPasswordModal.vue'
 import logo from '@/assets/logo-nearby.png'
@@ -12,28 +14,48 @@ const auth = useAuthStore()
 const loginEmail = ref('')
 const loginPass = ref('')
 const forgotOpen = ref(false)
+const error = ref('')
+const loading = ref(false)
 
-function doLogin() {
-  auth.doLogin()
-  router.push({ name: 'beranda' })
-}
-
-function continueAsGuest() {
-  auth.logout()
-  router.push({ name: 'beranda' })
+function landingFor(role: Role) {
+  return role === 'user' ? { name: 'beranda' } : { name: 'dashboard' }
 }
 
-function loginAsUser() {
-  auth.loginAsUser()
+async function doLogin() {
+  if (loading.value) return
+  error.value = ''
+  loading.value = true
+  try {
+    const u = await auth.login(loginEmail.value.trim(), loginPass.value)
+    router.push(landingFor(u.role))
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : 'Terjadi kesalahan. Coba lagi.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loginAs(role: Role) {
+  if (loading.value) return
+  error.value = ''
+  loading.value = true
+  try {
+    const u = await auth.loginAsRole(role)
+    router.push(landingFor(u.role))
+  } catch (e) {
+    error.value = e instanceof ApiError ? e.message : 'Terjadi kesalahan. Coba lagi.'
+  } finally {
+    loading.value = false
+  }
+}
+
+const loginAsUser = () => loginAs('user')
+const loginAsOwner = () => loginAs('owner')
+const loginAsAdmin = () => loginAs('admin')
+
+async function continueAsGuest() {
+  await auth.logout()
   router.push({ name: 'beranda' })
-}
-function loginAsOwner() {
-  auth.loginAsOwner()
-  router.push({ name: 'dashboard' })
-}
-function loginAsAdmin() {
-  auth.loginAsAdmin()
-  router.push({ name: 'dashboard' })
 }
 </script>
 
@@ -83,14 +105,22 @@ function loginAsAdmin() {
             v-model="loginPass"
             type="password"
             placeholder="••••••••"
-            class="mb-5 w-full rounded-xl border border-border-input bg-white px-[15px] py-[13px] transition-shadow duration-150"
+            class="mb-3 w-full rounded-xl border border-border-input bg-white px-[15px] py-[13px] transition-shadow duration-150"
+            @keyup.enter="doLogin"
           />
+          <p
+            v-if="error"
+            class="mb-3 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-[13px] font-semibold text-red-700"
+          >
+            {{ error }}
+          </p>
           <button
             type="button"
-            class="w-full rounded-xl bg-brand-blue py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_24px_rgba(44,94,173,.28)] transition-transform duration-150 hover:scale-[1.015] active:scale-[0.98]"
+            :disabled="loading"
+            class="w-full rounded-xl bg-brand-blue py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_24px_rgba(44,94,173,.28)] transition-transform duration-150 hover:scale-[1.015] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             @click="doLogin"
           >
-            Masuk
+            {{ loading ? 'Memproses…' : 'Masuk' }}
           </button>
 
           <div class="relative my-[18px] text-center text-[12.5px] font-bold text-text-faint-3">

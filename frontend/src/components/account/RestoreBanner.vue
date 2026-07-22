@@ -7,7 +7,7 @@ const auth = useAuthStore()
 
 function restore() {
   const restored = account.restoreMyAccount()
-  if (restored) auth.login(restored.name, restored.role)
+  if (restored) auth.restoreLocalSession(restored.name, restored.role)
 }
 </script>
 

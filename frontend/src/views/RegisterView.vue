@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { ApiError } from '@/lib/api'
 import AuthLayout from '@/components/auth/AuthLayout.vue'
 import RolePicker from '@/components/auth/RolePicker.vue'
 import logo from '@/assets/logo-nearby.png'
@@ -12,12 +13,31 @@ const auth = useAuthStore()
 const regName = ref('')
 const regEmail = ref('')
 const regPass = ref('')
+const error = ref('')
+const loading = ref(false)
 
 const roleWord = computed(() => (auth.regRole === 'owner' ? 'Pemilik UMKM' : 'Pengguna'))
 
-function doRegister() {
-  auth.register(regName.value.trim(), auth.regRole)
-  router.push({ name: auth.regRole === 'owner' ? 'dashboard' : 'beranda' })
+async function doRegister() {
+  if (loading.value) return
+  error.value = ''
+  loading.value = true
+  try {
+    const u = await auth.register({
+      name: regName.value.trim(),
+      email: regEmail.value.trim(),
+      password: regPass.value,
+      role: auth.regRole,
+    })
+    router.push({ name: u.role === 'owner' ? 'dashboard' : 'beranda' })
+  } catch (e) {
+    error.value =
+      e instanceof ApiError
+        ? Object.values(e.errors ?? {})[0]?.[0] ?? e.message
+        : 'Terjadi kesalahan. Coba lagi.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -71,15 +91,22 @@ function doRegister() {
           <input
             v-model="regPass"
             type="password"
-            placeholder="Minimal 8 karakter"
-            class="mb-[18px] w-full rounded-xl border border-border-input bg-white px-[15px] py-3 transition-shadow duration-150"
+            placeholder="Minimal 6 karakter"
+            class="mb-[14px] w-full rounded-xl border border-border-input bg-white px-[15px] py-3 transition-shadow duration-150"
           />
+          <p
+            v-if="error"
+            class="mb-3.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-[13px] font-semibold text-red-700"
+          >
+            {{ error }}
+          </p>
           <button
             type="button"
-            class="w-full rounded-xl bg-brand-blue py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_24px_rgba(44,94,173,.28)] transition-transform duration-150 hover:scale-[1.015] active:scale-[0.98]"
+            :disabled="loading"
+            class="w-full rounded-xl bg-brand-blue py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_24px_rgba(44,94,173,.28)] transition-transform duration-150 hover:scale-[1.015] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             @click="doRegister"
           >
-            Daftar sebagai {{ roleWord }}
+            {{ loading ? 'Memproses…' : `Daftar sebagai ${roleWord}` }}
           </button>
         </div>
 

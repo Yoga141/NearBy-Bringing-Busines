@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useUmkmStore } from '@/stores/umkm'
 import { useDashboardStore } from '@/stores/dashboard'
-import { reportStats, GROWTH_BARS } from '@/data/dashboardSeed'
+import { GROWTH_BARS } from '@/data/dashboardSeed'
 
-const umkm = useUmkmStore()
 const dashboard = useDashboardStore()
 
-const stats = computed(() => reportStats(umkm.all.length))
+const stats = computed(() => dashboard.adminStats)
 const maxGrowth = Math.max(...GROWTH_BARS.map((b) => b.val))
 const growthBars = GROWTH_BARS.map((b) => ({ ...b, pct: Math.round((b.val / maxGrowth) * 100) }))
 </script>

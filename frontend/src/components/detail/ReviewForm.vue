@@ -25,18 +25,21 @@ function removeMedia(i: number) {
   media.value.splice(i, 1)
 }
 
-function submit() {
-  if (!text.value.trim() || !auth.user) return
-  reviews.addReview(props.umkmId, {
-    initial: auth.authInitial,
-    name: auth.user.name,
-    stars: stars.value,
-    date: 'Baru saja',
-    text: text.value.trim(),
-  })
-  stars.value = 5
-  text.value = ''
-  media.value = []
+const submitting = ref(false)
+
+async function submit() {
+  if (!text.value.trim() || !auth.user || submitting.value) return
+  submitting.value = true
+  try {
+    await reviews.addReview(props.umkmId, { stars: stars.value, text: text.value.trim() })
+    stars.value = 5
+    text.value = ''
+    media.value = []
+  } catch {
+    alert('Gagal mengirim ulasan. Coba lagi.')
+  } finally {
+    submitting.value = false
+  }
 }
 </script>
 

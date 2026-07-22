@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useUiStore } from '@/stores/ui'
-import { OWNER_REVIEWS } from '@/data/dashboardSeed'
+import { useDashboardStore } from '@/stores/dashboard'
 import { starsLabel } from '@/data/reviews'
 
 const ui = useUiStore()
+const dashboard = useDashboardStore()
 </script>
 
 <template>
@@ -13,7 +14,10 @@ const ui = useUiStore()
   </div>
 
   <div class="rounded-[18px] border border-border-card bg-white px-6 pt-2 pb-3">
-    <div v-for="r in OWNER_REVIEWS" :key="`${r.name}-${r.date}`" class="flex gap-3.5 border-t border-border-divider-2 py-4.5 first:border-t-0">
+    <div v-if="!dashboard.ownerReviewsRaw.length" class="py-10 text-center text-[14px] font-semibold text-text-faint">
+      Belum ada ulasan untuk usahamu.
+    </div>
+    <div v-for="r in dashboard.ownerReviewsRaw" :key="`${r.name}-${r.date}`" class="flex gap-3.5 border-t border-border-divider-2 py-4.5 first:border-t-0">
       <div class="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-[#F7EDDC] text-[15px] font-extrabold text-gold">{{ r.initial }}</div>
       <div class="min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-2.5">
