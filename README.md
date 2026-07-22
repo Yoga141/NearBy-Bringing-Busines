@@ -6,12 +6,12 @@ Direktori UMKM Balikpapan — **NearBy**. Frontend Vue 3 + backend Laravel API, 
 NearBy-Bringing-Busines/
 ├── frontend/           ← Vue 3 + Vite (tampilan website)
 ├── nearby-backend/     ← Laravel 13 + Sanctum (REST API)
-└── db_required/        ← skema database referensi (lihat catatan di bawah)
+└── db_required/        ← ekspor database (.sql) untuk di-import manual
 ```
 
 ## Prasyarat
 
-- **XAMPP** (Apache tidak wajib jalan, tapi **MySQL wajib jalan**) — pastikan modul MySQL di XAMPP Control Panel berstatus *Running*.
+- **XAMPP** (**Apache dan MySQL wajib jalan**)
 - **PHP 8.3+** dan **Composer** (biasanya sudah dibawa XAMPP, `C:\xampp\php`).
 - **Node.js** (untuk `npm`), disarankan versi 18+.
 
@@ -26,11 +26,10 @@ cd nearby-backend
 composer install
 copy .env.example .env        # kalau belum ada file .env
 php artisan key:generate
-php artisan migrate:fresh --seed
-php artisan serve --host=127.0.0.1 --port=8000
+php artisan serve
 ```
 
-Cek konfigurasi database di `nearby-backend/.env` sebelum migrate, pastikan sesuai dengan MySQL di komputer kamu:
+Sebelum menjalankan, pastikan konfigurasi database di `nearby-backend/.env` sesuai dengan MySQL di komputer kamu (nilai default dari `.env.example` biasanya sudah benar):
 
 ```env
 DB_CONNECTION=mysql
@@ -70,7 +69,7 @@ Vite akan menampilkan URL lokalnya di terminal, biasanya **http://localhost:5173
 
 ## 4. Buka websitenya
 
-Kunjungi URL dari langkah 3 di browser (**bukan** port 8000 — itu backend API saja, tidak ada tampilan visualnya).
+Kunjungi URL dari langkah 3 di browser contoh `http://localhost:5173`(**bukan** port 8000 — itu backend API saja, tidak ada tampilan visualnya).
 
 **Akun demo** (password semua: `password`):
 
@@ -88,10 +87,10 @@ Setelah setup pertama kali selesai, cukup jalankan (di dua terminal terpisah):
 
 ```bash
 # terminal 1
-cd nearby-backend && php artisan serve --host=127.0.0.1 --port=8000
+cd nearby-backend 
+php artisan serve
 
 # terminal 2
-cd frontend && npm run dev
+cd frontend
+npm run dev
 ```
-
-Pastikan MySQL di XAMPP sudah *Running* sebelum menjalankan backend.
