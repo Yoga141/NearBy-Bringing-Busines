@@ -1,0 +1,5 @@
+deployment:
+  tasks:
+    - cp -R frontend/dist/* /home/nearby/public_html/
+    - cp -R nearby-backend/* /home/nearby/nearby-backend/
+    - cp -R nearby-backend/public/* /home/nearby/public_html/api/
