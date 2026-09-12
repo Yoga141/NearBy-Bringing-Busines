@@ -8,29 +8,49 @@ use Illuminate\Database\Seeder;
 class UserSeeder extends Seeder
 {
     /**
-     * Demo accounts mirror the frontend's mocked logins:
+     * One demo account per role, mirroring the frontend's mocked logins:
      *  - user  : Rizky Pratama
-     *  - owner : Dewi Anjani  (owns UMKM ids 1 & 4)
+     *  - owner : Dewi Anjani  (owns UMKM ids 1 & 4 — see UmkmSeeder, which
+     *            assumes she is the 2nd user created, i.e. id 2)
      *  - admin : Admin NearBy
-     * Plus the extra accounts listed in the admin "Pengguna" table.
-     * Default password for every account: "password".
+     *
+     * Passwords come from .env (SEED_*_PASSWORD) instead of being hardcoded,
+     * so a shared/production environment can seed these accounts with real
+     * passwords instead of the "password" placeholder. Note: env() reads
+     * .env directly and is only safe here because seeders run as CLI
+     * commands — if this were request-time app code, a cached config
+     * (`config:cache`) would make env() return null.
      */
     public function run(): void
     {
         $accounts = [
-            ['name' => 'Rizky Pratama', 'email' => 'rizky.p@mail.com', 'role' => 'user', 'status' => 'aktif'],
-            ['name' => 'Dewi Anjani', 'email' => 'dewi.umkm@mail.com', 'role' => 'owner', 'status' => 'aktif'],
-            ['name' => 'Suwarno', 'email' => 'warkop.war@mail.com', 'role' => 'owner', 'status' => 'menunggu'],
-            ['name' => 'Maya Sari', 'email' => 'maya.s@mail.com', 'role' => 'user', 'status' => 'aktif'],
-            ['name' => 'Bayu Firmansyah', 'email' => 'bayu.f@mail.com', 'role' => 'user', 'status' => 'nonaktif'],
-            ['name' => 'Admin NearBy', 'email' => 'admin@nearby.id', 'role' => 'admin', 'status' => 'aktif'],
+            [
+                'name' => 'Jeki',
+                'email' => 'jekikilo15@mail.com',
+                'role' => 'user',
+                'status' => 'aktif',
+                'password' => env('SEED_USER_PASSWORD', 'password'),
+            ],
+            [
+                'name' => 'Dewi Anjani',
+                'email' => 'dewi@mail.com',
+                'role' => 'owner',
+                'status' => 'aktif',
+                'password' => env('SEED_OWNER_PASSWORD', 'password'),
+            ],
+            [
+                'name' => 'Admin',
+                'email' => 'admin@nearby.id',
+                'role' => 'admin',
+                'status' => 'aktif',
+                'password' => env('SEED_ADMIN_PASSWORD', 'password'),
+            ],
         ];
 
         foreach ($accounts as $account) {
             User::create([
                 ...$account,
                 'phone' => '0812-0000-0000',
-                'password' => 'password',
             ]);
         }
     }

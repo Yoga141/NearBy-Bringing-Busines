@@ -20,6 +20,9 @@ class ReviewResource extends JsonResource
         return [
             'id' => (string) $this->id,
             'umkmId' => $this->umkm_id,
+            'umkmName' => $this->whenLoaded('umkm', fn () => $this->umkm->name),
+            'umkmCat' => $this->whenLoaded('umkm', fn () => $this->umkm->category),
+            'userId' => $this->user_id,
             'initial' => Str::upper(Str::substr(trim($name), 0, 1)),
             'name' => $name,
             'stars' => (int) $this->stars,

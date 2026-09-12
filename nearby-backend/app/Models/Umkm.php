@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable([
     'owner_id', 'name', 'category', 'location', 'rating', 'reviews_count',
     'price_label', 'tag', 'img_label', 'address', 'hours', 'phone', 'ig',
-    'list_label', 'status', 'verification', 'views',
+    'list_label', 'status', 'verification', 'views', 'hidden',
 ])]
 class Umkm extends Model
 {
@@ -24,6 +24,7 @@ class Umkm extends Model
             'rating' => 'float',
             'reviews_count' => 'integer',
             'views' => 'integer',
+            'hidden' => 'boolean',
         ];
     }
 

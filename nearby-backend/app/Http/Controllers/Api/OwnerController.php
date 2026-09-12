@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ReviewResource;
 use App\Http\Resources\UmkmResource;
 use App\Models\Review;
+use App\Models\Umkm;
 use Illuminate\Http\Request;
 
 class OwnerController extends Controller
@@ -37,7 +38,7 @@ class OwnerController extends Controller
     /** UMKM owned by the authenticated owner. */
     public function umkms(Request $request)
     {
-        $umkms = $request->user()->umkms()->get();
+        $umkms = $request->user()->umkms()->with('items')->get();
 
         return UmkmResource::collection($umkms);
     }
@@ -52,5 +53,39 @@ class OwnerController extends Controller
             ->get();
 
         return ReviewResource::collection($reviews);
+    }
+
+    /** The owner's own soft-deleted UMKM (their "Tempat Sampah" tab). */
+    public function trash(Request $request)
+    {
+        $umkms = Umkm::onlyTrashed()->where('owner_id', $request->user()->id)->latest('deleted_at')->get();
+
+        return UmkmResource::collection($umkms);
+    }
+
+    /** Restore one of the owner's own soft-deleted UMKM. */
+    public function restoreUmkm(Request $request, int $id)
+    {
+        $umkm = Umkm::onlyTrashed()->where('owner_id', $request->user()->id)->findOrFail($id);
+        $umkm->restore();
+
+        return new UmkmResource($umkm);
+    }
+
+    /** Permanently delete one of the owner's own soft-deleted UMKM. */
+    public function forceDeleteUmkm(Request $request, int $id)
+    {
+        $umkm = Umkm::onlyTrashed()->where('owner_id', $request->user()->id)->findOrFail($id);
+        $umkm->forceDelete();
+
+        return response()->json(['message' => 'UMKM dihapus permanen.']);
+    }
+
+    /** Permanently delete every UMKM in the owner's trash. */
+    public function emptyTrash(Request $request)
+    {
+        Umkm::onlyTrashed()->where('owner_id', $request->user()->id)->get()->each->forceDelete();
+
+        return response()->json(['message' => 'Tempat sampah dikosongkan.']);
     }
 }

@@ -31,10 +31,12 @@ class UmkmResource extends JsonResource
             'listLabel' => $this->list_label,
             'status' => $this->status,
             'verification' => $this->verification,
+            'hidden' => (bool) $this->hidden,
             'views' => (int) $this->views,
             'items' => UmkmItemResource::collection($this->whenLoaded('items')),
             'reviewsList' => ReviewResource::collection($this->whenLoaded('reviews')),
             'isFavorite' => $this->when(isset($this->is_favorite), fn () => (bool) $this->is_favorite),
+            'deletedAt' => $this->deleted_at?->diffForHumans(),
         ];
     }
 }

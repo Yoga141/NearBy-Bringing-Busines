@@ -29,6 +29,7 @@ class UserResource extends JsonResource
             'status' => $this->status,
             'initial' => Str::upper(Str::substr(trim($this->name), 0, 1)),
             'joined' => $this->created_at?->translatedFormat('j M Y'),
+            'deletedAt' => $this->deleted_at?->toIso8601String(),
         ];
     }
 }

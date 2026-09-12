@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OwnerController;
+use App\Http\Controllers\Api\ProblemReportController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UmkmController;
 use Illuminate\Support\Facades\Route;
@@ -27,12 +28,20 @@ Route::get('/umkm/{umkm}/reviews', [ReviewController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
+| Help widget (public — works for guests too)
+|--------------------------------------------------------------------------
+*/
+Route::post('/problem-reports', [ProblemReportController::class, 'store']);
+
+/*
+|--------------------------------------------------------------------------
 | Authenticated (Sanctum token)
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::get('/me/reviews', [ReviewController::class, 'mine']);
 
     // UMKM write (owner)
     Route::post('/umkm', [UmkmController::class, 'store']);
@@ -41,6 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Reviews
     Route::post('/umkm/{umkm}/reviews', [ReviewController::class, 'store']);
+    Route::put('/reviews/{review}', [ReviewController::class, 'update']);
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
     Route::post('/reviews/{review}/reply', [ReviewController::class, 'reply']);
 
     // Favorites
@@ -52,17 +63,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/summary', [OwnerController::class, 'summary']);
         Route::get('/umkm', [OwnerController::class, 'umkms']);
         Route::get('/reviews', [OwnerController::class, 'reviews']);
+        Route::get('/trash', [OwnerController::class, 'trash']);
+        Route::post('/umkm/{id}/restore', [OwnerController::class, 'restoreUmkm']);
+        Route::delete('/umkm/{id}/force', [OwnerController::class, 'forceDeleteUmkm']);
+        Route::delete('/trash', [OwnerController::class, 'emptyTrash']);
     });
 
     // Admin dashboard (role: admin)
     Route::prefix('admin')->middleware('admin')->group(function () {
         Route::get('/users', [AdminController::class, 'users']);
+        Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus']);
         Route::get('/umkm', [AdminController::class, 'umkms']);
+        Route::post('/umkm/{umkm}/toggle-hidden', [AdminController::class, 'toggleHidden']);
         Route::get('/submissions', [AdminController::class, 'submissions']);
         Route::post('/submissions/{submission}/approve', [AdminController::class, 'approve']);
         Route::post('/submissions/{submission}/reject', [AdminController::class, 'reject']);
         Route::get('/reports', [AdminController::class, 'reports']);
         Route::get('/trash', [AdminController::class, 'trash']);
         Route::post('/trash/{id}/restore', [AdminController::class, 'restore']);
+        Route::get('/problem-reports', [AdminController::class, 'problemReports']);
+        Route::post('/problem-reports/{problemReport}/status', [AdminController::class, 'updateProblemReportStatus']);
     });
 });

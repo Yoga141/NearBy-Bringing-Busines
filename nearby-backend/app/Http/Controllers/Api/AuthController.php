@@ -7,6 +7,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -19,13 +20,13 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'phone' => ['nullable', 'string', 'max:40'],
-            'password' => ['required', 'string', 'min:6'],
+            'password' => ['required', 'string', 'min:8'],
             'role' => ['nullable', Rule::in(['user', 'owner'])],
         ]);
 
         $user = User::create([
             'name' => $data['name'],
-            'email' => $data['email'],
+            'email' => Str::lower($data['email']),
             'phone' => $data['phone'] ?? null,
             'password' => $data['password'],
             'role' => $data['role'] ?? 'user',
@@ -48,7 +49,7 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $data['email'])->first();
+        $user = User::where('email', Str::lower($data['email']))->first();
 
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([

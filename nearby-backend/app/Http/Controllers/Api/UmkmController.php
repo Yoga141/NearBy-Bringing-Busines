@@ -21,7 +21,7 @@ class UmkmController extends Controller
     /** Public list with ?category= &location= &q= filters. */
     public function index(Request $request)
     {
-        $query = Umkm::query()->where('verification', 'disetujui');
+        $query = Umkm::query()->where('verification', 'disetujui')->where('hidden', false);
 
         if (($cat = $request->query('category')) && $cat !== 'Semua') {
             $query->where('category', $cat);
