@@ -13,27 +13,20 @@ const loginEmail = ref('')
 const loginPass = ref('')
 const forgotOpen = ref(false)
 
-function doLogin() {
-  auth.doLogin()
-  router.push({ name: 'beranda' })
+async function doLogin() {
+  if (!loginEmail.value.trim() || !loginPass.value) {
+    auth.authError = 'Isi email dan password terlebih dahulu.'
+    return
+  }
+  const ok = await auth.login(loginEmail.value.trim(), loginPass.value)
+  if (ok) {
+    router.push({ name: auth.isOwner || auth.isAdmin ? 'dashboard' : 'beranda' })
+  }
 }
 
 function continueAsGuest() {
   auth.logout()
   router.push({ name: 'beranda' })
-}
-
-function loginAsUser() {
-  auth.loginAsUser()
-  router.push({ name: 'beranda' })
-}
-function loginAsOwner() {
-  auth.loginAsOwner()
-  router.push({ name: 'dashboard' })
-}
-function loginAsAdmin() {
-  auth.loginAsAdmin()
-  router.push({ name: 'dashboard' })
 }
 </script>
 
@@ -83,31 +76,20 @@ function loginAsAdmin() {
             v-model="loginPass"
             type="password"
             placeholder="••••••••"
-            class="mb-5 w-full rounded-xl border border-border-input bg-white px-[15px] py-[13px] transition-shadow duration-150"
+            class="mb-3 w-full rounded-xl border border-border-input bg-white px-[15px] py-[13px] transition-shadow duration-150"
+            @keyup.enter="doLogin"
           />
+
+          <p v-if="auth.authError" class="mb-3 text-[13px] font-semibold text-danger">{{ auth.authError }}</p>
+
           <button
             type="button"
-            class="w-full rounded-xl bg-brand-blue py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_24px_rgba(44,94,173,.28)] transition-transform duration-150 hover:scale-[1.015] active:scale-[0.98]"
+            class="w-full rounded-xl bg-brand-blue py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_24px_rgba(44,94,173,.28)] transition-transform duration-150 hover:scale-[1.015] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="auth.authLoading"
             @click="doLogin"
           >
-            Masuk
+            {{ auth.authLoading ? 'Memproses…' : 'Masuk' }}
           </button>
-
-          <div class="relative my-[18px] text-center text-[12.5px] font-bold text-text-faint-3">
-            <div class="absolute inset-x-0 top-1/2 -z-10 h-px bg-border-hairline" />
-            <span class="bg-cream px-3">masuk cepat sebagai (demo)</span>
-          </div>
-          <div class="grid grid-cols-3 gap-[9px]">
-            <button type="button" class="rounded-[11px] border border-border-input bg-white px-1.5 py-2.5 text-[13px] font-bold text-brand-navy transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0" @click="loginAsUser">
-              Pengguna
-            </button>
-            <button type="button" class="rounded-[11px] border border-border-input bg-white px-1.5 py-2.5 text-[13px] font-bold text-brand-navy transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0" @click="loginAsOwner">
-              Pemilik
-            </button>
-            <button type="button" class="rounded-[11px] border border-border-input bg-white px-1.5 py-2.5 text-[13px] font-bold text-brand-navy transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0" @click="loginAsAdmin">
-              Admin
-            </button>
-          </div>
         </div>
 
         <p class="animate-float-up mt-6 text-center font-semibold text-text-muted" style="animation-delay: .2s">

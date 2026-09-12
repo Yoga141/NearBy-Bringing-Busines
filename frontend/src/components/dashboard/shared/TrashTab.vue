@@ -6,6 +6,8 @@ import DeleteIcon from '@/components/shared/DeleteIcon.vue'
 const dashboard = useDashboardStore()
 
 const count = computed(() => dashboard.ownerTrash.length)
+
+// Data is loaded once by DashboardView (the parent) when the panel opens.
 </script>
 
 <template>

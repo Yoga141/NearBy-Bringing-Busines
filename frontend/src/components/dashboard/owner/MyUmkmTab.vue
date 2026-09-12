@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { useUiStore } from '@/stores/ui'
-import { useUmkmStore } from '@/stores/umkm'
 import { useDashboardStore } from '@/stores/dashboard'
 
 const ui = useUiStore()
-const umkm = useUmkmStore()
 const dashboard = useDashboardStore()
+
+// Data is loaded once by DashboardView (the parent) when the panel opens.
 
 function addUmkm() {
   ui.openModal('editUmkm', { isNew: true })
 }
-function manage(name: string) {
-  const full = umkm.enrichedAll.find((r) => r.name === name)
-  ui.openModal('editUmkm', full ?? { name })
+function manage(id: number) {
+  const full = dashboard.myUmkm.find((r) => r.id === id)
+  ui.openModal('editUmkm', full ?? { isNew: true })
 }
 </script>
 
@@ -27,8 +27,14 @@ function manage(name: string) {
     </button>
   </div>
 
-  <div class="flex flex-col gap-3.5">
-    <div v-for="u in dashboard.myUmkm" :key="u.name" class="rounded-[18px] border border-border-card bg-white p-5 shadow-[0_4px_16px_rgba(19,50,77,.04)]">
+  <div v-if="dashboard.ownerLoading && !dashboard.myUmkm.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center text-text-muted">
+    Memuat UMKM…
+  </div>
+  <div v-else-if="!dashboard.myUmkm.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center text-text-muted">
+    Kamu belum mendaftarkan UMKM. Klik "+ Tambah UMKM" untuk mulai.
+  </div>
+  <div v-else class="flex flex-col gap-3.5">
+    <div v-for="u in dashboard.myUmkm" :key="u.id" class="rounded-[18px] border border-border-card bg-white p-5 shadow-[0_4px_16px_rgba(19,50,77,.04)]">
       <div class="flex items-start gap-4">
         <div class="h-[72px] w-[72px] flex-none rounded-[14px]" style="background: repeating-linear-gradient(135deg, #ece6da 0 9px, #f4efe6 9px 18px)" />
         <div class="min-w-0 flex-1">
@@ -72,11 +78,11 @@ function manage(name: string) {
           <span class="text-xs font-semibold text-text-faint">UMKM tetap tampil walau libur/tutup</span>
         </div>
         <div class="flex flex-wrap gap-2.5">
-          <button type="button" class="rounded-[11px] bg-brand-blue px-5 py-2.5 font-bold text-white" @click="manage(u.name)">Kelola &amp; edit</button>
+          <button type="button" class="rounded-[11px] bg-brand-blue px-5 py-2.5 font-bold text-white" @click="manage(u.id)">Kelola &amp; edit</button>
           <button
             type="button"
             class="rounded-[11px] border border-danger-border px-[18px] py-2.5 font-bold text-danger"
-            @click="dashboard.ownerDeleteUmkm(u.name, u.cat, u.loc)"
+            @click="dashboard.ownerDeleteUmkm(u.id, u.name)"
           >
             Hapus
           </button>

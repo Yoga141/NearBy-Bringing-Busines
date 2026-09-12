@@ -13,7 +13,7 @@ function reset() {
 function toggleActive() {
   const item = ui.modalItem
   ui.closeModal()
-  if (item) dashboard.userToggleActive(item.email, item.name)
+  if (item) dashboard.userToggleActive(item.id, item.name)
 }
 </script>
 

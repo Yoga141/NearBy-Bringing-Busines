@@ -1,10 +1,39 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { AuthUser, Role } from '@/types'
+import { apiFetch, ApiError, getToken, setToken } from '@/lib/api'
+import { useUmkmStore } from './umkm'
+
+/** Shape returned by UserResource on the Laravel side. */
+interface ApiUser {
+  id: number
+  name: string
+  email: string
+  phone: string | null
+  role: Role
+  status: string
+}
+
+interface AuthResponse {
+  user: ApiUser
+  token: string
+}
+
+export interface RegisterPayload {
+  name: string
+  email: string
+  phone?: string
+  password: string
+  role: Role
+}
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<AuthUser | null>(null)
   const regRole = ref<Role>('user')
+
+  /** Set by login()/register() so the form can show why it failed. */
+  const authError = ref('')
+  const authLoading = ref(false)
 
   const isGuest = computed(() => !user.value)
   const isAuthed = computed(() => !!user.value)
@@ -26,41 +55,128 @@ export const useAuthStore = defineStore('auth', () => {
     }
   })
 
-  // Profile-settings fields, independent of the session name/role so they
-  // can be edited freely. Seeded with sensible defaults on login, matching
-  // the prototype's `profileName || authName` render-time fallback.
+  // Profile-settings fields, independent of the session user so they can be
+  // edited freely in the settings form. Seeded from the real account on
+  // login/register/session-restore.
   const profileName = ref('')
   const profileEmail = ref('')
   const profilePhone = ref('')
 
-  function login(name: string, role: Role) {
-    user.value = { name, role }
+  function applyUser(apiUser: ApiUser) {
+    user.value = {
+      id: apiUser.id,
+      name: apiUser.name,
+      email: apiUser.email,
+      phone: apiUser.phone,
+      role: apiUser.role,
+      status: apiUser.status,
+    }
+    profileName.value = apiUser.name
+    profileEmail.value = apiUser.email
+    profilePhone.value = apiUser.phone ?? ''
+    // Fire-and-forget: pull in this account's favorites now that we know who's signed in.
+    useUmkmStore().fetchFavorites()
+  }
+
+  function messageFor(error: unknown): string {
+    if (error instanceof ApiError) return error.firstError
+    return 'Tidak dapat terhubung ke server. Periksa koneksi internetmu.'
+  }
+
+  /** Log in against the backend and store the returned Sanctum token. */
+  async function login(email: string, password: string): Promise<boolean> {
+    authError.value = ''
+    authLoading.value = true
+    try {
+      const res = await apiFetch<AuthResponse>('/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      })
+      setToken(res.token)
+      applyUser(res.user)
+      return true
+    } catch (error) {
+      authError.value = messageFor(error)
+      return false
+    } finally {
+      authLoading.value = false
+    }
+  }
+
+  /** Create a new account (role: user or owner) and sign in immediately. */
+  async function register(payload: RegisterPayload): Promise<boolean> {
+    authError.value = ''
+    authLoading.value = true
+    try {
+      const res = await apiFetch<AuthResponse>('/register', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+      setToken(res.token)
+      applyUser(res.user)
+      return true
+    } catch (error) {
+      authError.value = messageFor(error)
+      return false
+    } finally {
+      authLoading.value = false
+    }
+  }
+
+  /**
+   * Restore a session locally without calling the API. Used only by the
+   * account-deletion "undo" banner: deleteMyAccount()/restoreMyAccount() in
+   * the account store are a local-only prototype (not backed by a real
+   * delete-account endpoint yet), so this mirrors that by staying local too.
+   */
+  function resumeLocalSession(name: string, role: Role) {
+    user.value = {
+      id: user.value?.id ?? 0,
+      name,
+      email: profileEmail.value,
+      phone: profilePhone.value || null,
+      role,
+      status: 'aktif',
+    }
     profileName.value = name
-    profileEmail.value = role === 'admin' ? 'admin@nearby.id' : 'akun@mail.com'
-    profilePhone.value = '0812-0000-0000'
   }
 
-  /** Prototype login is mocked: submitting the form always signs in the same demo user. */
-  function doLogin() {
-    login('Rizky Pratama', 'user')
-  }
-  function loginAsUser() {
-    login('Rizky Pratama', 'user')
-  }
-  function loginAsOwner() {
-    login('Dewi Anjani', 'owner')
-  }
-  function loginAsAdmin() {
-    login('Admin NearBy', 'admin')
-  }
-
-  function register(name: string, role: Role) {
-    const nm = name || (role === 'owner' ? 'Dewi Anjani' : 'Rizky Pratama')
-    login(nm, role)
-  }
-
+  /** Clear local session state immediately, then best-effort revoke the token. */
   function logout() {
+    const activeToken = getToken()
     user.value = null
+    setToken(null)
+    useUmkmStore().resetFavorites()
+    if (activeToken) {
+      fetch('/api/logout', {
+        method: 'POST',
+        headers: { Accept: 'application/json', Authorization: `Bearer ${activeToken}` },
+      }).catch(() => {
+        // Best-effort: the local session is already cleared either way.
+      })
+    }
+  }
+
+  /**
+   * Restore the session from a previously stored token (e.g. after a page
+   * reload). Cached so repeated calls (from route guards, layout mounts,
+   * etc.) only hit the API once.
+   */
+  let restorePromise: Promise<void> | null = null
+  function restoreSession(): Promise<void> {
+    if (!restorePromise) {
+      restorePromise = (async () => {
+        if (!getToken()) return
+        try {
+          const me = await apiFetch<ApiUser>('/me')
+          applyUser(me)
+        } catch {
+          setToken(null)
+          user.value = null
+        }
+      })()
+    }
+    return restorePromise
   }
 
   return {
@@ -76,12 +192,12 @@ export const useAuthStore = defineStore('auth', () => {
     profileName,
     profileEmail,
     profilePhone,
+    authError,
+    authLoading,
     login,
-    doLogin,
-    loginAsUser,
-    loginAsOwner,
-    loginAsAdmin,
     register,
     logout,
+    restoreSession,
+    resumeLocalSession,
   }
 })

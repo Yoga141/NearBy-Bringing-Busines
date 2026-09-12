@@ -22,8 +22,11 @@ export interface UmkmItem {
   avail?: boolean
 }
 
+export type UmkmVerification = 'menunggu' | 'disetujui' | 'ditolak'
+
 export interface Umkm {
   id: number
+  ownerId: number | null
   name: string
   cat: CategoryName
   loc: LocationName
@@ -38,6 +41,12 @@ export interface Umkm {
   ig: string
   listLabel: string
   items: UmkmItem[]
+  status: UmkmStatus
+  verification: UmkmVerification
+  hidden: boolean
+  views: number
+  /** Only present once the UMKM has been soft-deleted (owner/admin trash views). */
+  deletedAt?: string | null
 }
 
 export type UmkmStatus = 'Aktif' | 'Libur' | 'Tutup'
@@ -45,18 +54,27 @@ export type UmkmStatus = 'Aktif' | 'Libur' | 'Tutup'
 export interface Review {
   id: string
   umkmId: number
+  /** Present when the review was fetched alongside its UMKM (e.g. the owner's or the user's own review list). */
+  umkmName?: string
+  umkmCat?: CategoryName
+  userId: number | null
   initial: string
   name: string
   stars: number
   date: string
   text: string
+  reply?: string | null
 }
 
 export type Role = 'user' | 'owner' | 'admin'
 
 export interface AuthUser {
+  id: number
   name: string
+  email: string
+  phone: string | null
   role: Role
+  status: string
 }
 
 // ---- Dashboard ----
@@ -70,61 +88,11 @@ export interface StatCard {
   soft: string
 }
 
-export interface ChartBar {
-  label: string
-  pct: number
-}
-
-export interface SimpleReview {
-  initial: string
-  name: string
-  stars: number
-  text: string
-}
-
-export interface MyUmkmRaw {
-  name: string
-  cat: CategoryName
-  loc: LocationName
-  rating: number
-  reviews: number
-  views: string
-  status: UmkmStatus
-}
-
-export interface OwnerReview {
-  initial: string
-  name: string
-  umkm: string
-  stars: number
-  date: string
-  text: string
-}
-
 export interface SubmissionFile {
   name: string
   kind: 'image' | 'doc'
   ok: boolean
   meta: string
-}
-
-export interface SubmissionRaw {
-  name: string
-  owner: string
-  cat: CategoryName
-  loc: LocationName
-  date: string
-  checks: [string, boolean][]
-  files: SubmissionFile[]
-}
-
-export interface UserRaw {
-  name: string
-  email: string
-  role: 'Pengguna' | 'Pemilik UMKM' | 'Administrator'
-  status: 'Aktif' | 'Menunggu' | 'Nonaktif'
-  joined: string
-  initial: string
 }
 
 export interface OwnerTrashEntry {

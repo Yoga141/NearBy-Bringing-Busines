@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useDashboardStore } from '@/stores/dashboard'
 import DashboardLayout from '@/components/dashboard/DashboardLayout.vue'
 import DashboardModals from '@/components/dashboard/DashboardModals.vue'
 import VerifikasiTab from '@/components/dashboard/admin/VerifikasiTab.vue'
@@ -17,8 +18,16 @@ import ProfileEditCard from '@/components/dashboard/shared/ProfileEditCard.vue'
 const props = defineProps<{ tab?: string }>()
 
 const auth = useAuthStore()
+const dashboard = useDashboardStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
 const tab = computed(() => props.tab ?? (isAdmin.value ? 'verif' : 'ringkasan'))
+
+// Load once up front so the sidebar's badge counts (trash / new reports) and
+// every tab have data ready regardless of which one is opened first.
+onMounted(() => {
+  if (isAdmin.value) dashboard.fetchAdminDashboard()
+  else dashboard.fetchOwnerDashboard()
+})
 </script>
 
 <template>

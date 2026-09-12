@@ -15,9 +15,24 @@ const regPass = ref('')
 
 const roleWord = computed(() => (auth.regRole === 'owner' ? 'Pemilik UMKM' : 'Pengguna'))
 
-function doRegister() {
-  auth.register(regName.value.trim(), auth.regRole)
-  router.push({ name: auth.regRole === 'owner' ? 'dashboard' : 'beranda' })
+async function doRegister() {
+  if (!regName.value.trim() || !regEmail.value.trim() || !regPass.value) {
+    auth.authError = 'Lengkapi nama, email, dan password terlebih dahulu.'
+    return
+  }
+  if (regPass.value.length < 8) {
+    auth.authError = 'Password minimal 8 karakter.'
+    return
+  }
+  const ok = await auth.register({
+    name: regName.value.trim(),
+    email: regEmail.value.trim(),
+    password: regPass.value,
+    role: auth.regRole,
+  })
+  if (ok) {
+    router.push({ name: auth.regRole === 'owner' ? 'dashboard' : 'beranda' })
+  }
 }
 </script>
 
@@ -72,14 +87,19 @@ function doRegister() {
             v-model="regPass"
             type="password"
             placeholder="Minimal 8 karakter"
-            class="mb-[18px] w-full rounded-xl border border-border-input bg-white px-[15px] py-3 transition-shadow duration-150"
+            class="mb-3 w-full rounded-xl border border-border-input bg-white px-[15px] py-3 transition-shadow duration-150"
+            @keyup.enter="doRegister"
           />
+
+          <p v-if="auth.authError" class="mb-3 text-[13px] font-semibold text-danger">{{ auth.authError }}</p>
+
           <button
             type="button"
-            class="w-full rounded-xl bg-brand-blue py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_24px_rgba(44,94,173,.28)] transition-transform duration-150 hover:scale-[1.015] active:scale-[0.98]"
+            class="w-full rounded-xl bg-brand-blue py-3.5 text-[15.5px] font-extrabold text-white shadow-[0_10px_24px_rgba(44,94,173,.28)] transition-transform duration-150 hover:scale-[1.015] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="auth.authLoading"
             @click="doRegister"
           >
-            Daftar sebagai {{ roleWord }}
+            {{ auth.authLoading ? 'Memproses…' : `Daftar sebagai ${roleWord}` }}
           </button>
         </div>
 

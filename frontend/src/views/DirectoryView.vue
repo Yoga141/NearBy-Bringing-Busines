@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useUmkmStore } from '@/stores/umkm'
 import { CATEGORY_FILTERS, LOCATION_FILTERS } from '@/data/categories'
 import UmkmCard from '@/components/shared/UmkmCard.vue'
@@ -6,6 +7,8 @@ import FilterChip from '@/components/shared/FilterChip.vue'
 import EmptyState from '@/components/shared/EmptyState.vue'
 
 const umkm = useUmkmStore()
+
+onMounted(() => umkm.fetchAll())
 </script>
 
 <template>
@@ -50,7 +53,11 @@ const umkm = useUmkmStore()
       <div class="text-[13px] font-semibold text-text-faint">Diurutkan: Rating tertinggi</div>
     </div>
 
-    <div v-if="umkm.filteredDirectory.length" class="grid grid-cols-1 gap-5 mobile:grid-cols-2 tablet:grid-cols-3">
+    <div v-if="umkm.loading && !umkm.loaded" class="rounded-[20px] border border-border-card bg-white px-6 py-16 text-center text-text-muted">
+      Memuat UMKM…
+    </div>
+    <EmptyState v-else-if="umkm.error" title="Gagal memuat data" :subtitle="umkm.error" />
+    <div v-else-if="umkm.filteredDirectory.length" class="grid grid-cols-1 gap-5 mobile:grid-cols-2 tablet:grid-cols-3">
       <UmkmCard v-for="u in umkm.filteredDirectory" :key="u.id" :umkm="u" size="lg" />
     </div>
     <EmptyState v-else title="Tidak ada UMKM yang cocok" subtitle="Coba ubah kategori, wilayah, atau kata kunci." />

@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useUmkmStore } from '@/stores/umkm'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -45,9 +46,17 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
+  const auth = useAuthStore()
+  // Restore the session from a stored token before any guard checks run, so
+  // a page reload on a protected route doesn't bounce a signed-in user back
+  // to /login. Cached in the store after the first call.
+  await auth.restoreSession()
+  // Fire-and-forget: the public catalog is cached after the first successful
+  // load, so this is a no-op on every navigation after the first.
+  useUmkmStore().fetchAll()
+
   if (to.name === 'dashboard') {
-    const auth = useAuthStore()
     if (!auth.user || auth.user.role === 'user') {
       return { name: 'login' }
     }

@@ -17,9 +17,10 @@ const reviewsStore = useReviewsStore()
 const editingId = ref<string | null>(null)
 const editStars = ref(5)
 const editText = ref('')
+const busyId = ref<string | null>(null)
 
 function isMine(rv: Review) {
-  return auth.isAuthed && rv.name === auth.user?.name
+  return auth.isAuthed && rv.userId !== null && rv.userId === auth.user?.id
 }
 
 function startEdit(rv: Review) {
@@ -32,15 +33,28 @@ function cancelEdit() {
   editingId.value = null
 }
 
-function saveEdit(rv: Review) {
+async function saveEdit(rv: Review) {
   if (!editText.value.trim()) return
-  reviewsStore.updateReview(rv.umkmId, rv.id, { stars: editStars.value, text: editText.value.trim() })
-  editingId.value = null
+  busyId.value = rv.id
+  try {
+    await reviewsStore.updateReview(rv.umkmId, rv.id, { stars: editStars.value, text: editText.value.trim() })
+    editingId.value = null
+  } catch {
+    alert('Gagal menyimpan perubahan ulasan. Coba lagi.')
+  } finally {
+    busyId.value = null
+  }
 }
 
-function removeReview(rv: Review) {
-  if (confirm('Hapus ulasan ini?')) {
-    reviewsStore.deleteReview(rv.umkmId, rv.id)
+async function removeReview(rv: Review) {
+  if (!confirm('Hapus ulasan ini?')) return
+  busyId.value = rv.id
+  try {
+    await reviewsStore.deleteReview(rv.umkmId, rv.id)
+  } catch {
+    alert('Gagal menghapus ulasan. Coba lagi.')
+  } finally {
+    busyId.value = null
   }
 }
 </script>
@@ -60,10 +74,20 @@ function removeReview(rv: Review) {
         <div class="text-[13px] font-bold text-gold">{{ starsLabel(rv.stars) }}</div>
         <div class="text-[12.5px] font-semibold text-text-faint-3">{{ rv.date }}</div>
         <div v-if="isMine(rv) && editingId !== rv.id" class="ml-auto flex gap-3">
-          <button type="button" class="flex items-center gap-1 text-[12px] font-bold text-brand-navy outline-none hover:underline" @click="startEdit(rv)">
+          <button
+            type="button"
+            class="flex items-center gap-1 text-[12px] font-bold text-brand-navy outline-none hover:underline disabled:opacity-50"
+            :disabled="busyId === rv.id"
+            @click="startEdit(rv)"
+          >
             <EditIcon size="13px" /> Edit
           </button>
-          <button type="button" class="flex items-center gap-1 text-[12px] font-bold text-danger outline-none hover:underline" @click="removeReview(rv)">
+          <button
+            type="button"
+            class="flex items-center gap-1 text-[12px] font-bold text-danger outline-none hover:underline disabled:opacity-50"
+            :disabled="busyId === rv.id"
+            @click="removeReview(rv)"
+          >
             <DeleteIcon size="13px" /> Hapus
           </button>
         </div>

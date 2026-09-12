@@ -1,16 +1,7 @@
 import { computed, reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { Role } from '@/types'
-
-export interface CommentHistoryEntry {
-  cid: number
-  umkmId: number
-  umkm: string
-  cat: string
-  stars: number
-  text: string
-  date: string
-}
+import { apiFetch } from '@/lib/api'
+import type { Review, Role } from '@/types'
 
 export interface DeletedAccount {
   name: string
@@ -21,35 +12,21 @@ export interface DeletedAccount {
   deletedAt: number
 }
 
-const SEED_COMMENT_HISTORY: CommentHistoryEntry[] = [
-  {
-    cid: 1,
-    umkmId: 1,
-    umkm: 'Warung Kepiting Kenari',
-    cat: 'Kuliner',
-    stars: 5,
-    text: 'Kepitingnya juara, saus padangnya bikin nagih! Pelayanan cepat dan ramah.',
-    date: '2 Jul 2026',
-  },
-  {
-    cid: 2,
-    umkmId: 2,
-    umkm: 'Kopi Saluang',
-    cat: 'Kuliner',
-    stars: 4,
-    text: 'Suasana enak buat nongkrong, kopinya pas. Tempat parkir agak sempit.',
-    date: '26 Jun 2026',
-  },
-  {
-    cid: 3,
-    umkmId: 3,
-    umkm: 'Penginapan Teluk Asri',
-    cat: 'Penginapan',
-    stars: 5,
-    text: 'Kamar bersih, host ramah, pemandangan teluknya bagus. Pasti balik lagi.',
-    date: '18 Jun 2026',
-  },
-]
+function fromApiReview(row: any): Review {
+  return {
+    id: String(row.id),
+    umkmId: row.umkmId,
+    umkmName: row.umkmName,
+    umkmCat: row.umkmCat,
+    userId: row.userId ?? null,
+    initial: row.initial,
+    name: row.name,
+    stars: Number(row.stars) || 0,
+    date: row.date ?? '',
+    text: row.text ?? '',
+    reply: row.reply ?? null,
+  }
+}
 
 export const useAccountStore = defineStore('account', () => {
   const perms = reactive({
@@ -68,14 +45,39 @@ export const useAccountStore = defineStore('account', () => {
     security[key] = !security[key]
   }
 
-  const commentHistory = ref<CommentHistoryEntry[]>(SEED_COMMENT_HISTORY)
+  // ---- Riwayat komentar (the user's own reviews, across every UMKM) ----
+  const commentHistory = ref<Review[]>([])
+  const commentHistoryLoading = ref(false)
+  const commentHistoryLoaded = ref(false)
 
-  function deleteComment(cid: number) {
-    commentHistory.value = commentHistory.value.filter((c) => c.cid !== cid)
+  async function fetchCommentHistory(force = false) {
+    if (commentHistoryLoaded.value && !force) return
+    commentHistoryLoading.value = true
+    try {
+      const rows = await apiFetch<any[]>('/me/reviews')
+      commentHistory.value = rows.map(fromApiReview)
+      commentHistoryLoaded.value = true
+    } catch {
+      // Leave whatever was already loaded; the tab shows an empty state either way.
+    } finally {
+      commentHistoryLoading.value = false
+    }
   }
-  function updateComment(cid: number, text: string) {
-    const c = commentHistory.value.find((c) => c.cid === cid)
-    if (c) c.text = text
+
+  async function deleteComment(id: string) {
+    await apiFetch(`/reviews/${id}`, { method: 'DELETE' })
+    commentHistory.value = commentHistory.value.filter((c) => c.id !== id)
+  }
+  async function updateComment(id: string, text: string) {
+    const current = commentHistory.value.find((c) => c.id === id)
+    if (!current) return
+    const row = await apiFetch<any>(`/reviews/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ stars: current.stars, text }),
+    })
+    const updated = fromApiReview(row)
+    const idx = commentHistory.value.findIndex((c) => c.id === id)
+    if (idx !== -1) commentHistory.value[idx] = { ...current, ...updated }
   }
 
   const deletedAccounts = ref<DeletedAccount[]>([
@@ -115,6 +117,8 @@ export const useAccountStore = defineStore('account', () => {
     togglePerm,
     toggleSecurity,
     commentHistory,
+    commentHistoryLoading,
+    fetchCommentHistory,
     deleteComment,
     updateComment,
     deletedAccounts,

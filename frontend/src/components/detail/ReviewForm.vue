@@ -25,18 +25,14 @@ function removeMedia(i: number) {
   media.value.splice(i, 1)
 }
 
-function submit() {
+async function submit() {
   if (!text.value.trim() || !auth.user) return
-  reviews.addReview(props.umkmId, {
-    initial: auth.authInitial,
-    name: auth.user.name,
-    stars: stars.value,
-    date: 'Baru saja',
-    text: text.value.trim(),
-  })
-  stars.value = 5
-  text.value = ''
-  media.value = []
+  const ok = await reviews.addReview(props.umkmId, { stars: stars.value, text: text.value.trim() })
+  if (ok) {
+    stars.value = 5
+    text.value = ''
+    media.value = []
+  }
 }
 </script>
 
@@ -81,8 +77,14 @@ function submit() {
           <input type="file" accept="image/*,video/*" multiple class="hidden" @change="onPickMedia" />
         </label>
       </div>
-      <button type="button" class="rounded-[11px] bg-brand-blue px-5 py-2.5 font-bold text-white" @click="submit">
-        Kirim ulasan
+      <p v-if="reviews.error" class="mb-3 text-[13px] font-semibold text-danger">{{ reviews.error }}</p>
+      <button
+        type="button"
+        class="rounded-[11px] bg-brand-blue px-5 py-2.5 font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+        :disabled="reviews.submitting"
+        @click="submit"
+      >
+        {{ reviews.submitting ? 'Mengirim…' : 'Kirim ulasan' }}
       </button>
     </template>
     <div v-else class="flex flex-wrap items-center justify-between gap-3">

@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUmkmStore } from '@/stores/umkm'
-import { CATEGORY_FILTERS } from '@/data/categories'
+import { CATEGORY_FILTERS, CATEGORY_NAMES, LOCATION_NAMES } from '@/data/categories'
 import PlaceholderThumb from '@/components/shared/PlaceholderThumb.vue'
 import HeroCanvas from '@/components/home/HeroCanvas.vue'
 
 const router = useRouter()
 const umkm = useUmkmStore()
 const heroCat = ref('Semua')
+
+/** The 2 top-rated UMKM, for the hero's small preview cards. */
+const heroPreview = computed(() => umkm.featured.slice(0, 2))
 
 function doHeroSearch() {
   umkm.cat = heroCat.value
@@ -84,12 +87,12 @@ function doHeroSearch() {
           </div>
           <div class="w-px bg-white/15" />
           <div>
-            <div class="text-[26px] font-extrabold text-white">5</div>
+            <div class="text-[26px] font-extrabold text-white">{{ CATEGORY_NAMES.length }}</div>
             <div class="text-[13px] font-semibold text-[#9FB4D0]">Kategori</div>
           </div>
           <div class="w-px bg-white/15" />
           <div>
-            <div class="text-[26px] font-extrabold text-white">6</div>
+            <div class="text-[26px] font-extrabold text-white">{{ LOCATION_NAMES.length }}</div>
             <div class="text-[13px] font-semibold text-[#9FB4D0]">Kecamatan</div>
           </div>
         </div>
@@ -99,20 +102,23 @@ function doHeroSearch() {
         <div class="rounded-3xl border border-white/16 bg-white/8 p-[18px] backdrop-blur-[6px]">
           <div class="relative h-[200px]">
             <div class="h-full w-full overflow-hidden rounded-2xl">
-              <PlaceholderThumb label="foto suasana UMKM" variant="navy" rounded="rounded-none" />
+              <PlaceholderThumb :label="heroPreview[0]?.imgLabel || 'UMKM sekitaranmu'" variant="navy" rounded="rounded-none" />
             </div>
           </div>
-          <div class="mt-3 grid grid-cols-2 gap-3">
-            <div class="rounded-[14px] bg-white p-3.5">
+          <div v-if="heroPreview.length" class="mt-3 grid grid-cols-2 gap-3">
+            <RouterLink
+              v-for="u in heroPreview"
+              :key="u.id"
+              :to="{ name: 'detail', params: { id: u.id } }"
+              class="rounded-[14px] bg-white p-3.5"
+            >
               <div class="h-[74px] rounded-[9px]" style="background: repeating-linear-gradient(135deg, #ece6da 0 10px, #f4efe6 10px 20px)" />
-              <div class="mt-2.5 text-[13px] font-bold">Kepiting Kenari</div>
-              <div class="text-[12px] font-bold text-gold">★ 4.8 · Kuliner</div>
-            </div>
-            <div class="rounded-[14px] bg-white p-3.5">
-              <div class="h-[74px] rounded-[9px]" style="background: repeating-linear-gradient(135deg, #ece6da 0 10px, #f4efe6 10px 20px)" />
-              <div class="mt-2.5 text-[13px] font-bold">Amplang Bahari</div>
-              <div class="text-[12px] font-bold text-[#1591DC]">★ 4.9 · Oleh-Oleh</div>
-            </div>
+              <div class="mt-2.5 truncate text-[13px] font-bold text-brand-navy">{{ u.name }}</div>
+              <div class="text-[12px] font-bold" :style="{ color: u.accent }">★ {{ u.rating }} · {{ u.cat }}</div>
+            </RouterLink>
+          </div>
+          <div v-else class="mt-3 rounded-[14px] bg-white p-4 text-center text-[13px] font-semibold text-text-faint">
+            Belum ada UMKM terdaftar.
           </div>
         </div>
       </div>

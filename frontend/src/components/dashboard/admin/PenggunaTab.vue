@@ -12,7 +12,11 @@ const dashboard = useDashboardStore()
     <p class="mt-[7px] text-text-muted">Kelola akun pengguna yang terdaftar di NearBy Balikpapan.</p>
   </div>
 
-  <div class="overflow-x-auto rounded-[18px] border border-border-card bg-white px-5 pt-2 pb-3.5">
+  <div v-if="dashboard.adminLoading && !dashboard.users.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center text-text-muted">
+    Memuat pengguna…
+  </div>
+
+  <div v-else class="overflow-x-auto rounded-[18px] border border-border-card bg-white px-5 pt-2 pb-3.5">
     <div class="grid min-w-[560px] grid-cols-[2fr_1.1fr_.9fr_auto] gap-3 border-b border-border-divider px-1.5 py-3.5 text-xs font-extrabold tracking-[.04em] text-[#B0A990] uppercase">
       <div>Pengguna</div>
       <div>Peran</div>
@@ -21,7 +25,7 @@ const dashboard = useDashboardStore()
     </div>
     <div
       v-for="u in dashboard.users"
-      :key="u.email"
+      :key="u.id"
       class="grid min-w-[560px] grid-cols-[2fr_1.1fr_.9fr_auto] items-center gap-3 border-b border-[#F4EFE4] px-1.5 py-3 last:border-b-0"
     >
       <div class="flex min-w-0 items-center gap-2.5">
@@ -40,7 +44,7 @@ const dashboard = useDashboardStore()
           v-if="u.deleted"
           type="button"
           class="rounded-[9px] bg-brand-blue-tint px-[13px] py-2 text-[13px] font-bold whitespace-nowrap text-brand-blue"
-          @click="dashboard.userRestore(u.email)"
+          @click="dashboard.userRestore(u.id)"
         >
           Pulihkan akun
         </button>

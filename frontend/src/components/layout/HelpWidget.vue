@@ -26,12 +26,16 @@ function submitAsk() {
   alert('Terima kasih! Pertanyaan kamu sudah dikirim ke admin dan akan segera dibalas.')
 }
 
-function submitBug() {
+async function submitBug() {
   if (!bugText.value.trim()) {
     alert('Mohon isi deskripsi masalah terlebih dahulu.')
     return
   }
-  dashboard.submitProblemReport(bugKind.value, bugText.value.trim(), bugName.value)
+  const ok = await dashboard.submitProblemReport(bugKind.value, bugText.value.trim(), bugName.value)
+  if (!ok) {
+    alert('Gagal mengirim laporan. Periksa koneksimu dan coba lagi.')
+    return
+  }
   ui.helpOpen = false
   ui.helpTab = 'ask'
   bugText.value = ''

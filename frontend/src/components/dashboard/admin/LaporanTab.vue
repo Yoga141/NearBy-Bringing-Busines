@@ -1,15 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useUmkmStore } from '@/stores/umkm'
 import { useDashboardStore } from '@/stores/dashboard'
-import { reportStats, GROWTH_BARS } from '@/data/dashboardSeed'
 
-const umkm = useUmkmStore()
 const dashboard = useDashboardStore()
 
-const stats = computed(() => reportStats(umkm.all.length))
-const maxGrowth = Math.max(...GROWTH_BARS.map((b) => b.val))
-const growthBars = GROWTH_BARS.map((b) => ({ ...b, pct: Math.round((b.val / maxGrowth) * 100) }))
+// Data is loaded once by DashboardView (the parent) when the panel opens.
 </script>
 
 <template>
@@ -19,7 +13,7 @@ const growthBars = GROWTH_BARS.map((b) => ({ ...b, pct: Math.round((b.val / maxG
   </div>
 
   <div class="mb-[22px] grid grid-cols-2 gap-4 tablet:grid-cols-4">
-    <div v-for="s in stats" :key="s.label" class="rounded-2xl border border-border-card bg-white p-[18px]">
+    <div v-for="s in dashboard.reportStats" :key="s.label" class="rounded-2xl border border-border-card bg-white p-[18px]">
       <div class="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] text-[17px] font-extrabold" :style="{ background: s.soft, color: s.accent }">
         {{ s.icon }}
       </div>
@@ -33,7 +27,7 @@ const growthBars = GROWTH_BARS.map((b) => ({ ...b, pct: Math.round((b.val / maxG
       <div class="text-[17px] font-extrabold">Pertumbuhan UMKM</div>
       <div class="text-[13px] font-semibold text-text-faint">6 bulan terakhir</div>
       <div class="mt-4 flex h-[170px] items-end gap-4">
-        <div v-for="b in growthBars" :key="b.label" class="flex h-full flex-1 flex-col items-center justify-end gap-2">
+        <div v-for="b in dashboard.growthBars" :key="b.label" class="flex h-full flex-1 flex-col items-center justify-end gap-2">
           <div class="text-xs font-extrabold text-brand-blue">{{ b.val }}</div>
           <div class="w-full rounded-t-lg" style="background: linear-gradient(180deg, #4bb8fa, #2c5ead)" :style="{ height: `${b.pct}%` }" />
           <div class="text-[11.5px] font-bold text-text-faint">{{ b.label }}</div>
@@ -58,6 +52,7 @@ const growthBars = GROWTH_BARS.map((b) => ({ ...b, pct: Math.round((b.val / maxG
 
   <div class="rounded-[18px] border border-border-card bg-white p-[22px]">
     <div class="mb-3.5 text-[17px] font-extrabold">UMKM rating tertinggi</div>
+    <div v-if="!dashboard.topUmkm.length" class="text-[13.5px] text-text-faint">Belum ada data.</div>
     <div v-for="u in dashboard.topUmkm" :key="u.id" class="flex items-center gap-3.5 border-t border-border-divider-2 py-2.5 first:border-t-0">
       <div class="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-[#F4F0E7] text-[13px] font-extrabold">{{ u.rank }}</div>
       <div class="flex-1">

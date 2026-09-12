@@ -10,7 +10,11 @@ const dashboard = useDashboardStore()
     <p class="mt-[7px] text-text-muted">Pantau seluruh UMKM yang terdaftar. Edit &amp; hapus dilakukan oleh pemilik UMKM masing-masing.</p>
   </div>
 
-  <div class="overflow-x-auto rounded-[18px] border border-border-card bg-white px-5 pt-2 pb-3.5">
+  <div v-if="dashboard.adminLoading && !dashboard.allUmkmAdmin.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center text-text-muted">
+    Memuat data UMKM…
+  </div>
+
+  <div v-else class="overflow-x-auto rounded-[18px] border border-border-card bg-white px-5 pt-2 pb-3.5">
     <div class="grid min-w-[660px] grid-cols-[2.2fr_1fr_1fr_.7fr_1fr] gap-3 border-b border-border-divider px-1.5 py-3.5 text-xs font-extrabold tracking-[.04em] text-[#B0A990] uppercase">
       <div>Nama UMKM</div>
       <div>Kategori</div>
