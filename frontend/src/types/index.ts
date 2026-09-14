@@ -112,3 +112,23 @@ export interface ProblemReport {
   status: ProblemReportStatus
   when: string
 }
+
+// ---- Konten medsos ----
+
+export type VideoPlatform = 'youtube' | 'instagram'
+
+/** One card in the homepage "Video dari medsos NearBy" section. */
+export interface SocialVideo {
+  id: number
+  platform: VideoPlatform
+  platformLabel: string
+  title: string
+  /** Share link an admin pasted; null while the slot is still empty. */
+  url: string | null
+  /** Player URL derived from `url` by the API; null when the slot is empty. */
+  embedUrl: string | null
+  /** Poster image — YouTube only; Instagram exposes no public thumbnail. */
+  thumbnailUrl: string | null
+  sortOrder: number
+  active: boolean
+}

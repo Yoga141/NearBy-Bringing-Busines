@@ -1,12 +1,12 @@
 <script setup lang="ts">
-defineProps<{ modelValue: boolean }>()
+withDefaults(defineProps<{ modelValue: boolean; tone?: 'blue' | 'teal' }>(), { tone: 'blue' })
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
 </script>
 
 <template>
   <div
     class="relative h-[26px] w-11 flex-none cursor-pointer rounded-full transition-colors duration-150"
-    :class="modelValue ? 'bg-brand-blue' : 'bg-[#D8D0C0]'"
+    :class="modelValue ? (tone === 'teal' ? 'bg-teal' : 'bg-brand-blue') : 'bg-[#D8D0C0]'"
     @click="emit('update:modelValue', !modelValue)"
   >
     <div

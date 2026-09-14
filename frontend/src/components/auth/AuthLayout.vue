@@ -27,7 +27,9 @@ const router = useRouter()
       </div>
     </div>
 
-    <div class="flex items-center justify-center bg-cream px-6 py-10">
+    <!-- data-a11y-read: what "Bacakan isi layar" reads on this page, since the
+         auth screens have no <main> and the decorative panel isn't worth reading. -->
+    <div data-a11y-read class="flex items-center justify-center bg-cream px-6 py-10">
       <slot name="form" />
     </div>
   </div>

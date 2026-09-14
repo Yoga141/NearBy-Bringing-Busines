@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\ProblemReportController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\SocialVideoController;
 use App\Http\Controllers\Api\UmkmController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,13 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/umkm', [UmkmController::class, 'index']);
 Route::get('/umkm/{umkm}', [UmkmController::class, 'show']);
 Route::get('/umkm/{umkm}/reviews', [ReviewController::class, 'index']);
+
+/*
+|--------------------------------------------------------------------------
+| Social videos (public read — homepage "Video dari medsos" section)
+|--------------------------------------------------------------------------
+*/
+Route::get('/social-videos', [SocialVideoController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
@@ -83,5 +91,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/trash/{id}/restore', [AdminController::class, 'restore']);
         Route::get('/problem-reports', [AdminController::class, 'problemReports']);
         Route::post('/problem-reports/{problemReport}/status', [AdminController::class, 'updateProblemReportStatus']);
+
+        // Homepage social-video slots
+        Route::get('/social-videos', [SocialVideoController::class, 'adminIndex']);
+        Route::post('/social-videos', [SocialVideoController::class, 'store']);
+        Route::put('/social-videos/{socialVideo}', [SocialVideoController::class, 'update']);
+        Route::delete('/social-videos/{socialVideo}', [SocialVideoController::class, 'destroy']);
     });
 });

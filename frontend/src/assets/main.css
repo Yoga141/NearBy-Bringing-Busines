@@ -115,6 +115,20 @@
   }
 }
 
+/* "Animasi lambat & halus" (accessibility panel): one calm transition speed
+   and easing across the whole UI. Only transitions are touched — rescaling
+   the looping keyframe animations (drift, float-up) would speed them up, not
+   calm them down. Skipped entirely when the OS already asks for less motion,
+   since that preference means "less", not "slower". */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-slowmo] *,
+  html[data-slowmo] *::before,
+  html[data-slowmo] *::after {
+    transition-duration: 500ms !important;
+    transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+  }
+}
+
 .page-enter-active,
 .page-leave-active {
   transition: opacity 0.32s ease;

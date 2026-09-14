@@ -31,6 +31,8 @@ NearBy Balikpapan adalah website yang dirancang untuk membantu masyarakat menemu
 - 🏪 Detail UMKM
 - 👤 Profil UMKM
 - 🛠 Dashboard Admin
+- 🎬 Video Medsos (cuplikan Instagram & YouTube, dikelola dari dashboard)
+- ♿ Menu Aksesibilitas (bacakan halaman, keyboard virtual, animasi lambat)
 - 📱 Responsive Design
 
 # 🛠 Teknologi

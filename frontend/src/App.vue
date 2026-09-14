@@ -2,14 +2,18 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUiStore } from '@/stores/ui'
+import { useA11yStore } from '@/stores/a11y'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import HelpWidget from '@/components/layout/HelpWidget.vue'
+import AccessibilityWidget from '@/components/layout/AccessibilityWidget.vue'
+import VirtualKeyboard from '@/components/layout/VirtualKeyboard.vue'
 import SettingsModal from '@/components/account/SettingsModal.vue'
 import RestoreBanner from '@/components/account/RestoreBanner.vue'
 
 const route = useRoute()
 const ui = useUiStore()
+const a11y = useA11yStore()
 const showChrome = computed(() => route.meta.chrome !== false)
 </script>
 
@@ -27,5 +31,9 @@ const showChrome = computed(() => route.meta.chrome !== false)
     <AppFooter v-if="showChrome" />
     <HelpWidget v-if="showChrome" />
     <SettingsModal v-if="ui.settingsOpen" />
+    <!-- Always mounted, chrome or not: the login and dashboard screens are
+         exactly where the on-screen keyboard and read-aloud are needed most. -->
+    <AccessibilityWidget />
+    <VirtualKeyboard v-if="a11y.virtualKeyboard" />
   </div>
 </template>

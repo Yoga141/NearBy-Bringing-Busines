@@ -20,6 +20,11 @@ class UserSeeder extends Seeder
      * .env directly and is only safe here because seeders run as CLI
      * commands — if this were request-time app code, a cached config
      * (`config:cache`) would make env() return null.
+     *
+     * The fallback is `?:`, not env()'s second argument: a key that is present
+     * but blank (`SEED_ADMIN_PASSWORD=`) makes env() return an empty string
+     * rather than the default, which would otherwise seed every demo account
+     * with an empty password and break the documented `password` login.
      */
     public function run(): void
     {
@@ -29,21 +34,21 @@ class UserSeeder extends Seeder
                 'email' => 'jekikilo15@mail.com',
                 'role' => 'user',
                 'status' => 'aktif',
-                'password' => env('SEED_USER_PASSWORD', 'password'),
+                'password' => env('SEED_USER_PASSWORD') ?: 'password',
             ],
             [
                 'name' => 'Dewi Anjani',
                 'email' => 'dewi@mail.com',
                 'role' => 'owner',
                 'status' => 'aktif',
-                'password' => env('SEED_OWNER_PASSWORD', 'password'),
+                'password' => env('SEED_OWNER_PASSWORD') ?: 'password',
             ],
             [
                 'name' => 'Admin',
                 'email' => 'admin@nearby.id',
                 'role' => 'admin',
                 'status' => 'aktif',
-                'password' => env('SEED_ADMIN_PASSWORD', 'password'),
+                'password' => env('SEED_ADMIN_PASSWORD') ?: 'password',
             ],
         ];
 

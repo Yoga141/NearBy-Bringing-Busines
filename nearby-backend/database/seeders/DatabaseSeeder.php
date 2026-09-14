@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             UmkmSeeder::class,
             ReviewSeeder::class,
             SubmissionSeeder::class,
+            SocialVideoSeeder::class,
         ]);
     }
 }

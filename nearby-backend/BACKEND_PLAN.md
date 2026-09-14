@@ -167,6 +167,21 @@ Diturunkan dari `src/types/index.ts` dan data di `src/data/` pada frontend.
 | files     | json                                     | dokumen/foto yang diunggah  |
 | timestamps|                                          |                             |
 
+### `social_videos`  (kartu video medsos di beranda)
+| kolom      | tipe                             | catatan                                      |
+|------------|----------------------------------|----------------------------------------------|
+| id         | bigint PK                        |                                              |
+| platform   | enum('youtube','instagram')      | menentukan cara tautan di-embed              |
+| title      | string                           | judul di bawah kartu                         |
+| url        | string nullable                  | tautan share; `null` = kartu masih placeholder |
+| sort_order | unsigned int default 0           | urutan kartu di beranda                      |
+| active     | boolean default true             | `false` = tidak tampil di endpoint publik    |
+| timestamps |                                  |                                              |
+
+`embedUrl` & `thumbnailUrl` tidak disimpan — keduanya diturunkan dari `url`
+oleh model (`App\Models\SocialVideo`), supaya admin bisa menempel tautan apa
+pun dari tombol *Share* (`watch?v=`, `youtu.be`, Shorts, `/reel/`, `/p/`).
+
 ---
 
 ## Daftar Endpoint API (`routes/api.php`)
@@ -203,6 +218,11 @@ Semua di-prefix `/api`. Yang butuh login ditandai 🔒 (Sanctum token).
 | GET    | `/favorites`          | List favorit user         |
 | POST   | `/umkm/{id}/favorite` | Toggle favorit            |
 
+### Video Medsos (publik untuk baca)
+| Method | Endpoint          | Fungsi                                          |
+|--------|-------------------|-------------------------------------------------|
+| GET    | `/social-videos`  | Kartu video beranda (hanya yang `active`)       |
+
 ### Dashboard Owner 🔒
 | Method | Endpoint              | Fungsi                             |
 |--------|-----------------------|------------------------------------|
@@ -221,6 +241,14 @@ Semua di-prefix `/api`. Yang butuh login ditandai 🔒 (Sanctum token).
 | GET    | `/admin/reports`                | Laporan/statistik            |
 | GET    | `/admin/trash`                  | Item terhapus (user & umkm)  |
 | POST   | `/admin/trash/{id}/restore`     | Pulihkan dari trash          |
+| GET    | `/admin/social-videos`          | Semua slot video (termasuk nonaktif) |
+| POST   | `/admin/social-videos`          | Tambah slot video            |
+| PUT    | `/admin/social-videos/{id}`     | Ubah platform/judul/tautan/tampil |
+| DELETE | `/admin/social-videos/{id}`     | Hapus slot video             |
+
+Tautan yang tidak cocok dengan platform-nya ditolak **422** beserta pesan
+berbahasa Indonesia, supaya kartu tidak diam-diam jadi kosong. Mengosongkan
+`url` (kirim `""`) mengembalikan kartu ke keadaan placeholder.
 
 ---
 

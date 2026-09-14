@@ -20,6 +20,7 @@ const adminMenu = computed(() => [
   { key: 'all', label: 'Semua UMKM' },
   { key: 'users', label: 'Pengguna' },
   { key: 'report', label: 'Laporan' },
+  { key: 'video', label: 'Video Medsos' },
   { key: 'masalah', label: dashboard.newReportCount ? `Laporan Masalah (${dashboard.newReportCount})` : 'Laporan Masalah' },
 ])
 const ownerMenu = computed(() => [
@@ -106,7 +107,9 @@ function logout() {
         </button>
       </aside>
 
-      <div><slot /></div>
+      <!-- data-a11y-read: what "Bacakan isi layar" reads here — the dashboard
+           has no <main>, and the sidebar menu isn't useful to read aloud. -->
+      <div data-a11y-read><slot /></div>
     </div>
   </div>
 </template>
