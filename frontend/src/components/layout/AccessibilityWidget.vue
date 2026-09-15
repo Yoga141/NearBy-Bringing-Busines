@@ -1,8 +1,15 @@
 <script setup lang="ts">
+import { watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useA11yStore } from '@/stores/a11y'
 import ToggleSwitch from '@/components/shared/ToggleSwitch.vue'
 
 const a11y = useA11yStore()
+const route = useRoute()
+
+// speechSynthesis outlives the view it was reading, so a navigation mid-read
+// would keep narrating the previous page over the new one.
+watch(() => route.fullPath, () => a11y.stopSpeaking())
 </script>
 
 <template>
