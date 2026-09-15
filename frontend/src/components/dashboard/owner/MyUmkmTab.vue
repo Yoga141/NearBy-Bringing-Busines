@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
+import ExcelCard from '@/components/dashboard/shared/ExcelCard.vue'
 
 const ui = useUiStore()
 const dashboard = useDashboardStore()
@@ -26,6 +27,8 @@ function manage(id: number) {
       + Tambah UMKM
     </button>
   </div>
+
+  <ExcelCard :is-admin="false" @imported="dashboard.fetchOwnerDashboard()" />
 
   <div v-if="dashboard.ownerLoading && !dashboard.myUmkm.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center text-text-muted">
     Memuat UMKM…

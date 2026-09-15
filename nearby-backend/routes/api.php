@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\ProblemReportController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialVideoController;
 use App\Http\Controllers\Api\UmkmController;
+use App\Http\Controllers\Api\UmkmPortController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -55,6 +56,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/umkm', [UmkmController::class, 'store']);
     Route::put('/umkm/{umkm}', [UmkmController::class, 'update']);
     Route::delete('/umkm/{umkm}', [UmkmController::class, 'destroy']);
+
+    // Excel export / import. Deliberately NOT under /umkm/*, because the
+    // public `GET /umkm/{umkm}` route is registered first and would swallow
+    // `/umkm/export` as an id lookup.
+    Route::prefix('umkm-excel')->group(function () {
+        Route::get('/export', [UmkmPortController::class, 'export']);
+        Route::post('/preview', [UmkmPortController::class, 'preview']);
+        Route::post('/commit', [UmkmPortController::class, 'commit']);
+    });
 
     // Reviews
     Route::post('/umkm/{umkm}/reviews', [ReviewController::class, 'store']);
