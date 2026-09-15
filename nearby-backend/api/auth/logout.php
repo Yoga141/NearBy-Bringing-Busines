@@ -1,7 +1,7 @@
 <?php // logout.php
 require_once __DIR__ . '/../../helpers/response.php';
 set_cors_headers();
-require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../helpers/pdo.php';
 
 $headers = getallheaders();
 if (preg_match('/Bearer\s(\S+)/', $headers['Authorization'] ?? '', $m)) {

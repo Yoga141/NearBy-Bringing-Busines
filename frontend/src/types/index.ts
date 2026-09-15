@@ -113,6 +113,20 @@ export interface ProblemReport {
   when: string
 }
 
+export type QuestionStatus = 'Baru' | 'Dijawab' | 'Ditutup'
+
+/** A question sent through "Pusat Bantuan → Bertanya". */
+export interface Question {
+  id: string
+  text: string
+  name: string
+  /** How the admin can reach the asker; there is no in-app reply channel. */
+  contact: string | null
+  answer: string | null
+  status: QuestionStatus
+  when: string
+}
+
 // ---- Konten medsos ----
 
 export type VideoPlatform = 'youtube' | 'instagram'

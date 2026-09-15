@@ -10,6 +10,7 @@ import PenggunaTab from '@/components/dashboard/admin/PenggunaTab.vue'
 import LaporanTab from '@/components/dashboard/admin/LaporanTab.vue'
 import LaporanMasalahTab from '@/components/dashboard/admin/LaporanMasalahTab.vue'
 import VideoMedsosTab from '@/components/dashboard/admin/VideoMedsosTab.vue'
+import PertanyaanTab from '@/components/dashboard/admin/PertanyaanTab.vue'
 import RingkasanTab from '@/components/dashboard/owner/RingkasanTab.vue'
 import MyUmkmTab from '@/components/dashboard/owner/MyUmkmTab.vue'
 import UlasanTab from '@/components/dashboard/owner/UlasanTab.vue'
@@ -40,6 +41,7 @@ onMounted(() => {
       <LaporanTab v-else-if="tab === 'report'" />
       <LaporanMasalahTab v-else-if="tab === 'masalah'" />
       <VideoMedsosTab v-else-if="tab === 'video'" />
+      <PertanyaanTab v-else-if="tab === 'tanya'" />
       <ProfileEditCard v-else-if="tab === 'profil'" title="Edit Profil" subtitle="Perbarui informasi akun administrasimu." />
     </template>
     <template v-else>

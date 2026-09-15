@@ -24,8 +24,8 @@ php artisan serve            # http://127.0.0.1:8000
 
 | Email                 | Role  | Nama          |
 |-----------------------|-------|---------------|
-| `rizky.p@mail.com`    | user  | Rizky Pratama |
-| `dewi.umkm@mail.com`  | owner | Dewi Anjani (punya UMKM #1 & #4) |
+| `jekikilo15@mail.com` | user  | Jeki          |
+| `dewi@mail.com`       | owner | Dewi Anjani (punya UMKM #1 & #4) |
 | `admin@nearby.id`     | admin | Admin NearBy  |
 
 ---
@@ -167,6 +167,18 @@ Diturunkan dari `src/types/index.ts` dan data di `src/data/` pada frontend.
 | files     | json                                     | dokumen/foto yang diunggah  |
 | timestamps|                                          |                             |
 
+### `questions`  (pertanyaan dari "Pusat Bantuan → Bertanya")
+| kolom      | tipe                                  | catatan                                   |
+|------------|---------------------------------------|-------------------------------------------|
+| id         | bigint PK                             |                                           |
+| user_id    | bigint FK → users.id, nullable        | null bila dikirim tamu                    |
+| name       | string nullable                       | nama yang diisi pengirim                  |
+| contact    | string nullable                       | WhatsApp/email — tidak ada inbox in-app   |
+| text       | text                                  | isi pertanyaan                            |
+| answer     | text nullable                         | catatan jawaban admin                     |
+| status     | enum('baru','dijawab','ditutup')      | default `baru`                            |
+| timestamps |                                       |                                           |
+
 ### `social_videos`  (kartu video medsos di beranda)
 | kolom      | tipe                             | catatan                                      |
 |------------|----------------------------------|----------------------------------------------|
@@ -218,6 +230,12 @@ Semua di-prefix `/api`. Yang butuh login ditandai 🔒 (Sanctum token).
 | GET    | `/favorites`          | List favorit user         |
 | POST   | `/umkm/{id}/favorite` | Toggle favorit            |
 
+### Pusat Bantuan (publik — tamu pun bisa)
+| Method | Endpoint            | Fungsi                                  |
+|--------|---------------------|-----------------------------------------|
+| POST   | `/problem-reports`  | Kirim laporan masalah / bug             |
+| POST   | `/questions`        | Kirim pertanyaan (tab "Bertanya")       |
+
 ### Video Medsos (publik untuk baca)
 | Method | Endpoint          | Fungsi                                          |
 |--------|-------------------|-------------------------------------------------|
@@ -241,6 +259,13 @@ Semua di-prefix `/api`. Yang butuh login ditandai 🔒 (Sanctum token).
 | GET    | `/admin/reports`                | Laporan/statistik            |
 | GET    | `/admin/trash`                  | Item terhapus (user & umkm)  |
 | POST   | `/admin/trash/{id}/restore`     | Pulihkan dari trash          |
+| POST   | `/admin/users/{id}/toggle-status` | Aktif/nonaktifkan akun     |
+| POST   | `/admin/umkm/{id}/toggle-hidden` | Sembunyikan/tampilkan UMKM  |
+| GET    | `/admin/problem-reports`        | Laporan masalah dari pengguna |
+| POST   | `/admin/problem-reports/{id}/status` | Ubah status laporan    |
+| GET    | `/admin/questions`              | Pertanyaan dari help widget  |
+| POST   | `/admin/questions/{id}/answer`  | Tulis jawaban (status → Dijawab) |
+| POST   | `/admin/questions/{id}/status`  | Ubah status pertanyaan       |
 | GET    | `/admin/social-videos`          | Semua slot video (termasuk nonaktif) |
 | POST   | `/admin/social-videos`          | Tambah slot video            |
 | PUT    | `/admin/social-videos/{id}`     | Ubah platform/judul/tautan/tampil |
@@ -249,6 +274,31 @@ Semua di-prefix `/api`. Yang butuh login ditandai 🔒 (Sanctum token).
 Tautan yang tidak cocok dengan platform-nya ditolak **422** beserta pesan
 berbahasa Indonesia, supaya kartu tidak diam-diam jadi kosong. Mengosongkan
 `url` (kirim `""`) mengembalikan kartu ke keadaan placeholder.
+
+---
+
+## Dua jalur backend di folder ini
+
+Repo ini memuat **dua** implementasi backend yang berdiri sendiri:
+
+| | Laravel (`routes/api.php`) | Plain PHP (`api/*.php`) |
+|---|---|---|
+| Dipakai frontend Vue | **Ya** | Tidak |
+| Skema | `database/migrations/` (`umkms`, `umkm_items`, …) | `database/schema.sql` (`umkm_profiles`, `umkm_photos`, …) |
+| Database | SQLite (default `.env.example`) | MySQL |
+| Auth | Sanctum token | tabel `auth_tokens` sendiri |
+| Koneksi | otomatis oleh Laravel | `config/pdo.php` |
+
+Keduanya **tidak berbagi tabel**. Frontend Vue hanya memanggil jalur Laravel.
+
+Endpoint `api/*.php` dulu selalu fatal error karena me-`require`
+`config/database.php` — file itu hanya mengembalikan array config Laravel dan
+tidak pernah membuat `$pdo`. Sekarang semuanya me-`require` **`config/pdo.php`**,
+yang benar-benar membuat koneksi PDO. Untuk memakainya: impor
+`database/schema.sql` ke MySQL, lalu set `DB_HOST`/`DB_DATABASE`/`DB_USERNAME`/
+`DB_PASSWORD` di `.env` (default: `127.0.0.1` / `nearby_balikpapan` / `root` /
+kosong). Bila koneksi gagal, endpoint menjawab JSON 500 yang rapi — bukan lagi
+fatal error yang membocorkan jejak.
 
 ---
 

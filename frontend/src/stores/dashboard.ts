@@ -7,6 +7,8 @@ import type {
   OwnerTrashEntry,
   ProblemReport,
   ProblemReportStatus,
+  Question,
+  QuestionStatus,
   Review,
   StatCard,
   SubmissionFile,
@@ -411,11 +413,69 @@ export const useDashboardStore = defineStore('dashboard', () => {
     if (idx !== -1) problemReportsRaw.value[idx] = row
   }
 
+  // ---- Admin: Pertanyaan (help widget "Bertanya") ----
+  const QUESTION_STATUS_META: Record<QuestionStatus, { c: string; b: string }> = {
+    Baru: { c: '#B07A1E', b: '#F7EDDC' },
+    Dijawab: { c: '#2E7D6E', b: '#E3EFED' },
+    Ditutup: { c: '#8A8578', b: '#EEEADF' },
+  }
+  const questionsRaw = ref<Question[]>([])
+
+  async function fetchQuestions() {
+    questionsRaw.value = await apiFetch<Question[]>('/admin/questions')
+  }
+
+  const questions = computed(() =>
+    questionsRaw.value.map((q) => {
+      const meta = QUESTION_STATUS_META[q.status]
+      return { ...q, statusColor: meta.c, statusBg: meta.b }
+    }),
+  )
+  const newQuestionCount = computed(() => questionsRaw.value.filter((q) => q.status === 'Baru').length)
+
+  /** Send a question from the help widget (works for guests too). */
+  async function submitQuestion(text: string, name: string, contact: string): Promise<boolean> {
+    try {
+      await apiFetch('/questions', {
+        method: 'POST',
+        body: JSON.stringify({ text, name: name.trim() || undefined, contact: contact.trim() || undefined }),
+      })
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  async function answerQuestion(id: string, answer: string) {
+    const row = await apiFetch<Question>(`/admin/questions/${id}/answer`, {
+      method: 'POST',
+      body: JSON.stringify({ answer }),
+    })
+    const idx = questionsRaw.value.findIndex((q) => q.id === id)
+    if (idx !== -1) questionsRaw.value[idx] = row
+  }
+
+  async function setQuestionStatus(id: string, status: QuestionStatus) {
+    const row = await apiFetch<Question>(`/admin/questions/${id}/status`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    })
+    const idx = questionsRaw.value.findIndex((q) => q.id === id)
+    if (idx !== -1) questionsRaw.value[idx] = row
+  }
+
   /** Called once from DashboardView when an admin opens the panel. */
   async function fetchAdminDashboard() {
     adminLoading.value = true
     try {
-      await Promise.all([fetchAdminUmkm(), fetchAdminUsers(), fetchAdminReports(), fetchSubmissions(), fetchProblemReports()])
+      await Promise.all([
+        fetchAdminUmkm(),
+        fetchAdminUsers(),
+        fetchAdminReports(),
+        fetchSubmissions(),
+        fetchProblemReports(),
+        fetchQuestions(),
+      ])
     } finally {
       adminLoading.value = false
     }
@@ -453,6 +513,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     newReportCount,
     submitProblemReport,
     setProblemReportStatus,
+    questions,
+    newQuestionCount,
+    submitQuestion,
+    answerQuestion,
+    setQuestionStatus,
     pendingSubmissions,
     approveSubmission,
     rejectSubmission,

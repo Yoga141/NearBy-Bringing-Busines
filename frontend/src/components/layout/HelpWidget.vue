@@ -8,22 +8,31 @@ const dashboard = useDashboardStore()
 
 const askText = ref('')
 const askName = ref('')
+const askContact = ref('')
 const bugKind = ref('Tampilan / UI')
 const bugText = ref('')
 const bugName = ref('')
 
 const bugKinds = ['Tampilan / UI', 'Fungsi tidak jalan', 'Data UMKM salah', 'Login / akun', 'Lainnya']
 
-function submitAsk() {
+async function submitAsk() {
   if (!askText.value.trim()) {
     alert('Mohon tulis pertanyaan kamu terlebih dahulu.')
+    return
+  }
+  const ok = await dashboard.submitQuestion(askText.value.trim(), askName.value, askContact.value)
+  if (!ok) {
+    alert('Gagal mengirim pertanyaan. Periksa koneksimu dan coba lagi.')
     return
   }
   ui.helpOpen = false
   ui.helpTab = 'ask'
   askText.value = ''
   askName.value = ''
-  alert('Terima kasih! Pertanyaan kamu sudah dikirim ke admin dan akan segera dibalas.')
+  askContact.value = ''
+  // No in-app inbox or mail service exists yet, so the wording promises only
+  // what actually happens: an admin reads it and replies via the contact given.
+  alert('Terima kasih! Pertanyaan kamu sudah kami terima. Admin akan menghubungimu lewat kontak yang kamu isi.')
 }
 
 async function submitBug() {
@@ -79,7 +88,7 @@ async function submitBug() {
 
       <div v-if="ui.helpTab === 'ask'" class="px-[18px] pt-4 pb-[18px]">
         <div class="mb-3.5 text-[12.5px] leading-relaxed text-text-muted">
-          Ada yang ingin ditanyakan? Kirim pertanyaanmu langsung ke admin NearBy dan kami akan membalas secepatnya.
+          Ada yang ingin ditanyakan? Kirim pertanyaanmu ke admin NearBy. Isi kontak agar kami bisa membalas.
         </div>
         <label class="mb-1.5 block text-[12.5px] font-bold text-brand-navy">Pertanyaan kamu</label>
         <textarea
@@ -88,7 +97,15 @@ async function submitBug() {
           class="mb-3.5 min-h-[92px] w-full resize-y rounded-[11px] border border-border-input px-3.5 py-3 text-brand-navy"
         />
         <label class="mb-1.5 block text-[12.5px] font-bold text-brand-navy">Nama</label>
-        <input v-model="askName" placeholder="Nama kamu" class="mb-4 w-full rounded-[11px] border border-border-input bg-white px-3.5 py-2.5 text-brand-navy" />
+        <input v-model="askName" placeholder="Nama kamu" class="mb-3.5 w-full rounded-[11px] border border-border-input bg-white px-3.5 py-2.5 text-brand-navy" />
+        <label class="mb-1.5 block text-[12.5px] font-bold text-brand-navy">
+          Kontak <span class="font-semibold text-text-faint">(WhatsApp atau email)</span>
+        </label>
+        <input
+          v-model="askContact"
+          placeholder="Mis. 0812-3456-7890"
+          class="mb-4 w-full rounded-[11px] border border-border-input bg-white px-3.5 py-2.5 text-brand-navy"
+        />
         <div class="flex justify-end gap-2">
           <button type="button" class="rounded-[11px] border border-border-input px-4 py-2.5 font-bold text-text-muted" @click="ui.helpOpen = false">
             Batal

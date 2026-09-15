@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../helpers/response.php';
 set_cors_headers();
-require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../helpers/pdo.php';
 require_once __DIR__ . '/../../helpers/auth.php';
 
 $method = $_SERVER['REQUEST_METHOD'];

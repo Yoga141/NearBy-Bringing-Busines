@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\ProblemReportController;
+use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialVideoController;
 use App\Http\Controllers\Api\UmkmController;
@@ -41,6 +42,7 @@ Route::get('/social-videos', [SocialVideoController::class, 'index']);
 |--------------------------------------------------------------------------
 */
 Route::post('/problem-reports', [ProblemReportController::class, 'store']);
+Route::post('/questions', [QuestionController::class, 'store']);
 
 /*
 |--------------------------------------------------------------------------
@@ -101,6 +103,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/trash/{id}/restore', [AdminController::class, 'restore']);
         Route::get('/problem-reports', [AdminController::class, 'problemReports']);
         Route::post('/problem-reports/{problemReport}/status', [AdminController::class, 'updateProblemReportStatus']);
+
+        // Help widget: questions from the "Bertanya" tab
+        Route::get('/questions', [QuestionController::class, 'index']);
+        Route::post('/questions/{question}/answer', [QuestionController::class, 'answer']);
+        Route::post('/questions/{question}/status', [QuestionController::class, 'updateStatus']);
 
         // Homepage social-video slots
         Route::get('/social-videos', [SocialVideoController::class, 'adminIndex']);
