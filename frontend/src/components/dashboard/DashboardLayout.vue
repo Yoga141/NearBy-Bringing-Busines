@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
+import UserAvatar from '@/components/shared/UserAvatar.vue'
 import logo from '@/assets/logo-nearby.png'
 
 const props = defineProps<{ tab: string }>()
@@ -64,9 +65,12 @@ function logout() {
               class="flex items-center gap-2.5 rounded-full border border-[#EEE7D9] bg-white py-1.5 pr-3 pl-1.5"
               @click="ui.toggleProfileMenu"
             >
-              <div class="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-brand-navy text-xs font-bold text-white">
-                {{ auth.authInitial }}
-              </div>
+              <UserAvatar
+                class="flex h-[30px] w-[30px] flex-none items-center justify-center rounded-full bg-brand-navy text-xs font-bold text-white"
+                :src="auth.user?.avatarUrl"
+                :initial="auth.authInitial"
+                :name="auth.user?.name"
+              />
               <div class="text-[13px] font-bold">{{ auth.user?.name }}</div>
               <span class="ml-0.5 text-[11px] text-text-faint-3">▾</span>
             </button>

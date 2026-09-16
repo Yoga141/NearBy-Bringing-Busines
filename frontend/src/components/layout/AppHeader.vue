@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import UserAvatar from '@/components/shared/UserAvatar.vue'
 import { useUmkmStore } from '@/stores/umkm'
 import { useUiStore } from '@/stores/ui'
 import logo from '@/assets/logo-nearby.png'
@@ -90,9 +91,12 @@ function logout() {
             class="flex items-center gap-[9px] rounded-full border border-border-hairline bg-white py-[5px] pr-3 pl-[5px]"
             @click="ui.toggleProfileMenu"
           >
-            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-navy text-[13px] font-bold text-white">
-              {{ auth.authInitial }}
-            </div>
+            <UserAvatar
+              class="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-brand-navy text-[13px] font-bold text-white"
+              :src="auth.user?.avatarUrl"
+              :initial="auth.authInitial"
+              :name="auth.user?.name"
+            />
             <div class="text-left leading-[1.1]">
               <div class="text-[13px] font-bold">{{ auth.user?.name }}</div>
               <div class="text-[10.5px] text-text-faint">{{ auth.authRoleLabel }}</div>

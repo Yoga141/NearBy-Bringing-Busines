@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{ title: string; subtitle: string }>()
 import { useAuthStore } from '@/stores/auth'
+import ProfilePhotoPicker from '@/components/account/ProfilePhotoPicker.vue'
 
 const auth = useAuthStore()
 
@@ -15,18 +16,12 @@ function saveProfile() {
     <p class="mt-1.5 text-text-muted">{{ subtitle }}</p>
   </div>
   <div class="max-w-[560px] rounded-[18px] border border-border-card bg-white p-[26px]">
-    <div class="mb-[22px] flex items-center gap-[15px]">
-      <div class="flex h-16 w-16 items-center justify-center rounded-full bg-brand-navy text-2xl font-extrabold text-white">
-        {{ auth.authInitial }}
-      </div>
-      <div>
+    <ProfilePhotoPicker class="mb-[22px]">
+      <template #meta>
         <div class="text-lg font-extrabold">{{ auth.user?.name }}</div>
         <div class="text-[13px] font-bold text-gold">{{ auth.authRoleLabel }}</div>
-        <button type="button" class="mt-2 rounded-[10px] border border-border-input px-3.5 py-2 text-[13px] font-bold text-brand-navy">
-          Ganti foto
-        </button>
-      </div>
-    </div>
+      </template>
+    </ProfilePhotoPicker>
     <label class="mb-1.5 block text-[13px] font-bold">Nama lengkap</label>
     <input v-model="auth.profileName" class="mb-3.5 w-full rounded-[11px] border border-border-input bg-white px-3.5 py-2.5" />
     <label class="mb-1.5 block text-[13px] font-bold">Email</label>

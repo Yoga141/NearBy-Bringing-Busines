@@ -12,6 +12,7 @@ interface ApiUser {
   phone: string | null
   role: Role
   status: string
+  avatarUrl: string | null
 }
 
 interface AuthResponse {
@@ -70,6 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
       phone: apiUser.phone,
       role: apiUser.role,
       status: apiUser.status,
+      avatarUrl: apiUser.avatarUrl ?? null,
     }
     profileName.value = apiUser.name
     profileEmail.value = apiUser.email
@@ -123,6 +125,53 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // ---- Foto profil ----
+
+  const photoUploading = ref(false)
+  const photoError = ref('')
+
+  /**
+   * Upload (or replace) the profile photo.
+   *
+   * The API answers with the whole updated user, so `applyUser` refreshes every
+   * avatar in the app at once — header, dashboard, settings modal — instead of
+   * each one having to be told about the new URL.
+   */
+  async function uploadPhoto(file: File): Promise<boolean> {
+    photoError.value = ''
+    photoUploading.value = true
+    try {
+      const form = new FormData()
+      form.append('photo', file)
+      // No Content-Type header here on purpose: the browser has to set the
+      // multipart boundary itself, and apiFetch already skips it for FormData.
+      const updated = await apiFetch<ApiUser>('/me/photo', { method: 'POST', body: form })
+      applyUser(updated)
+      return true
+    } catch (error) {
+      photoError.value = messageFor(error)
+      return false
+    } finally {
+      photoUploading.value = false
+    }
+  }
+
+  /** Remove the photo and go back to the initial avatar. */
+  async function removePhoto(): Promise<boolean> {
+    photoError.value = ''
+    photoUploading.value = true
+    try {
+      const updated = await apiFetch<ApiUser>('/me/photo', { method: 'DELETE' })
+      applyUser(updated)
+      return true
+    } catch (error) {
+      photoError.value = messageFor(error)
+      return false
+    } finally {
+      photoUploading.value = false
+    }
+  }
+
   /**
    * Restore a session locally without calling the API. Used only by the
    * account-deletion "undo" banner: deleteMyAccount()/restoreMyAccount() in
@@ -137,6 +186,7 @@ export const useAuthStore = defineStore('auth', () => {
       phone: profilePhone.value || null,
       role,
       status: 'aktif',
+      avatarUrl: user.value?.avatarUrl ?? null,
     }
     profileName.value = name
   }
@@ -194,6 +244,10 @@ export const useAuthStore = defineStore('auth', () => {
     profilePhone,
     authError,
     authLoading,
+    photoUploading,
+    photoError,
+    uploadPhoto,
+    removePhoto,
     login,
     register,
     logout,

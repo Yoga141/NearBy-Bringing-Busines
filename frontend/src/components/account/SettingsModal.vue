@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import UserAvatar from '@/components/shared/UserAvatar.vue'
 import { useUiStore } from '@/stores/ui'
 import ProfileTab from './tabs/ProfileTab.vue'
 import SecurityTab from './tabs/SecurityTab.vue'
@@ -36,9 +37,12 @@ const current = computed(() => NAV_DEFS.find((d) => d.key === ui.settingsTab) ??
       <!-- Buttons: always the left column, at every screen size. Compact icon-only rail below `mobile`, full icon+label sidebar from `mobile` up. -->
       <div class="flex flex-col overflow-y-auto bg-brand-navy p-2 pt-4 mobile:p-[15px] mobile:pt-5">
         <div class="hidden items-center gap-[11px] px-2 pt-1 pb-4 mobile:flex">
-          <div class="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-full bg-gold-bright text-[17px] font-extrabold text-brand-navy">
-            {{ auth.authInitial }}
-          </div>
+          <UserAvatar
+            class="flex h-[42px] w-[42px] flex-none items-center justify-center rounded-full bg-gold-bright text-[17px] font-extrabold text-brand-navy"
+            :src="auth.user?.avatarUrl"
+            :initial="auth.authInitial"
+            :name="auth.user?.name"
+          />
           <div class="min-w-0">
             <div class="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-extrabold text-white">{{ auth.user?.name }}</div>
             <div class="text-[11.5px] font-semibold text-[#AFC3DC]">{{ auth.authRoleLabel }}</div>

@@ -28,6 +28,7 @@ class UserResource extends JsonResource
             'roleLabel' => $labels[$this->role] ?? 'Pengguna',
             'status' => $this->status,
             'initial' => Str::upper(Str::substr(trim($this->name), 0, 1)),
+            'avatarUrl' => $this->avatar_url,
             'joined' => $this->created_at?->translatedFormat('j M Y'),
             'deletedAt' => $this->deleted_at?->toIso8601String(),
         ];

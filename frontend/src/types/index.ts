@@ -75,6 +75,8 @@ export interface AuthUser {
   phone: string | null
   role: Role
   status: string
+  /** Uploaded profile photo, or null to fall back to the initial avatar. */
+  avatarUrl: string | null
 }
 
 // ---- Dashboard ----

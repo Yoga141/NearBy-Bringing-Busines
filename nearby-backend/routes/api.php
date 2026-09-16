@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\GuideVideoController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\ProblemReportController;
+use App\Http\Controllers\Api\ProfilePhotoController;
 use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialVideoController;
@@ -47,6 +48,14 @@ Route::get('/guide-video/{guideVideo}/file', [GuideVideoController::class, 'stre
 
 /*
 |--------------------------------------------------------------------------
+| Profile photos (public read — an <img> cannot send the bearer token)
+|--------------------------------------------------------------------------
+*/
+Route::get('/avatar/{filename}', [ProfilePhotoController::class, 'show'])
+    ->where('filename', '[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)');
+
+/*
+|--------------------------------------------------------------------------
 | Help widget (public — works for guests too)
 |--------------------------------------------------------------------------
 */
@@ -61,6 +70,8 @@ Route::post('/questions', [QuestionController::class, 'store']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/me/photo', [ProfilePhotoController::class, 'store']);
+    Route::delete('/me/photo', [ProfilePhotoController::class, 'destroy']);
     Route::get('/me/reviews', [ReviewController::class, 'mine']);
 
     // UMKM write (owner)
