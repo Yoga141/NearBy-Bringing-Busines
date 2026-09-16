@@ -40,7 +40,7 @@ class AuthController extends Controller
             'status' => ($data['role'] ?? 'user') === 'owner' ? 'menunggu' : 'aktif',
         ]);
 
-        $token = $user->createToken('api')->plainTextToken;
+        $token = $user->createToken($this->deviceName($request))->plainTextToken;
 
         return response()->json([
             'user' => new UserResource($user),
@@ -81,12 +81,24 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $user->createToken('api')->plainTextToken;
+        $token = $user->createToken($this->deviceName($request))->plainTextToken;
 
         return response()->json([
             'user' => new UserResource($user),
             'token' => $token,
         ]);
+    }
+
+    /**
+     * Name a token after the device that asked for it.
+     *
+     * Sanctum stores no IP or user agent of its own, so the token name is the
+     * only place to record which device a session belongs to — without it the
+     * "Sesi aktif" list could only ever show anonymous rows.
+     */
+    private function deviceName(Request $request): string
+    {
+        return Str::limit($request->userAgent() ?: 'api', 255, '');
     }
 
     /** Revoke the current access token. */

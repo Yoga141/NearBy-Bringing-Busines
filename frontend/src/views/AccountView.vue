@@ -3,10 +3,6 @@ import { useAuthStore } from '@/stores/auth'
 import ProfilePhotoPicker from '@/components/account/ProfilePhotoPicker.vue'
 
 const auth = useAuthStore()
-
-function saveProfile() {
-  alert('Profil berhasil disimpan.')
-}
 </script>
 
 <template>
@@ -33,8 +29,13 @@ function saveProfile() {
         <label class="mb-1.5 block text-[13px] font-bold">Nomor telepon</label>
         <input v-model="auth.profilePhone" class="mb-[22px] w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
         <div class="flex flex-col gap-2.5 mobile:flex-row">
-          <button type="button" class="rounded-xl bg-brand-blue px-7 py-3 text-center font-extrabold text-white" @click="saveProfile">
-            Simpan perubahan
+          <button
+            type="button"
+            class="rounded-xl bg-brand-blue px-7 py-3 text-center font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="auth.profileSaving"
+            @click="auth.saveProfile"
+          >
+            {{ auth.profileSaving ? 'Menyimpan…' : 'Simpan perubahan' }}
           </button>
           <RouterLink
             :to="{ name: 'beranda' }"
@@ -43,6 +44,12 @@ function saveProfile() {
             Batal
           </RouterLink>
         </div>
+        <p v-if="auth.profileError" class="mt-3 text-[13px] leading-relaxed font-semibold text-danger" role="alert">
+          {{ auth.profileError }}
+        </p>
+        <p v-else-if="auth.profileSaved" class="mt-3 text-[13px] font-semibold text-teal-deep" role="status">
+        Profil berhasil disimpan.
+        </p>
       </div>
     </section>
   </main>

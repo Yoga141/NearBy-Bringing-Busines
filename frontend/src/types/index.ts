@@ -161,6 +161,18 @@ export interface GuideVideoLimits {
   allowedMimes: string[]
 }
 
+/** One signed-in device, backed by a Sanctum personal access token. */
+export interface AccountSession {
+  id: number
+  /** e.g. "Chrome · Windows"; tokens carry no IP or location, so none is shown. */
+  device: string
+  /** The device making the current request — it can't sign itself out here. */
+  current: boolean
+  mobile: boolean
+  lastUsed: string
+  createdAt: string | null
+}
+
 export type VideoPlatform = 'youtube' | 'instagram'
 
 /** One card in the homepage "Video dari medsos NearBy" section. */

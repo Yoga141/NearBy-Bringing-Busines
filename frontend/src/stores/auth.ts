@@ -125,6 +125,43 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // ---- Simpan profil ----
+
+  const profileSaving = ref(false)
+  const profileError = ref('')
+  const profileSaved = ref(false)
+
+  /**
+   * Persist the name / email / phone fields.
+   *
+   * These three refs are an edit buffer seeded from the session user, so until
+   * this call succeeds nothing has actually changed — which is why the screens
+   * used to show "Profil berhasil disimpan" while saving nothing at all.
+   */
+  async function saveProfile(): Promise<boolean> {
+    profileError.value = ''
+    profileSaved.value = false
+    profileSaving.value = true
+    try {
+      const updated = await apiFetch<ApiUser>('/me', {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: profileName.value.trim(),
+          email: profileEmail.value.trim(),
+          phone: profilePhone.value.trim() || null,
+        }),
+      })
+      applyUser(updated)
+      profileSaved.value = true
+      return true
+    } catch (error) {
+      profileError.value = messageFor(error)
+      return false
+    } finally {
+      profileSaving.value = false
+    }
+  }
+
   // ---- Foto profil ----
 
   const photoUploading = ref(false)
@@ -244,6 +281,10 @@ export const useAuthStore = defineStore('auth', () => {
     profilePhone,
     authError,
     authLoading,
+    profileSaving,
+    profileError,
+    profileSaved,
+    saveProfile,
     photoUploading,
     photoError,
     uploadPhoto,

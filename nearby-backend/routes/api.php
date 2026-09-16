@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\GuideVideoController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\ProblemReportController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProfilePhotoController;
 use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\ReviewController;
@@ -70,6 +71,10 @@ Route::post('/questions', [QuestionController::class, 'store']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/me', [ProfileController::class, 'update']);
+    Route::put('/me/password', [ProfileController::class, 'updatePassword']);
+    Route::get('/me/sessions', [ProfileController::class, 'sessions']);
+    Route::delete('/me/sessions/{id}', [ProfileController::class, 'revokeSession']);
     Route::post('/me/photo', [ProfilePhotoController::class, 'store']);
     Route::delete('/me/photo', [ProfilePhotoController::class, 'destroy']);
     Route::get('/me/reviews', [ReviewController::class, 'mine']);
