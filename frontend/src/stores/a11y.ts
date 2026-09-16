@@ -7,6 +7,7 @@ interface StoredPrefs {
   speechRate?: number
   virtualKeyboard?: boolean
   slowMotion?: boolean
+  voiceAssistant?: boolean
 }
 
 function readPrefs(): StoredPrefs {
@@ -19,9 +20,11 @@ function readPrefs(): StoredPrefs {
 }
 
 /**
- * Accessibility preferences: screen reading, an on-screen keyboard, and a
- * calmer motion setting. Persisted per browser so a visitor who needs them
- * doesn't have to switch them on again every visit.
+ * Accessibility preferences: screen reading, an on-screen keyboard, a calmer
+ * motion setting, and the hands-free voice assistant. Persisted per browser so
+ * a visitor who needs them doesn't have to switch them on again every visit —
+ * which matters most for `voiceAssistant`, the one setting a blind user would
+ * otherwise have to find on screen after every reload.
  */
 export const useA11yStore = defineStore('a11y', () => {
   const stored = readPrefs()
@@ -32,6 +35,12 @@ export const useA11yStore = defineStore('a11y', () => {
   const virtualKeyboard = ref(stored.virtualKeyboard ?? false)
   /** On by default — the design ships the calmer-motion setting enabled. */
   const slowMotion = ref(stored.slowMotion ?? true)
+  /**
+   * Hands-free voice assistant ("Oke NearBy"). Off by default: it holds the
+   * microphone open, which is not something to switch on for someone who never
+   * asked for it. `VoiceAssistant.vue` watches this and owns the lifecycle.
+   */
+  const voiceAssistant = ref(stored.voiceAssistant ?? false)
 
   const speaking = ref(false)
   const speechSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
@@ -120,6 +129,10 @@ export const useA11yStore = defineStore('a11y', () => {
 
   watch(virtualKeyboard, () => persist())
 
+  // ---- Asisten suara ----
+
+  watch(voiceAssistant, () => persist())
+
   function persist() {
     try {
       localStorage.setItem(
@@ -128,6 +141,7 @@ export const useA11yStore = defineStore('a11y', () => {
           speechRate: speechRate.value,
           virtualKeyboard: virtualKeyboard.value,
           slowMotion: slowMotion.value,
+          voiceAssistant: voiceAssistant.value,
         } satisfies StoredPrefs),
       )
     } catch {
@@ -145,5 +159,6 @@ export const useA11yStore = defineStore('a11y', () => {
     stopSpeaking,
     virtualKeyboard,
     slowMotion,
+    voiceAssistant,
   }
 })

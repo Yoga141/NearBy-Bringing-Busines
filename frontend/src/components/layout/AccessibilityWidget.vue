@@ -2,13 +2,24 @@
 import { watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useA11yStore } from '@/stores/a11y'
+import { useVoiceStore } from '@/stores/voice'
 import ToggleSwitch from '@/components/shared/ToggleSwitch.vue'
 
 const a11y = useA11yStore()
+const voice = useVoiceStore()
 const route = useRoute()
 
+const PHASE_LABEL: Record<string, string> = {
+  mati: 'Nonaktif',
+  siaga: 'Siaga — ucapkan "Oke NearBy"',
+  mendengar: 'Mendengarkan perintah…',
+  memproses: 'Memproses…',
+  bicara: 'Sedang menjawab…',
+}
+
 // speechSynthesis outlives the view it was reading, so a navigation mid-read
-// would keep narrating the previous page over the new one.
+// would keep narrating the previous page over the new one. The voice assistant
+// navigates *before* it answers, so this never truncates its replies.
 watch(() => route.fullPath, () => a11y.stopSpeaking())
 </script>
 
@@ -80,6 +91,45 @@ watch(() => route.fullPath, () => a11y.stopSpeaking())
           />
           <p class="mt-1.5 text-[12px] leading-relaxed text-text-faint">
             Kecepatan baru dipakai pada pembacaan berikutnya.
+          </p>
+        </div>
+
+        <!-- Asisten suara -->
+        <div class="mt-[18px] border-t border-border-divider-2 pt-[18px]">
+          <div class="flex items-center gap-3">
+            <div class="min-w-0">
+              <div class="text-[14px] font-extrabold text-brand-navy">Asisten suara</div>
+              <div class="mt-0.5 text-[12.5px] leading-relaxed text-text-muted">
+                Bebas layar — ucapkan &ldquo;Oke NearBy&rdquo;
+              </div>
+            </div>
+            <div class="ml-auto">
+              <ToggleSwitch
+                v-model="a11y.voiceAssistant"
+                tone="teal"
+                label="Asisten suara"
+                :disabled="!voice.supported"
+              />
+            </div>
+          </div>
+
+          <p
+            v-if="voice.enabled"
+            class="mt-2 text-[12px] leading-relaxed font-semibold text-brand-blue"
+            role="status"
+            aria-live="polite"
+          >
+            {{ PHASE_LABEL[voice.phase] ?? voice.phase }}
+          </p>
+          <p v-else-if="!voice.supported" class="mt-2 text-[12px] leading-relaxed text-danger">
+            Perintah suara belum didukung peramban ini. Coba Google Chrome atau Microsoft Edge.
+          </p>
+          <p v-else class="mt-2 text-[12px] leading-relaxed text-text-faint">
+            Bisa juga dinyalakan dengan tombol Alt + V, tanpa perlu melihat layar.
+          </p>
+
+          <p v-if="voice.error" class="mt-1.5 text-[12px] leading-relaxed font-semibold text-danger">
+            {{ voice.error }}
           </p>
         </div>
 

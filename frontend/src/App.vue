@@ -8,6 +8,7 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 import HelpWidget from '@/components/layout/HelpWidget.vue'
 import AccessibilityWidget from '@/components/layout/AccessibilityWidget.vue'
 import VirtualKeyboard from '@/components/layout/VirtualKeyboard.vue'
+import VoiceAssistant from '@/components/layout/VoiceAssistant.vue'
 import SettingsModal from '@/components/account/SettingsModal.vue'
 import RestoreBanner from '@/components/account/RestoreBanner.vue'
 
@@ -35,5 +36,8 @@ const showChrome = computed(() => route.meta.chrome !== false)
          exactly where the on-screen keyboard and read-aloud are needed most. -->
     <AccessibilityWidget />
     <VirtualKeyboard v-if="a11y.virtualKeyboard" />
+    <!-- Renders nothing visible: the voice assistant is ear-only, and it must
+         keep listening across every route, chrome or not. -->
+    <VoiceAssistant />
   </div>
 </template>
