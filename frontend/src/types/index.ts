@@ -129,6 +129,36 @@ export interface Question {
 
 // ---- Konten medsos ----
 
+/** A registration tutorial video an admin uploaded, hosted by us and played on /panduan. */
+export interface GuideVideo {
+  id: number
+  title: string
+  description: string | null
+  /** Relative streaming URL (`/api/guide-video/{id}/file`) — same origin as the SPA. */
+  url: string
+  mimeType: string
+  size: number
+  /** Ready-to-print size, e.g. "12,4 MB". */
+  sizeLabel: string
+  originalName: string
+  active: boolean
+  /** True when the row survived but its file did not — admin list only. */
+  fileMissing: boolean
+  /** Admin list only; absent from the public endpoint. */
+  uploadedBy?: string | null
+  uploadedAt: string | null
+}
+
+/** Upload ceiling reported by the API, so the form can state it before uploading. */
+export interface GuideVideoLimits {
+  maxBytes: number
+  configuredBytes: number
+  phpLimitBytes: number
+  /** True when php.ini is stricter than the app's own limit — worth warning about. */
+  phpLimited: boolean
+  allowedMimes: string[]
+}
+
 export type VideoPlatform = 'youtube' | 'instagram'
 
 /** One card in the homepage "Video dari medsos NearBy" section. */

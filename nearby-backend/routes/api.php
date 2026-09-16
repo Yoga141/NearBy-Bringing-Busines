@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\GuideVideoController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\ProblemReportController;
 use App\Http\Controllers\Api\QuestionController;
@@ -35,6 +36,14 @@ Route::get('/umkm/{umkm}/reviews', [ReviewController::class, 'index']);
 |--------------------------------------------------------------------------
 */
 Route::get('/social-videos', [SocialVideoController::class, 'index']);
+
+/*
+|--------------------------------------------------------------------------
+| Guide video (public read — the tutorial on /panduan)
+|--------------------------------------------------------------------------
+*/
+Route::get('/guide-video', [GuideVideoController::class, 'current']);
+Route::get('/guide-video/{guideVideo}/file', [GuideVideoController::class, 'stream']);
 
 /*
 |--------------------------------------------------------------------------
@@ -108,6 +117,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/questions', [QuestionController::class, 'index']);
         Route::post('/questions/{question}/answer', [QuestionController::class, 'answer']);
         Route::post('/questions/{question}/status', [QuestionController::class, 'updateStatus']);
+
+        // Panduan page tutorial video (uploaded file, not a link)
+        Route::get('/guide-videos/limits', [GuideVideoController::class, 'limits']);
+        Route::get('/guide-videos', [GuideVideoController::class, 'index']);
+        Route::post('/guide-videos', [GuideVideoController::class, 'store']);
+        Route::put('/guide-videos/{guideVideo}', [GuideVideoController::class, 'update']);
+        Route::delete('/guide-videos/{guideVideo}', [GuideVideoController::class, 'destroy']);
 
         // Homepage social-video slots
         Route::get('/social-videos', [SocialVideoController::class, 'adminIndex']);

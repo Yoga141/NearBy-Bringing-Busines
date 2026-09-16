@@ -1,9 +1,16 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useGuideVideoStore } from '@/stores/guideVideo'
 
 const router = useRouter()
 const auth = useAuthStore()
+const guideVideo = useGuideVideoStore()
+
+// The admin-uploaded tutorial. Until one exists the section keeps its
+// placeholder, so the page never looks broken on a fresh install.
+onMounted(() => guideVideo.fetchVideo())
 
 function goRegisterOwner() {
   auth.regRole = 'owner'
@@ -112,19 +119,45 @@ const faqs = [
         <div class="text-[13px] font-bold tracking-[.08em] text-gold uppercase">Video panduan</div>
         <h2 class="mt-2 mb-1.5 text-[30px] font-extrabold tracking-[-.02em]">Tonton cara daftarnya</h2>
         <p class="mx-auto max-w-[520px] text-[15.5px] leading-relaxed text-text-muted">
-          Video singkat langkah demi langkah, dari buat akun sampai UMKM tampil di direktori.
+          {{
+            guideVideo.video?.description ||
+            'Video singkat langkah demi langkah, dari buat akun sampai UMKM tampil di direktori.'
+          }}
         </p>
       </div>
+
+      <!-- Video yang diunggah admin lewat dashboard. -->
+      <video
+        v-if="guideVideo.video"
+        :key="guideVideo.video.id"
+        :src="guideVideo.video.url"
+        controls
+        preload="metadata"
+        playsinline
+        controlsList="nodownload"
+        class="aspect-video w-full rounded-[20px] bg-black shadow-[0_14px_40px_rgba(19,50,77,.18)]"
+      >
+        Peramban ini tidak dapat memutar video.
+        <a :href="guideVideo.video.url" class="font-bold underline">Unduh videonya</a> untuk menonton.
+      </video>
+
+      <!-- Placeholder: belum ada video yang diunggah (atau masih dimuat). -->
       <div
+        v-else
         class="relative flex aspect-video flex-col items-center justify-center gap-3.5 overflow-hidden rounded-[20px] border-2 border-dashed border-[#B9C2CE]"
         style="background: repeating-linear-gradient(135deg, #eef1f5 0 16px, #f6f8fa 16px 32px)"
       >
         <div class="flex h-[74px] w-[74px] items-center justify-center rounded-full bg-brand-navy shadow-[0_12px_30px_rgba(19,50,77,.28)]">
           <div class="ml-1 h-0 w-0 border-y-[15px] border-l-[24px] border-y-transparent border-l-white" />
         </div>
-        <div class="font-mono text-xs font-semibold tracking-[.02em] text-[#7C8896]">video panduan · 16:9 · placeholder</div>
-        <div class="absolute bottom-3 left-3.5 font-mono text-[11px] font-semibold text-[#9AA5B1]">durasi ± 2 menit</div>
+        <div class="font-mono text-xs font-semibold tracking-[.02em] text-[#7C8896]">
+          {{ guideVideo.loading ? 'memuat video panduan…' : 'video panduan belum tersedia' }}
+        </div>
       </div>
+
+      <p v-if="guideVideo.video" class="mt-3 text-center text-[13.5px] font-semibold text-text-faint">
+        {{ guideVideo.video.title }}
+      </p>
     </section>
 
     <section class="mx-auto max-w-[960px] px-6 pt-[52px] pb-5">

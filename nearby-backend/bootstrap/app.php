@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -32,4 +33,21 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        // A body larger than php.ini's `post_max_size` is discarded by PHP
+        // before Laravel sees it, so the guide-video upload would otherwise
+        // fail with a bare "Pilih berkas video terlebih dahulu" — technically
+        // true, useless in practice. Name the real cause instead.
+        $exceptions->render(function (PostTooLargeException $e, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+
+            return response()->json([
+                'message' => 'Berkas terlalu besar untuk diterima server. '
+                    .'Batas PHP saat ini: upload_max_filesize = '.ini_get('upload_max_filesize')
+                    .', post_max_size = '.ini_get('post_max_size')
+                    .'. Naikkan kedua nilai itu di php.ini lalu mulai ulang server.',
+            ], 413);
+        });
     })->create();
