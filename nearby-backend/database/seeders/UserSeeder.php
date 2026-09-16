@@ -50,6 +50,13 @@ class UserSeeder extends Seeder
                 'status' => 'aktif',
                 'password' => env('SEED_ADMIN_PASSWORD') ?: 'password',
             ],
+            [
+                'name' => 'Admin',
+                'email' => 'admin@gmail.com',
+                'role' => 'admin',
+                'status' => 'aktif',
+                'password' => env('SEED_ADMIN_GMAIL_PASSWORD') ?: '1234',
+            ],
         ];
 
         foreach ($accounts as $account) {

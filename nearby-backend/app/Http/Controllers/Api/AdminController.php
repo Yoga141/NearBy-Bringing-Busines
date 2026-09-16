@@ -30,6 +30,13 @@ class AdminController extends Controller
 
         $user->update(['status' => $user->status === 'nonaktif' ? 'aktif' : 'nonaktif']);
 
+        // Blocking sign-in is not enough on its own: an already-issued token
+        // would keep the deactivated account signed in until it expires, so
+        // drop every token it holds.
+        if ($user->status === 'nonaktif') {
+            $user->tokens()->delete();
+        }
+
         return new UserResource($user);
     }
 

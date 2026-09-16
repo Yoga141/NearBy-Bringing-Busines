@@ -22,6 +22,13 @@ class AuthController extends Controller
             'phone' => ['nullable', 'string', 'max:40'],
             'password' => ['required', 'string', 'min:8'],
             'role' => ['nullable', Rule::in(['user', 'owner'])],
+        ], [
+            'name.required' => 'Nama wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Masukkan alamat email yang valid, misalnya nama@email.com.',
+            'email.unique' => 'Email ini sudah terdaftar. Silakan masuk.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.min' => 'Kata sandi minimal 8 karakter.',
         ]);
 
         $user = User::create([
@@ -44,9 +51,16 @@ class AuthController extends Controller
     /** Log in and return an API token. */
     public function login(Request $request)
     {
+        // Messages are in Indonesian because the frontend shows `message` /
+        // `errors` verbatim (see ApiError.firstError) and the rest of the UI
+        // is Indonesian.
         $data = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Masukkan alamat email yang valid, misalnya nama@email.com.',
+            'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
         $user = User::where('email', Str::lower($data['email']))->first();
@@ -54,6 +68,16 @@ class AuthController extends Controller
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Email atau kata sandi salah.'],
+            ]);
+        }
+
+        // An account the admin switched off must not get a new token. Only
+        // 'nonaktif' blocks sign-in: a freshly registered owner is 'menunggu'
+        // until their UMKM is verified, and they are meant to be able to log
+        // in while they wait.
+        if ($user->status === 'nonaktif') {
+            throw ValidationException::withMessages([
+                'email' => ['Akun ini dinonaktifkan. Hubungi admin untuk mengaktifkannya kembali.'],
             ]);
         }
 

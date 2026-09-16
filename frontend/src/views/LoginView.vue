@@ -14,6 +14,7 @@ const loginPass = ref('')
 const forgotOpen = ref(false)
 
 async function doLogin() {
+  if (auth.authLoading) return
   if (!loginEmail.value.trim() || !loginPass.value) {
     auth.authError = 'Isi email dan password terlebih dahulu.'
     return
@@ -62,11 +63,14 @@ function continueAsGuest() {
         </div>
 
         <div class="animate-float-up" style="animation-delay: .12s">
-          <label class="mb-1.5 block text-[13.5px] font-bold">Username / Email</label>
+          <label class="mb-1.5 block text-[13.5px] font-bold">Email</label>
           <input
             v-model="loginEmail"
+            type="email"
+            autocomplete="email"
             placeholder="nama@email.com"
             class="mb-4 w-full rounded-xl border border-border-input bg-white px-[15px] py-[13px] transition-shadow duration-150"
+            @keyup.enter="doLogin"
           />
           <div class="mb-1.5 flex items-center justify-between">
             <label class="text-[13.5px] font-bold">Password</label>
@@ -75,6 +79,7 @@ function continueAsGuest() {
           <input
             v-model="loginPass"
             type="password"
+            autocomplete="current-password"
             placeholder="••••••••"
             class="mb-3 w-full rounded-xl border border-border-input bg-white px-[15px] py-[13px] transition-shadow duration-150"
             @keyup.enter="doLogin"
