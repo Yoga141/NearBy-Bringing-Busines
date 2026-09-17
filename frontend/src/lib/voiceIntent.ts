@@ -12,6 +12,8 @@ import type { CategoryName, LocationName } from '@/types'
 export type VoiceIntent =
   | 'cari'
   | 'buka'
+  | 'daftar'
+  | 'halaman'
   | 'favorit'
   | 'ulangi'
   | 'berhenti'
@@ -19,10 +21,15 @@ export type VoiceIntent =
   | 'beranda'
   | 'tidak_dikenal'
 
+/** A static page reachable by name — everything except the UMKM catalog/detail/auth flows. */
+export type PageName = 'panduan' | 'tentang' | 'akun' | 'privacy' | 'terms'
+
 export interface ParsedCommand {
   intent: VoiceIntent
   category: CategoryName | null
   location: LocationName | null
+  /** Which static page "buka halaman …" named, when `intent` is `'halaman'`. */
+  page: PageName | null
   /** Free text left over once the intent/category/location words are removed. */
   keyword: string
   /** 1-based position for "buka nomor dua"; null when none was spoken. */
@@ -181,15 +188,42 @@ const LOCATION_KEYWORDS: Record<LocationName, string[]> = {
   'Balikpapan Tengah': ['balikpapan tengah', 'tengah'],
 }
 
+/**
+ * Named static pages. "Panduan" used to double as a synonym for "bantuan"
+ * (spoken help), which meant "buka halaman panduan" read out the help menu
+ * instead of opening the actual Panduan page — that collision is why it's a
+ * dedicated table now instead of living inside `INTENT_KEYWORDS`.
+ */
+const PAGE_KEYWORDS: Record<PageName, string[]> = {
+  panduan: ['halaman panduan', 'buka panduan', 'panduan mendaftar', 'cara mendaftar umkm', 'cara daftar umkm', 'panduan'],
+  tentang: ['halaman tentang', 'tentang kami', 'tentang aplikasi', 'tentang nearby'],
+  akun: ['halaman akun', 'akun saya', 'profil saya', 'pengaturan akun'],
+  privacy: ['kebijakan privasi', 'halaman privasi', 'privasi'],
+  terms: ['syarat dan ketentuan', 'ketentuan layanan', 'halaman ketentuan'],
+}
+
 const INTENT_KEYWORDS: { intent: VoiceIntent; words: string[] }[] = [
   { intent: 'berhenti', words: ['berhenti', 'hentikan', 'stop', 'diam', 'sudah cukup', 'batal', 'batalkan'] },
   { intent: 'ulangi', words: ['ulangi', 'ulang', 'sekali lagi', 'apa tadi', 'bacakan lagi'] },
   { intent: 'favorit', words: ['favorit', 'favoritku', 'kesukaan', 'yang disimpan', 'simpanan'] },
   {
     intent: 'bantuan',
-    words: ['bantuan', 'bantu aku', 'bantu saya', 'perintah apa', 'bisa apa', 'apa saja', 'panduan', 'help'],
+    words: ['bantuan', 'bantu aku', 'bantu saya', 'perintah apa', 'bisa apa', 'apa saja', 'help'],
   },
   { intent: 'beranda', words: ['beranda', 'halaman utama', 'halaman depan', 'kembali ke awal', 'home'] },
+  {
+    intent: 'daftar',
+    words: [
+      'daftar umkm',
+      'daftar semua umkm',
+      'semua umkm',
+      'direktori',
+      'lihat semua umkm',
+      'lihat semua',
+      'tampilkan semua',
+      'tampilkan semua umkm',
+    ],
+  },
   { intent: 'buka', words: ['buka', 'detail', 'rincian', 'nomor', 'pilih', 'lihat', 'ceritakan'] },
   {
     intent: 'cari',
@@ -283,6 +317,7 @@ export function parseCommand(input: string): ParsedCommand {
 
   const categoryHit = matchTable(raw, CATEGORY_KEYWORDS)
   const locationHit = matchTable(raw, LOCATION_KEYWORDS)
+  const pageHit = matchTable(raw, PAGE_KEYWORDS)
   const index = detectIndex(raw)
 
   let intent: VoiceIntent = 'tidak_dikenal'
@@ -295,16 +330,21 @@ export function parseCommand(input: string): ParsedCommand {
 
   // "buka" only means "open result N" when a position was actually spoken;
   // "buka jam berapa" is a question about opening hours, not a command.
+  // Failing that, a named page ("buka halaman panduan") or a category/
+  // kecamatan ("buka kuliner") tell us what to open instead; with none of
+  // those either, "buka" is aimed at the directory itself.
   if (intent === 'buka' && index === null) {
-    intent = categoryHit || locationHit ? 'cari' : 'tidak_dikenal'
+    intent = categoryHit ? 'cari' : locationHit ? 'cari' : pageHit ? 'halaman' : 'daftar'
   }
 
   // Naming a category or a kecamatan is a search on its own — someone saying
-  // just "makanan di Balikpapan Selatan" means the obvious thing.
+  // just "makanan di Balikpapan Selatan" means the obvious thing. Same for a
+  // named page: "halaman panduan" alone is still a request to open it.
   if (intent === 'tidak_dikenal' && (categoryHit || locationHit)) intent = 'cari'
+  if (intent === 'tidak_dikenal' && pageHit) intent = 'halaman'
 
   let keyword = raw
-  for (const phrase of [categoryHit?.phrase, locationHit?.phrase]) {
+  for (const phrase of [categoryHit?.phrase, locationHit?.phrase, pageHit?.phrase]) {
     if (phrase) keyword = keyword.replace(wordRegex(phrase), ' ')
   }
   // Every command word goes, not just the one that decided the intent:
@@ -323,6 +363,7 @@ export function parseCommand(input: string): ParsedCommand {
     intent,
     category: categoryHit?.key ?? null,
     location: locationHit?.key ?? null,
+    page: pageHit?.key ?? null,
     keyword,
     index,
     raw,

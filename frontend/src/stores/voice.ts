@@ -4,7 +4,7 @@ import router from '@/router'
 import { useUmkmStore, type EnrichedUmkm } from './umkm'
 import { useAuthStore } from './auth'
 import { useA11yStore } from './a11y'
-import { parseCommand, stripWakeWord, type ParsedCommand } from '@/lib/voiceIntent'
+import { parseCommand, stripWakeWord, type ParsedCommand, type PageName } from '@/lib/voiceIntent'
 
 /**
  * Hands-free voice assistant for blind and low-vision visitors.
@@ -39,8 +39,19 @@ const SPOKEN_RESULTS = 5
 const HELP_TEXT =
   'Ucapkan Oke NearBy lebih dulu, lalu perintahnya. ' +
   'Contohnya: carikan aku makanan terdekat di Balikpapan Selatan. ' +
-  'Anda juga bisa bilang buka nomor dua untuk mendengar detail, ' +
+  'Anda juga bisa bilang buka daftar UMKM untuk melihat semuanya, ' +
+  'buka halaman panduan untuk cara mendaftar, ' +
+  'buka nomor dua untuk mendengar detail, ' +
   'favorit saya, ulangi, kembali ke beranda, atau berhenti.'
+
+/** Spoken name for each named static page — matches the router's own route names. */
+const PAGE_LABELS: Record<PageName, string> = {
+  panduan: 'Panduan',
+  tentang: 'Tentang Kami',
+  akun: 'Akun',
+  privacy: 'Kebijakan Privasi',
+  terms: 'Syarat dan Ketentuan',
+}
 
 /** "4.75" → "4,8", which an Indonesian voice reads as "empat koma delapan". */
 function spokenRating(rating: number): string {
@@ -212,8 +223,13 @@ export const useVoiceStore = defineStore('voice', () => {
     if (!enabled.value || !sttSupported) return
     if (phase.value === 'bicara' || phase.value === 'memproses') return
     wantRecognition = true
-    recognition ??= createRecognition()
-    if (!recognition || recognitionRunning) return
+    if (recognitionRunning) return
+    // A fresh instance every restart, not a reused one: Chrome's
+    // SpeechRecognition quietly stops producing results after a few
+    // start/stop cycles on the same object, which is exactly the "works once,
+    // never again" bug this session is chasing.
+    recognition = createRecognition()
+    if (!recognition) return
     try {
       recognition.start()
       recognitionRunning = true
@@ -229,8 +245,15 @@ export const useVoiceStore = defineStore('voice', () => {
     wantRecognition = false
     clearTimeout(restartTimer)
     if (!recognition) return
+    const rec = recognition
+    recognition = null
+    // Detach handlers first: abort()'s 'end' event fires asynchronously, and
+    // by then `rec` may no longer be the instance we're tracking.
+    rec.onresult = null
+    rec.onerror = null
+    rec.onend = null
     try {
-      recognition.abort()
+      rec.abort()
     } catch {
       // Already stopped — nothing to undo.
     }
@@ -289,6 +312,12 @@ export const useVoiceStore = defineStore('voice', () => {
       case 'buka':
         await runOpen(cmd)
         break
+      case 'daftar':
+        await runDirectory()
+        break
+      case 'halaman':
+        await runOpenPage(cmd.page)
+        break
       case 'favorit':
         await runFavorites()
         break
@@ -316,9 +345,16 @@ export const useVoiceStore = defineStore('voice', () => {
 
   async function runSearch(cmd: ParsedCommand) {
     const umkm = useUmkmStore()
+
+    // Open the page first, independent of whether the fetch below succeeds —
+    // otherwise a slow or failed load leaves the assistant only talking, with
+    // nothing to show for it, which reads as "it can't open pages" even
+    // though the command was understood just fine.
+    await router.push({ name: 'daftar' })
+
     await umkm.fetchAll()
     if (umkm.error) {
-      await reply('Maaf, data UMKM sedang tidak bisa dimuat. Coba lagi sebentar lagi.')
+      await reply('Saya sudah membuka daftar UMKM, tapi datanya belum berhasil dimuat. Coba lagi sebentar lagi.')
       return
     }
 
@@ -337,9 +373,6 @@ export const useVoiceStore = defineStore('voice', () => {
       relaxed = list.length > 0
     }
 
-    // Navigate before speaking: the accessibility widget stops any reading on
-    // route change, which would cut our own answer off mid-sentence.
-    await router.push({ name: 'daftar' })
     results.value = list
 
     const what = cmd.category ? cmd.category.toLowerCase() : 'UMKM'
@@ -363,6 +396,45 @@ export const useVoiceStore = defineStore('voice', () => {
       `${intro} ${spokenList.map((u, i) => describeOne(u, i + 1)).join(' ')}${tail}` +
         ' Sebutkan buka nomor satu untuk mendengar detailnya.',
     )
+  }
+
+  /** "buka daftar UMKM", "buka direktori" — the whole catalog, no filters. */
+  async function runDirectory() {
+    const umkm = useUmkmStore()
+
+    // Same reasoning as runSearch: open the page before the fetch settles.
+    await router.push({ name: 'daftar' })
+
+    await umkm.fetchAll()
+    if (umkm.error) {
+      await reply('Saya sudah membuka daftar UMKM, tapi datanya belum berhasil dimuat. Coba lagi sebentar lagi.')
+      return
+    }
+
+    umkm.cat = 'Semua'
+    umkm.loc = 'Semua'
+    umkm.q = ''
+
+    const list = umkm.filteredDirectory
+    results.value = list
+
+    const spokenList = list.slice(0, SPOKEN_RESULTS)
+    const tail = list.length > spokenList.length ? ` Itu ${spokenList.length} teratas dari ${list.length}.` : ''
+    await reply(
+      `Menampilkan seluruh daftar UMKM, ada ${list.length}. ` +
+        `${spokenList.map((u, i) => describeOne(u, i + 1)).join(' ')}${tail}` +
+        ' Sebutkan buka nomor satu untuk mendengar detailnya, atau sebutkan kategori untuk mempersempit.',
+    )
+  }
+
+  /** "buka halaman panduan", "tentang kami", "syarat dan ketentuan" — a named static page. */
+  async function runOpenPage(page: PageName | null) {
+    if (!page) {
+      await reply(`Maaf, saya belum mengerti halaman yang dimaksud. Ucapkan bantuan untuk mendengar daftar perintah.`)
+      return
+    }
+    await router.push({ name: page })
+    await reply(`Membuka halaman ${PAGE_LABELS[page]}.`)
   }
 
   async function runOpen(cmd: ParsedCommand) {
