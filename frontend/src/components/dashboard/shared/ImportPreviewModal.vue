@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import BaseModal from '@/components/shared/BaseModal.vue'
-import type { PreviewRow, PreviewSummary } from '@/stores/umkmPort'
+import type { PreviewRow, PreviewSummary } from '@/stores/excelPort'
 
 const props = defineProps<{
   preview: { summary: PreviewSummary; rows: PreviewRow[] }
-  isAdmin: boolean
+  /** Header for the name column — "Nama Usaha" or "Nama Produk". */
+  nameLabel: string
+  /** Whether new rows will queue for admin verification once imported. */
+  needsVerification: boolean
   committing: boolean
 }>()
 const emit = defineEmits<{ cancel: []; confirm: [] }>()
@@ -63,7 +66,7 @@ const ordered = computed(() =>
         <thead class="sticky top-0 bg-white">
           <tr class="text-[11.5px] font-extrabold tracking-[.06em] text-text-faint uppercase">
             <th class="border-b border-border-divider-2 py-2 pr-3 w-[70px]">Baris</th>
-            <th class="border-b border-border-divider-2 py-2 pr-3">Nama Usaha</th>
+            <th class="border-b border-border-divider-2 py-2 pr-3">{{ nameLabel }}</th>
             <th class="border-b border-border-divider-2 py-2 w-[130px]">Hasil</th>
           </tr>
         </thead>
@@ -94,7 +97,7 @@ const ordered = computed(() =>
     <div class="mt-1 flex flex-wrap items-center justify-between gap-3 border-t border-border-divider-2 px-6 py-4">
       <div class="text-[12.5px] font-semibold text-text-faint">
         {{ total }} baris terbaca
-        <template v-if="!isAdmin && preview.summary.create">
+        <template v-if="needsVerification && preview.summary.create">
           · data baru akan menunggu verifikasi admin
         </template>
       </div>

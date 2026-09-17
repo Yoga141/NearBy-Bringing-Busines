@@ -11,7 +11,8 @@ const dashboard = useDashboardStore()
     <p class="mt-[7px] text-text-muted">Pantau seluruh UMKM yang terdaftar. Edit &amp; hapus dilakukan oleh pemilik UMKM masing-masing.</p>
   </div>
 
-  <ExcelCard :is-admin="true" @imported="dashboard.fetchAdminDashboard()" />
+  <ExcelCard :is-admin="true" dataset="umkm" @imported="dashboard.fetchAdminDashboard()" />
+  <ExcelCard :is-admin="true" dataset="produk" @imported="dashboard.fetchAdminDashboard()" />
 
   <div v-if="dashboard.adminLoading && !dashboard.allUmkmAdmin.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center text-text-muted">
     Memuat data UMKM…

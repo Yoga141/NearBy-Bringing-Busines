@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialVideoController;
 use App\Http\Controllers\Api\UmkmController;
+use App\Http\Controllers\Api\UmkmItemPortController;
 use App\Http\Controllers\Api\UmkmPortController;
 use Illuminate\Support\Facades\Route;
 
@@ -91,6 +92,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/export', [UmkmPortController::class, 'export']);
         Route::post('/preview', [UmkmPortController::class, 'preview']);
         Route::post('/commit', [UmkmPortController::class, 'commit']);
+    });
+
+    // The same Excel flow for the products listed under each UMKM.
+    Route::prefix('umkm-item-excel')->group(function () {
+        Route::get('/export', [UmkmItemPortController::class, 'export']);
+        Route::post('/preview', [UmkmItemPortController::class, 'preview']);
+        Route::post('/commit', [UmkmItemPortController::class, 'commit']);
     });
 
     // Reviews

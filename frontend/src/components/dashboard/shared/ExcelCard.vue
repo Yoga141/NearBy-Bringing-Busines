@@ -1,16 +1,44 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useUmkmPortStore } from '@/stores/umkmPort'
+import { computed, ref } from 'vue'
+import { useItemPortStore, useUmkmPortStore } from '@/stores/excelPort'
 import ImportPreviewModal from './ImportPreviewModal.vue'
 
-const props = defineProps<{ isAdmin: boolean }>()
+const props = withDefaults(
+  defineProps<{ isAdmin: boolean; dataset?: 'umkm' | 'produk' }>(),
+  { dataset: 'umkm' },
+)
 const emit = defineEmits<{ imported: [] }>()
 
-const port = useUmkmPortStore()
+const isUmkm = computed(() => props.dataset === 'umkm')
+
+// Each dataset has its own store instance, so both cards can sit on the same
+// page without sharing a preview or an error banner.
+const umkmPort = useUmkmPortStore()
+const itemPort = useItemPortStore()
+const port = computed(() => (isUmkm.value ? umkmPort : itemPort))
+
+const title = computed(() => (isUmkm.value ? 'Export & Import Excel — UMKM' : 'Export & Import Excel — Produk'))
+
+const intro = computed(() => {
+  if (isUmkm.value) {
+    return props.isAdmin
+      ? 'Unduh seluruh data UMKM sebagai .xlsx, atau unggah file untuk menambah dan memperbarui data secara massal.'
+      : 'Unduh data UMKM milikmu sebagai .xlsx, atau unggah file untuk memperbarui dan menambah UMKM sekaligus.'
+  }
+  return props.isAdmin
+    ? 'Unduh seluruh daftar produk sebagai .xlsx, atau unggah file untuk menambah dan memperbarui produk secara massal.'
+    : 'Unduh daftar produk dari UMKM milikmu, atau unggah file untuk menambah dan memperbarui produk sekaligus.'
+})
+
+/** Only a new UMKM waits for an admin; products go live with their UMKM. */
+const needsVerification = computed(() => isUmkm.value && !props.isAdmin)
+
+const nameLabel = computed(() => (isUmkm.value ? 'Nama Usaha' : 'Nama Produk'))
+
 const fileInput = ref<HTMLInputElement | null>(null)
 
 function pickFile() {
-  port.dismissDone()
+  port.value.dismissDone()
   fileInput.value?.click()
 }
 
@@ -19,11 +47,11 @@ async function onFile(e: Event) {
   const file = input.files?.[0]
   // Reset first so choosing the same file twice in a row still fires change.
   input.value = ''
-  if (file) await port.analyse(file, props.isAdmin)
+  if (file) await port.value.analyse(file, props.isAdmin)
 }
 
 async function confirmImport() {
-  if (await port.commit()) emit('imported')
+  if (await port.value.commit()) emit('imported')
 }
 </script>
 
@@ -31,14 +59,8 @@ async function confirmImport() {
   <div class="mb-[18px] rounded-[18px] border border-border-card bg-white p-5 shadow-[0_4px_16px_rgba(19,50,77,.04)]">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">
-        <div class="text-[16px] font-extrabold text-brand-navy">Export &amp; Import Excel</div>
-        <p class="mt-1 max-w-[560px] text-[13.5px] leading-relaxed text-text-muted">
-          {{
-            isAdmin
-              ? 'Unduh seluruh data UMKM sebagai .xlsx, atau unggah file untuk menambah dan memperbarui data secara massal.'
-              : 'Unduh data UMKM milikmu sebagai .xlsx, atau unggah file untuk memperbarui dan menambah UMKM sekaligus.'
-          }}
-        </p>
+        <div class="text-[16px] font-extrabold text-brand-navy">{{ title }}</div>
+        <p class="mt-1 max-w-[560px] text-[13.5px] leading-relaxed text-text-muted">{{ intro }}</p>
       </div>
 
       <div class="flex flex-wrap gap-2">
@@ -88,7 +110,7 @@ async function confirmImport() {
     >
       <span>
         Impor selesai — {{ port.done.create }} data baru, {{ port.done.update }} diperbarui.
-        <template v-if="!isAdmin && port.done.create">
+        <template v-if="needsVerification && port.done.create">
           Data baru menunggu verifikasi admin sebelum tampil di website.
         </template>
       </span>
@@ -99,7 +121,8 @@ async function confirmImport() {
   <ImportPreviewModal
     v-if="port.preview"
     :preview="port.preview"
-    :is-admin="isAdmin"
+    :name-label="nameLabel"
+    :needs-verification="needsVerification"
     :committing="port.committing"
     @cancel="port.cancel"
     @confirm="confirmImport"

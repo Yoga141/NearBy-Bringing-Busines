@@ -28,7 +28,8 @@ function manage(id: number) {
     </button>
   </div>
 
-  <ExcelCard :is-admin="false" @imported="dashboard.fetchOwnerDashboard()" />
+  <ExcelCard :is-admin="false" dataset="umkm" @imported="dashboard.fetchOwnerDashboard()" />
+  <ExcelCard :is-admin="false" dataset="produk" @imported="dashboard.fetchOwnerDashboard()" />
 
   <div v-if="dashboard.ownerLoading && !dashboard.myUmkm.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center text-text-muted">
     Memuat UMKM…
