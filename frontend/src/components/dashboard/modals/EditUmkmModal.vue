@@ -6,6 +6,9 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { CATEGORY_NAMES, LOCATION_NAMES } from '@/data/categories'
 import type { CategoryName, LocationName } from '@/types'
 import BaseModal from '@/components/shared/BaseModal.vue'
+import ShieldIcon from '@/components/shared/ShieldIcon.vue'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
+import PlusIcon from '@/components/shared/PlusIcon.vue'
 
 const ui = useUiStore()
 const umkmStore = useUmkmStore()
@@ -128,12 +131,12 @@ async function saveUmkm() {
     <div class="flex max-h-[90vh] flex-col">
       <div class="flex flex-none items-center justify-between border-b border-border-divider px-[26px] py-[19px]">
         <div class="text-[19px] font-extrabold">{{ title }}</div>
-        <button type="button" class="text-2xl leading-none text-text-faint" @click="ui.closeModal">×</button>
+        <button type="button" class="text-text-faint" @click="ui.closeModal"><CloseIcon size="20px" /></button>
       </div>
 
       <div class="overflow-y-auto px-[26px] py-6">
         <div class="mb-[18px] flex items-start gap-[11px] rounded-xl border border-[#EBD9B4] bg-[#FBF3E4] px-3.5 py-3">
-          <span class="text-[17px]">🛡️</span>
+          <ShieldIcon size="17px" class="flex-none text-[#B07A1E]" />
           <div class="text-[12.5px] leading-relaxed text-[#7A5B1E]">
             UMKM baru <b class="text-[#8A5A12]">menunggu verifikasi admin</b> sebelum tampil ke publik.
           </div>
@@ -174,8 +177,8 @@ async function saveUmkm() {
 
         <div class="mb-2.5 flex items-center justify-between">
           <label class="text-[13px] font-bold">Menu / produk &amp; harga</label>
-          <button type="button" class="rounded-[9px] bg-brand-blue-tint px-[13px] py-1.5 text-[12.5px] font-bold text-brand-blue" @click="addMenuRow">
-            + Tambah
+          <button type="button" class="flex items-center gap-1 rounded-[9px] bg-brand-blue-tint px-[13px] py-1.5 text-[12.5px] font-bold text-brand-blue" @click="addMenuRow">
+            <PlusIcon size="12px" /> Tambah
           </button>
         </div>
         <div class="flex flex-col gap-2">
@@ -191,7 +194,7 @@ async function saveUmkm() {
               {{ m.avail ? 'Tersedia' : 'Habis' }}
             </button>
             <button type="button" class="flex-none rounded-[9px] border border-danger-border px-2.5 py-2.5 font-bold text-danger" @click="removeMenuRow(i)">
-              ✕
+              <CloseIcon size="13px" />
             </button>
           </div>
         </div>

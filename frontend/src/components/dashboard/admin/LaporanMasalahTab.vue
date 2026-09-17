@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDashboardStore } from '@/stores/dashboard'
+import ToolsIcon from '@/components/shared/ToolsIcon.vue'
 import type { ProblemReportStatus } from '@/types'
 
 const dashboard = useDashboardStore()
@@ -30,7 +31,7 @@ function kindMeta(kind: string) {
   </div>
 
   <div v-if="!dashboard.problemReports.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center">
-    <div class="text-[42px]">🛠️</div>
+    <ToolsIcon size="38px" class="mx-auto text-text-faint" />
     <div class="mt-3 text-[19px] font-extrabold text-brand-navy">Belum ada laporan masalah</div>
     <p class="mx-auto mt-2 max-w-[420px] text-[14.5px] leading-relaxed text-text-muted">
       Laporan yang dikirim pengguna lewat "Pusat Bantuan → Laporkan masalah" akan muncul di sini.

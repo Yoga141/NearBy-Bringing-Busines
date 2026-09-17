@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import PlaceholderThumb from '@/components/shared/PlaceholderThumb.vue'
+import ExpandIcon from '@/components/shared/ExpandIcon.vue'
 import { useUiStore } from '@/stores/ui'
 
 const props = defineProps<{ imgLabel: string }>()
@@ -7,7 +8,7 @@ const props = defineProps<{ imgLabel: string }>()
 const ui = useUiStore()
 
 function zoom(caption: string) {
-  ui.openLightbox('🖼', caption)
+  ui.openLightbox('image', caption)
 }
 </script>
 
@@ -20,8 +21,8 @@ function zoom(caption: string) {
       @click="zoom(`${imgLabel} · utama`)"
     >
       <PlaceholderThumb :label="`${imgLabel} · utama`" variant="warm" rounded="rounded-[20px]" />
-      <span class="absolute right-2.5 bottom-2.5 flex h-[26px] w-[26px] items-center justify-center rounded-lg bg-[rgba(15,30,45,.66)] text-xs text-white">
-        ⤢
+      <span class="absolute right-2.5 bottom-2.5 flex h-[26px] w-[26px] items-center justify-center rounded-lg bg-[rgba(15,30,45,.66)] text-white">
+        <ExpandIcon size="13px" />
       </span>
     </button>
     <div class="grid grid-cols-2 gap-3 tablet:grid-cols-1 tablet:grid-rows-2">
@@ -32,8 +33,8 @@ function zoom(caption: string) {
         @click="zoom('Galeri 2')"
       >
         <PlaceholderThumb label="galeri 2" variant="teal" rounded="rounded-[20px]" />
-        <span class="absolute right-2 bottom-2 flex h-[22px] w-[22px] items-center justify-center rounded-md bg-[rgba(15,30,45,.66)] text-[10px] text-white">
-          ⤢
+        <span class="absolute right-2 bottom-2 flex h-[22px] w-[22px] items-center justify-center rounded-md bg-[rgba(15,30,45,.66)] text-white">
+          <ExpandIcon size="10px" />
         </span>
       </button>
       <button
@@ -43,8 +44,8 @@ function zoom(caption: string) {
         @click="zoom('Galeri 3')"
       >
         <PlaceholderThumb label="galeri 3" variant="blue" rounded="rounded-[20px]" />
-        <span class="absolute right-2 bottom-2 flex h-[22px] w-[22px] items-center justify-center rounded-md bg-[rgba(15,30,45,.66)] text-[10px] text-white">
-          ⤢
+        <span class="absolute right-2 bottom-2 flex h-[22px] w-[22px] items-center justify-center rounded-md bg-[rgba(15,30,45,.66)] text-white">
+          <ExpandIcon size="10px" />
         </span>
       </button>
     </div>

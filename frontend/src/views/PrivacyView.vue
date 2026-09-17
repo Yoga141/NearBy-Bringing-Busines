@@ -1,4 +1,6 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import ArrowLeftIcon from '@/components/shared/ArrowLeftIcon.vue'
+</script>
 
 <template>
   <main>
@@ -49,7 +51,7 @@
             Hubungi kami di <span class="font-bold text-brand-blue">privasi@nearby.id</span> — kami siap membantu.
           </p>
         </div>
-        <RouterLink :to="{ name: 'beranda' }" class="text-[14.5px] font-bold text-brand-blue">← Kembali ke beranda</RouterLink>
+        <RouterLink :to="{ name: 'beranda' }" class="flex items-center gap-1.5 text-[14.5px] font-bold text-brand-blue"><ArrowLeftIcon size="13px" /> Kembali ke beranda</RouterLink>
       </div>
     </section>
   </main>

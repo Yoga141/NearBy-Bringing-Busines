@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDashboardStore } from '@/stores/dashboard'
 import ExcelCard from '@/components/dashboard/shared/ExcelCard.vue'
+import StarIcon from '@/components/shared/StarIcon.vue'
 
 const dashboard = useDashboardStore()
 </script>
@@ -40,7 +41,7 @@ const dashboard = useDashboardStore()
       </div>
       <div><span class="rounded-full px-2.5 py-1 text-xs font-bold" :style="{ background: u.soft, color: u.accent }">{{ u.cat }}</span></div>
       <div class="text-[13.5px] font-semibold text-text-secondary">{{ u.loc }}</div>
-      <div class="text-sm font-extrabold text-gold">★ {{ u.rating }}</div>
+      <div class="flex items-center gap-1 text-sm font-extrabold text-gold"><StarIcon size="12px" /> {{ u.rating }}</div>
       <div class="flex justify-end">
         <button
           type="button"

@@ -7,6 +7,9 @@ import { useUmkmStore } from '@/stores/umkm'
 import { useUiStore } from '@/stores/ui'
 import logo from '@/assets/logo-nearby.png'
 import MobileNav from './MobileNav.vue'
+import MenuIcon from '@/components/shared/MenuIcon.vue'
+import HeartIcon from '@/components/shared/HeartIcon.vue'
+import ChevronDownIcon from '@/components/shared/ChevronDownIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -68,7 +71,7 @@ function logout() {
           class="flex h-[42px] w-[42px] items-center justify-center rounded-xl border border-border-input bg-white text-[19px] text-brand-navy tablet:hidden"
           @click="ui.toggleMobileNav"
         >
-          ☰
+          <MenuIcon size="19px" />
         </button>
 
         <RouterLink
@@ -76,7 +79,7 @@ function logout() {
           title="Favorit"
           class="relative flex h-[42px] w-[42px] items-center justify-center rounded-xl border border-border-input bg-white text-lg text-danger hover:bg-surface-alt"
         >
-          ♡
+          <HeartIcon />
           <span
             v-if="umkm.favCount > 0"
             class="absolute -top-1.5 -right-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-danger px-1 text-[11px] font-extrabold text-white"
@@ -101,7 +104,7 @@ function logout() {
               <div class="text-[13px] font-bold">{{ auth.user?.name }}</div>
               <div class="text-[10.5px] text-text-faint">{{ auth.authRoleLabel }}</div>
             </div>
-            <span class="ml-0.5 text-[11px] text-text-faint-3">▾</span>
+            <ChevronDownIcon size="11px" class="ml-0.5 text-text-faint-3" />
           </button>
           <div
             v-if="ui.profileMenuOpen"

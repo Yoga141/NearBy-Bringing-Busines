@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useDashboardStore } from '@/stores/dashboard'
+import { STAT_ICONS } from '@/lib/statIcons'
+import StarIcon from '@/components/shared/StarIcon.vue'
 
 const dashboard = useDashboardStore()
 
@@ -15,7 +17,7 @@ const dashboard = useDashboardStore()
   <div class="mb-[22px] grid grid-cols-2 gap-4 tablet:grid-cols-4">
     <div v-for="s in dashboard.reportStats" :key="s.label" class="rounded-2xl border border-border-card bg-white p-[18px]">
       <div class="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] text-[17px] font-extrabold" :style="{ background: s.soft, color: s.accent }">
-        {{ s.icon }}
+        <component :is="STAT_ICONS[s.icon]" size="18px" />
       </div>
       <div class="mt-[13px] text-[27px] font-extrabold tracking-[-.02em]">{{ s.value }}</div>
       <div class="text-[13px] font-semibold text-text-faint">{{ s.label }}</div>
@@ -60,7 +62,7 @@ const dashboard = useDashboardStore()
         <span class="rounded-full px-2.5 py-0.5 text-[11px] font-bold" :style="{ background: u.soft, color: u.accent }">{{ u.cat }}</span>
       </div>
       <div class="text-[13px] font-semibold text-text-faint">{{ u.reviews }} ulasan</div>
-      <div class="font-extrabold text-gold">★ {{ u.rating }}</div>
+      <div class="flex items-center gap-1 font-extrabold text-gold"><StarIcon size="12px" /> {{ u.rating }}</div>
     </div>
   </div>
 </template>

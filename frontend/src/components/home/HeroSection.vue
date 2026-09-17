@@ -5,6 +5,8 @@ import { useUmkmStore } from '@/stores/umkm'
 import { CATEGORY_FILTERS, CATEGORY_NAMES, LOCATION_NAMES } from '@/data/categories'
 import PlaceholderThumb from '@/components/shared/PlaceholderThumb.vue'
 import HeroCanvas from '@/components/home/HeroCanvas.vue'
+import SearchIcon from '@/components/shared/SearchIcon.vue'
+import StarIcon from '@/components/shared/StarIcon.vue'
 
 const router = useRouter()
 const umkm = useUmkmStore()
@@ -58,7 +60,7 @@ function doHeroSearch() {
 
         <div class="flex max-w-[560px] gap-1.5 rounded-2xl bg-white p-2 shadow-[0_20px_50px_rgba(9,24,40,.35)] mobile:gap-2">
           <div class="flex min-w-0 flex-1 items-center gap-1.5 px-2 mobile:gap-2.5 mobile:px-3">
-            <span class="text-[15px] text-[#A79D89] mobile:text-[17px]">⌕</span>
+            <SearchIcon size="16px" class="text-[#A79D89]" />
             <input
               v-model="umkm.q"
               placeholder="Cari UMKM…"
@@ -114,7 +116,7 @@ function doHeroSearch() {
             >
               <div class="h-[74px] rounded-[9px]" style="background: repeating-linear-gradient(135deg, #ece6da 0 10px, #f4efe6 10px 20px)" />
               <div class="mt-2.5 truncate text-[13px] font-bold text-brand-navy">{{ u.name }}</div>
-              <div class="text-[12px] font-bold" :style="{ color: u.accent }">★ {{ u.rating }} · {{ u.cat }}</div>
+              <div class="flex items-center gap-1 text-[12px] font-bold" :style="{ color: u.accent }"><StarIcon size="11px" /> {{ u.rating }} · {{ u.cat }}</div>
             </RouterLink>
           </div>
           <div v-else class="mt-3 rounded-[14px] bg-white p-4 text-center text-[13px] font-semibold text-text-faint">

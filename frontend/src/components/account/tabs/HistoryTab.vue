@@ -3,10 +3,14 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAccountStore } from '@/stores/account'
 import { useUiStore } from '@/stores/ui'
-import { starsLabel } from '@/data/reviews'
+import { starsCount } from '@/data/reviews'
 import EditIcon from '@/components/shared/EditIcon.vue'
 import SaveIcon from '@/components/shared/SaveIcon.vue'
 import DeleteIcon from '@/components/shared/DeleteIcon.vue'
+import StarIcon from '@/components/shared/StarIcon.vue'
+import ChatBubbleIcon from '@/components/shared/ChatBubbleIcon.vue'
+import ExternalLinkIcon from '@/components/shared/ExternalLinkIcon.vue'
+import ClockIcon from '@/components/shared/ClockIcon.vue'
 
 const account = useAccountStore()
 const ui = useUiStore()
@@ -82,17 +86,19 @@ function openUmkm(id: number) {
       Memuat komentar…
     </div>
     <div v-else-if="account.commentHistory.length === 0" class="rounded-[14px] border border-border-card bg-white px-5 py-10 text-center text-text-faint">
-      <div class="text-3xl">💬</div>
+      <ChatBubbleIcon size="30px" class="mx-auto text-text-faint" />
       <div class="mt-2 text-[15px] font-extrabold text-brand-navy">Belum ada komentar</div>
       <p class="mt-1.5 text-[13px]">Komentar yang kamu tulis di UMKM akan muncul di sini.</p>
     </div>
     <div v-else class="flex flex-col gap-3">
       <div v-for="c in account.commentHistory" :key="c.id" class="rounded-[14px] border border-border-card bg-white px-[18px] py-4">
         <div class="mb-1.5 flex items-center justify-between gap-2.5">
-          <button type="button" class="text-sm font-extrabold text-brand-blue hover:underline" @click="openUmkm(c.umkmId)">
-            {{ c.umkmName }} ↗
+          <button type="button" class="flex items-center gap-1 text-sm font-extrabold text-brand-blue hover:underline" @click="openUmkm(c.umkmId)">
+            {{ c.umkmName }} <ExternalLinkIcon size="12px" />
           </button>
-          <div class="text-[13px] font-bold whitespace-nowrap text-gold">{{ starsLabel(c.stars) }}</div>
+          <div class="flex items-center gap-0.5 whitespace-nowrap text-gold">
+            <StarIcon v-for="n in 5" :key="n" :filled="n <= starsCount(c.stars)" size="13px" />
+          </div>
         </div>
         <template v-if="editingCid !== c.id">
           <div class="text-[13px] leading-relaxed text-[#5B6470]">{{ c.text }}</div>
@@ -141,7 +147,7 @@ function openUmkm(id: number) {
 
   <template v-else>
     <div class="rounded-[14px] border border-border-card bg-white px-5 py-10 text-center text-text-faint">
-      <div class="text-3xl">🕒</div>
+      <ClockIcon size="30px" class="mx-auto text-text-faint" />
       <div class="mt-2 text-[15px] font-extrabold text-brand-navy">Riwayat kunjungan belum tersedia</div>
       <p class="mt-1.5 text-[13px]">Kami belum melacak UMKM yang kamu kunjungi. Cek tab "Komentar" untuk ulasan yang sudah kamu tulis.</p>
     </div>

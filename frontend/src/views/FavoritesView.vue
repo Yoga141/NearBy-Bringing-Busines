@@ -2,6 +2,7 @@
 import { useAuthStore } from '@/stores/auth'
 import { useUmkmStore } from '@/stores/umkm'
 import UmkmCard from '@/components/shared/UmkmCard.vue'
+import HeartIcon from '@/components/shared/HeartIcon.vue'
 
 const auth = useAuthStore()
 const umkm = useUmkmStore()
@@ -15,7 +16,7 @@ const umkm = useUmkmStore()
     </div>
 
     <div v-if="auth.isGuest" class="rounded-[20px] border border-border-card bg-white px-6 py-16 text-center shadow-[0_4px_18px_rgba(19,50,77,.05)]">
-      <div class="text-[46px] text-danger">♡</div>
+      <HeartIcon size="46px" class="mx-auto text-danger" />
       <div class="mt-3 text-xl font-extrabold text-brand-navy">Silakan daftar atau masuk terlebih dahulu</div>
       <p class="mx-auto mt-2.5 mb-6 max-w-[440px] text-[15.5px] leading-relaxed text-text-muted">
         Kamu perlu memiliki akun untuk menyimpan UMKM sebagai favorit. Masuk atau daftar dulu, lalu tekan ikon hati
@@ -37,7 +38,7 @@ const umkm = useUmkmStore()
     </div>
 
     <div v-else class="rounded-[20px] border border-border-card bg-white px-6 py-16 text-center shadow-[0_4px_18px_rgba(19,50,77,.05)]">
-      <div class="text-[46px] text-[#D6CFC0]">♡</div>
+      <HeartIcon size="46px" class="mx-auto text-[#D6CFC0]" />
       <div class="mt-3 text-xl font-extrabold text-brand-navy">Belum ada favorit</div>
       <p class="mx-auto mt-2.5 mb-6 max-w-[420px] text-[15.5px] leading-relaxed text-text-muted">
         Jelajahi UMKM dan tekan ikon hati untuk menyimpannya di sini.

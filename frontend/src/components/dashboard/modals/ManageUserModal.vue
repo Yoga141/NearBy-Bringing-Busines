@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
 
 const ui = useUiStore()
 const dashboard = useDashboardStore()
@@ -22,7 +23,7 @@ function toggleActive() {
     <div class="w-full max-w-[410px] overflow-hidden rounded-2xl bg-white shadow-[0_30px_70px_rgba(9,24,40,.4)]" @click.stop>
       <div class="flex items-center justify-between border-b border-border-divider px-6 py-[19px]">
         <div class="text-lg font-extrabold">Kelola pengguna</div>
-        <button type="button" class="text-2xl leading-none text-text-faint" @click="ui.closeModal">×</button>
+        <button type="button" class="text-text-faint" @click="ui.closeModal"><CloseIcon size="20px" /></button>
       </div>
       <div class="px-6 py-[22px]">
         <div class="mb-5 flex items-center gap-[13px]">

@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useAccountStore } from '@/stores/account'
 import { useUmkmStore } from '@/stores/umkm'
 import { useUiStore } from '@/stores/ui'
+import ClockIcon from '@/components/shared/ClockIcon.vue'
 
 const auth = useAuthStore()
 const account = useAccountStore()
@@ -33,7 +34,7 @@ function confirmDelete() {
       Akunmu akan dinonaktifkan dan tidak lagi bisa diakses. Data profil, ulasan, dan riwayatmu akan disembunyikan.
     </p>
     <div class="mb-[18px] flex items-start gap-[11px] rounded-xl border border-danger-border bg-white px-4 py-3.5">
-      <span class="text-lg">🕒</span>
+      <ClockIcon size="17px" class="flex-none text-[#8A2818]" />
       <div class="text-[13px] leading-[1.55] text-[#5B4A44]">
         <b class="text-brand-navy">Masih bisa dikembalikan.</b> Setelah dihapus, akun disimpan selama
         <b>maksimal 30 hari</b>. Dalam periode itu kamu (atau admin) dapat memulihkannya kapan saja. Lewat 30 hari,

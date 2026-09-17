@@ -2,6 +2,8 @@
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
 import ExcelCard from '@/components/dashboard/shared/ExcelCard.vue'
+import StarIcon from '@/components/shared/StarIcon.vue'
+import PlusIcon from '@/components/shared/PlusIcon.vue'
 
 const ui = useUiStore()
 const dashboard = useDashboardStore()
@@ -23,8 +25,8 @@ function manage(id: number) {
       <h1 class="m-0 text-[29px] font-extrabold tracking-[-.02em]">UMKM Saya</h1>
       <p class="mt-1.5 text-text-muted">Kelola daftar usaha yang kamu miliki di NearBy Balikpapan.</p>
     </div>
-    <button type="button" class="rounded-xl bg-brand-blue px-[22px] py-[13px] font-bold text-white shadow-[0_8px_20px_rgba(44,94,173,.25)]" @click="addUmkm">
-      + Tambah UMKM
+    <button type="button" class="flex items-center gap-1.5 rounded-xl bg-brand-blue px-[22px] py-[13px] font-bold text-white shadow-[0_8px_20px_rgba(44,94,173,.25)]" @click="addUmkm">
+      <PlusIcon size="15px" /> Tambah UMKM
     </button>
   </div>
 
@@ -50,7 +52,7 @@ function manage(id: number) {
           <div class="mt-1.5 text-[13.5px] font-semibold text-text-faint">{{ u.loc }}</div>
           <div class="mt-3.5 flex gap-6">
             <div>
-              <div class="text-base font-extrabold text-gold">★ {{ u.rating }}</div>
+              <div class="flex items-center gap-1 text-base font-extrabold text-gold"><StarIcon size="14px" /> {{ u.rating }}</div>
               <div class="text-[11.5px] font-semibold text-text-faint">rating</div>
             </div>
             <div>

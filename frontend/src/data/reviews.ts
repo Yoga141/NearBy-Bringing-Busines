@@ -1,5 +1,4 @@
-/** Renders a 1-5 star rating as a fixed 5-character "★★★☆☆"-style string. */
-export function starsLabel(stars: number): string {
-  const full = Math.round(stars)
-  return '★★★★★☆☆☆☆☆'.slice(5 - full, 10 - full)
+/** Returns the number of filled stars (0-5) to render for a 1-5 star rating. */
+export function starsCount(stars: number): number {
+  return Math.max(0, Math.min(5, Math.round(stars)))
 }

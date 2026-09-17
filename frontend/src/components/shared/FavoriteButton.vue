@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useUmkmStore } from '@/stores/umkm'
+import HeartIcon from '@/components/shared/HeartIcon.vue'
 
 const props = withDefaults(defineProps<{ id: number; variant?: 'icon' | 'button' }>(), {
   variant: 'icon',
@@ -32,7 +33,7 @@ function onClick() {
     :class="active ? 'bg-danger text-white' : 'bg-white text-danger'"
     @click.stop="onClick"
   >
-    {{ active ? '♥' : '♡' }}
+    <HeartIcon :filled="active" />
   </button>
 
   <button
@@ -46,6 +47,6 @@ function onClick() {
     "
     @click="onClick"
   >
-    {{ active ? '♥ Tersimpan di favorit' : '♡ Simpan favorit' }}
+    <HeartIcon :filled="active" /> {{ active ? 'Tersimpan di favorit' : 'Simpan favorit' }}
   </button>
 </template>

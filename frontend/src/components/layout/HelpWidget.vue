@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
 
 const ui = useUiStore()
 const dashboard = useDashboardStore()
@@ -64,7 +65,7 @@ async function submitBug() {
           <div class="text-[15.5px] font-extrabold">Pusat Bantuan</div>
           <div class="mt-px text-xs text-[#AFC3DC]">Bertanya &amp; laporkan masalah</div>
         </div>
-        <button type="button" class="text-2xl leading-none text-[#AFC3DC]" @click="ui.helpOpen = false">×</button>
+        <button type="button" class="text-[#AFC3DC]" @click="ui.helpOpen = false"><CloseIcon size="20px" /></button>
       </div>
 
       <div class="flex bg-brand-navy px-4">

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import logo from '@/assets/logo-nearby.png'
+import TargetIcon from '@/components/shared/TargetIcon.vue'
+import HeartIcon from '@/components/shared/HeartIcon.vue'
 
 const steps = [
   { no: '1', title: 'Cari & jelajahi', body: 'Telusuri UMKM berdasarkan kategori, jenis, atau wilayah di Balikpapan.' },
@@ -35,8 +37,8 @@ const techs = [
     <section class="mx-auto max-w-[1000px] px-6 py-16">
       <div class="grid grid-cols-1 gap-6 mobile:grid-cols-2">
         <div class="rounded-[18px] border border-border-card bg-white p-7">
-          <div class="flex h-12 w-12 items-center justify-center rounded-[13px] bg-[#F7EDDC] text-[22px] font-extrabold text-gold">
-            ◎
+          <div class="flex h-12 w-12 items-center justify-center rounded-[13px] bg-[#F7EDDC] text-gold">
+            <TargetIcon size="22px" />
           </div>
           <h3 class="mt-4 mb-2 text-[21px] font-extrabold">Misi kami</h3>
           <p class="m-0 leading-[1.65] text-text-secondary">
@@ -45,8 +47,8 @@ const techs = [
           </p>
         </div>
         <div class="rounded-[18px] border border-border-card bg-white p-7">
-          <div class="flex h-12 w-12 items-center justify-center rounded-[13px] bg-teal-tint text-[22px] font-extrabold text-teal">
-            ♡
+          <div class="flex h-12 w-12 items-center justify-center rounded-[13px] bg-teal-tint text-teal">
+            <HeartIcon size="22px" />
           </div>
           <h3 class="mt-4 mb-2 text-[21px] font-extrabold">Untuk siapa</h3>
           <p class="m-0 leading-[1.65] text-text-secondary">

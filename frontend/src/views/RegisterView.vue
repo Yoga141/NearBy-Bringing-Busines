@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import AuthLayout from '@/components/auth/AuthLayout.vue'
 import RolePicker from '@/components/auth/RolePicker.vue'
 import logo from '@/assets/logo-nearby.png'
+import CheckIcon from '@/components/shared/CheckIcon.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -60,7 +61,7 @@ async function doRegister() {
             class="animate-float-up flex items-center gap-[11px] text-[#E7F0EE]"
             :style="{ animationDelay: `${0.15 + i * 0.1}s` }"
           >
-            <span class="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-full bg-white/16 font-extrabold">✓</span>
+            <span class="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-full bg-white/16"><CheckIcon size="13px" /></span>
             {{ item }}
           </div>
         </div>

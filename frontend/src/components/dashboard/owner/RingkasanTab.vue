@@ -2,7 +2,11 @@
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
-import { starsLabel } from '@/data/reviews'
+import { starsCount } from '@/data/reviews'
+import StarIcon from '@/components/shared/StarIcon.vue'
+import WavingHandIcon from '@/components/shared/WavingHandIcon.vue'
+import PlusIcon from '@/components/shared/PlusIcon.vue'
+import { STAT_ICONS } from '@/lib/statIcons'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -24,11 +28,11 @@ function manage(id: number) {
 <template>
   <div class="mb-[22px] flex flex-wrap items-center justify-between gap-4">
     <div>
-      <h1 class="m-0 text-[29px] font-extrabold tracking-[-.02em]">Halo, {{ auth.authFirst }} 👋</h1>
+      <h1 class="m-0 flex items-center gap-2 text-[29px] font-extrabold tracking-[-.02em]">Halo, {{ auth.authFirst }} <WavingHandIcon size="0.85em" /></h1>
       <p class="mt-1.5 text-text-muted">Berikut ringkasan performa UMKM-mu.</p>
     </div>
-    <button type="button" class="rounded-xl bg-brand-blue px-[22px] py-[13px] font-bold text-white shadow-[0_8px_20px_rgba(44,94,173,.25)]" @click="addUmkm">
-      + Tambah UMKM
+    <button type="button" class="flex items-center gap-1.5 rounded-xl bg-brand-blue px-[22px] py-[13px] font-bold text-white shadow-[0_8px_20px_rgba(44,94,173,.25)]" @click="addUmkm">
+      <PlusIcon size="15px" /> Tambah UMKM
     </button>
   </div>
 
@@ -40,7 +44,7 @@ function manage(id: number) {
     <div class="mb-[22px] grid grid-cols-2 gap-4 tablet:grid-cols-4">
       <div v-for="s in dashboard.ownerStats" :key="s.label" class="rounded-2xl border border-border-card bg-white p-5">
         <div class="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] text-[17px] font-extrabold" :style="{ background: s.soft, color: s.accent }">
-          {{ s.icon }}
+          <component :is="STAT_ICONS[s.icon]" size="18px" />
         </div>
         <div class="mt-3.5 text-[28px] font-extrabold tracking-[-.02em]">{{ s.value }}</div>
         <div class="text-[13px] font-semibold text-text-faint">{{ s.label }}</div>
@@ -69,7 +73,9 @@ function manage(id: number) {
           <div>
             <div class="flex items-center gap-2">
               <div class="text-sm font-bold">{{ r.name }}</div>
-              <div class="text-xs font-bold text-gold">{{ starsLabel(r.stars) }}</div>
+              <div class="flex items-center gap-0.5 text-gold">
+                <StarIcon v-for="n in 5" :key="n" :filled="n <= starsCount(r.stars)" size="12px" />
+              </div>
             </div>
             <div class="mt-0.5 text-[13px] leading-snug text-[#5B6470]">{{ r.text }}</div>
           </div>
@@ -88,7 +94,7 @@ function manage(id: number) {
             <div class="text-[13px] font-semibold text-text-faint">{{ u.cat }} · {{ u.loc }}</div>
           </div>
           <div class="text-center">
-            <div class="font-extrabold text-gold">★ {{ u.rating }}</div>
+            <div class="flex items-center justify-center gap-1 font-extrabold text-gold"><StarIcon size="12px" /> {{ u.rating }}</div>
             <div class="text-[11.5px] font-semibold text-text-faint">{{ u.reviews }} ulasan</div>
           </div>
           <div class="text-center">

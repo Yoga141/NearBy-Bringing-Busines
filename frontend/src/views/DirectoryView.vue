@@ -5,6 +5,7 @@ import { CATEGORY_FILTERS, LOCATION_FILTERS } from '@/data/categories'
 import UmkmCard from '@/components/shared/UmkmCard.vue'
 import FilterChip from '@/components/shared/FilterChip.vue'
 import EmptyState from '@/components/shared/EmptyState.vue'
+import SearchIcon from '@/components/shared/SearchIcon.vue'
 
 const umkm = useUmkmStore()
 
@@ -19,7 +20,7 @@ onMounted(() => umkm.fetchAll())
     </div>
 
     <div class="mb-[22px] flex items-center gap-2 rounded-[14px] border border-border-card bg-white p-[7px] shadow-[0_4px_18px_rgba(19,50,77,.04)]">
-      <span class="pl-3 text-[17px] text-[#A79D89]">⌕</span>
+      <SearchIcon size="16px" class="ml-3 text-[#A79D89]" />
       <input v-model="umkm.q" placeholder="Cari UMKM…" class="flex-1 border-none px-1 py-2.5 font-medium text-brand-navy" />
     </div>
 

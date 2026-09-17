@@ -126,10 +126,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const ownerStats = computed<StatCard[]>(() => {
     const s = ownerSummary.value
     return [
-      { icon: '👁', value: (s?.views ?? 0).toLocaleString('id-ID'), label: 'Kunjungan profil', accent: '#2C5EAD', soft: '#E6EDF8' },
-      { icon: '★', value: String(s?.rating ?? 0), label: 'Rating rata-rata', accent: '#C98A2E', soft: '#F7EDDC' },
-      { icon: '✎', value: String(s?.reviews ?? 0), label: 'Total ulasan', accent: '#3E8E82', soft: '#E3EFED' },
-      { icon: '♡', value: String(s?.favorites ?? 0), label: 'Disimpan favorit', accent: '#1591DC', soft: '#E1F1FB' },
+      { icon: 'eye', value: (s?.views ?? 0).toLocaleString('id-ID'), label: 'Kunjungan profil', accent: '#2C5EAD', soft: '#E6EDF8' },
+      { icon: 'star', value: String(s?.rating ?? 0), label: 'Rating rata-rata', accent: '#C98A2E', soft: '#F7EDDC' },
+      { icon: 'edit', value: String(s?.reviews ?? 0), label: 'Total ulasan', accent: '#3E8E82', soft: '#E3EFED' },
+      { icon: 'heart', value: String(s?.favorites ?? 0), label: 'Disimpan favorit', accent: '#1591DC', soft: '#E1F1FB' },
     ]
   })
 
@@ -287,10 +287,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const reportStats = computed<StatCard[]>(() => {
     const s = adminReports.value?.stats
     return [
-      { icon: '▦', value: String(s?.umkmCount ?? 0), label: 'UMKM terdaftar', accent: '#2C5EAD', soft: '#E6EDF8' },
-      { icon: '◍', value: String(s?.userCount ?? 0), label: 'Total pengguna', accent: '#1591DC', soft: '#E1F1FB' },
-      { icon: '✎', value: String(s?.reviewCount ?? 0), label: 'Total ulasan', accent: '#3E8E82', soft: '#E3EFED' },
-      { icon: '★', value: String(s?.avgRating ?? 0), label: 'Rata-rata rating', accent: '#C98A2E', soft: '#F7EDDC' },
+      { icon: 'grid', value: String(s?.umkmCount ?? 0), label: 'UMKM terdaftar', accent: '#2C5EAD', soft: '#E6EDF8' },
+      { icon: 'target', value: String(s?.userCount ?? 0), label: 'Total pengguna', accent: '#1591DC', soft: '#E1F1FB' },
+      { icon: 'edit', value: String(s?.reviewCount ?? 0), label: 'Total ulasan', accent: '#3E8E82', soft: '#E3EFED' },
+      { icon: 'star', value: String(s?.avgRating ?? 0), label: 'Rata-rata rating', accent: '#C98A2E', soft: '#F7EDDC' },
     ]
   })
 
@@ -341,7 +341,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
         ...sub,
         checks: sub.checks.map(([label, ok]) => ({
           label,
-          mark: ok ? '✓' : '✕',
+          mark: ok,
           color: ok ? '#2E7D6E' : '#C0472F',
           bg: ok ? '#E3EFED' : '#F8E6E0',
         })),

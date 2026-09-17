@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useDashboardStore } from '@/stores/dashboard'
 import DeleteIcon from '@/components/shared/DeleteIcon.vue'
+import StoreIcon from '@/components/shared/StoreIcon.vue'
 
 const dashboard = useDashboardStore()
 
@@ -46,7 +47,7 @@ const count = computed(() => dashboard.ownerTrash.length)
       class="grid min-w-[560px] grid-cols-[2.6fr_1fr_auto] items-center gap-3 border-b border-[#F4EFE4] px-1.5 py-3 last:border-b-0"
     >
       <div class="flex min-w-0 items-center gap-3">
-        <div class="flex h-10 w-10 flex-none items-center justify-center rounded-[10px] text-lg" style="background: #e3efed; color: #3e8e82">🏪</div>
+        <div class="flex h-10 w-10 flex-none items-center justify-center rounded-[10px]" style="background: #e3efed; color: #3e8e82"><StoreIcon size="18px" /></div>
         <div class="min-w-0">
           <div class="overflow-hidden text-[14.5px] font-extrabold text-ellipsis whitespace-nowrap">{{ t.name }}</div>
           <div class="overflow-hidden text-[12.5px] text-ellipsis whitespace-nowrap text-text-faint">{{ t.sub }}</div>

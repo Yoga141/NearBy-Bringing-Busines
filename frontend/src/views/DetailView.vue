@@ -10,6 +10,8 @@ import ReviewList from '@/components/detail/ReviewList.vue'
 import ReviewForm from '@/components/detail/ReviewForm.vue'
 import DetailSidebar from '@/components/detail/DetailSidebar.vue'
 import Lightbox from '@/components/detail/Lightbox.vue'
+import ArrowLeftIcon from '@/components/shared/ArrowLeftIcon.vue'
+import DotIcon from '@/components/shared/DotIcon.vue'
 
 const props = defineProps<{ id: string }>()
 
@@ -54,7 +56,7 @@ const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id
 <template>
   <main class="mx-auto max-w-[1120px] px-6 pt-6 pb-20">
     <RouterLink :to="{ name: 'daftar' }" class="mb-[18px] inline-flex items-center gap-1.5 font-bold text-text-muted">
-      ← Kembali ke daftar
+      <ArrowLeftIcon size="14px" /> Kembali ke daftar
     </RouterLink>
 
     <div v-if="umkm.detailLoading && !sel" class="rounded-[20px] border border-border-card bg-white px-6 py-24 text-center text-text-muted">
@@ -76,10 +78,10 @@ const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id
           <div class="flex flex-wrap items-center gap-2.5">
             <CategoryPill :category="sel.cat" />
             <span
-              class="rounded-full px-[13px] py-1.5 text-[12.5px] font-extrabold"
+              class="flex items-center gap-1 rounded-full px-[13px] py-1.5 text-[12.5px] font-extrabold"
               :style="{ background: statusMeta.b, color: statusMeta.c }"
             >
-              ● {{ statusMeta.pub }}
+              <DotIcon size="8px" /> {{ statusMeta.pub }}
             </span>
             <span class="text-[13.5px] font-semibold text-text-faint">{{ sel.loc }}</span>
           </div>

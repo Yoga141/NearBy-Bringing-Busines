@@ -2,6 +2,9 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useReviewsStore } from '@/stores/reviews'
+import StarIcon from '@/components/shared/StarIcon.vue'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
+import PlusIcon from '@/components/shared/PlusIcon.vue'
 
 const props = defineProps<{ umkmId: number }>()
 
@@ -41,15 +44,15 @@ async function submit() {
     <template v-if="auth.isAuthed">
       <div class="mb-3 font-extrabold">Beri rating &amp; komentar</div>
       <div class="mb-3 flex gap-1">
-        <span
+        <StarIcon
           v-for="n in 5"
           :key="n"
-          class="cursor-pointer text-[28px] leading-none"
+          size="28px"
+          class="cursor-pointer"
+          :filled="n <= stars"
           :style="{ color: n <= stars ? '#E7A83A' : '#E2DBCB' }"
           @click="stars = n"
-        >
-          ★
-        </span>
+        />
       </div>
       <textarea
         v-model="text"
@@ -65,14 +68,14 @@ async function submit() {
             class="absolute -top-1.5 -right-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border border-white bg-brand-navy text-xs text-white"
             @click="removeMedia(i)"
           >
-            ✕
+            <CloseIcon size="12px" />
           </button>
         </div>
         <label
           class="flex h-[74px] w-[74px] cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[#D6CFC0] text-[11px] font-semibold text-text-faint hover:border-brand-blue hover:text-brand-blue"
           style="background: repeating-linear-gradient(135deg, #f6f1e8 0 9px, #fbf8f2 9px 18px)"
         >
-          <span class="text-lg">＋</span>
+          <PlusIcon size="18px" />
           Media
           <input type="file" accept="image/*,video/*" multiple class="hidden" @change="onPickMedia" />
         </label>

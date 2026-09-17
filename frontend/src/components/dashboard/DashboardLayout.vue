@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
 import UserAvatar from '@/components/shared/UserAvatar.vue'
+import ChevronDownIcon from '@/components/shared/ChevronDownIcon.vue'
 import logo from '@/assets/logo-nearby.png'
 
 const props = defineProps<{ tab: string }>()
@@ -72,7 +73,7 @@ function logout() {
                 :name="auth.user?.name"
               />
               <div class="text-[13px] font-bold">{{ auth.user?.name }}</div>
-              <span class="ml-0.5 text-[11px] text-text-faint-3">▾</span>
+              <ChevronDownIcon size="11px" class="ml-0.5 text-text-faint-3" />
             </button>
             <div
               v-if="ui.profileMenuOpen"

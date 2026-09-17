@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import AuthLayout from '@/components/auth/AuthLayout.vue'
 import ForgotPasswordModal from '@/components/auth/ForgotPasswordModal.vue'
 import logo from '@/assets/logo-nearby.png'
+import ArrowRightIcon from '@/components/shared/ArrowRightIcon.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -104,11 +105,11 @@ function continueAsGuest() {
 
         <button
           type="button"
-          class="animate-float-up mt-3 block w-full text-center text-[13.5px] font-bold text-text-faint transition-colors duration-150 hover:text-brand-navy"
+          class="animate-float-up mt-3 flex w-full items-center justify-center gap-1 text-center text-[13.5px] font-bold text-text-faint transition-colors duration-150 hover:text-brand-navy"
           style="animation-delay: .28s"
           @click="continueAsGuest"
         >
-          Masuk sebagai tamu →
+          Masuk sebagai tamu <ArrowRightIcon size="12px" />
         </button>
       </div>
     </template>

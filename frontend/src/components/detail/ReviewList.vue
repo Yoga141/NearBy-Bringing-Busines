@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { starsLabel } from '@/data/reviews'
+import { starsCount } from '@/data/reviews'
 import { useAuthStore } from '@/stores/auth'
 import { useReviewsStore } from '@/stores/reviews'
 import StarRating from '@/components/shared/StarRating.vue'
+import StarIcon from '@/components/shared/StarIcon.vue'
 import DeleteIcon from '@/components/shared/DeleteIcon.vue'
 import EditIcon from '@/components/shared/EditIcon.vue'
 import SaveIcon from '@/components/shared/SaveIcon.vue'
@@ -71,7 +72,9 @@ async function removeReview(rv: Review) {
     <div class="min-w-0 flex-1">
       <div class="flex flex-wrap items-center gap-2.5">
         <div class="font-bold">{{ rv.name }}</div>
-        <div class="text-[13px] font-bold text-gold">{{ starsLabel(rv.stars) }}</div>
+        <div class="flex items-center gap-0.5 text-gold">
+          <StarIcon v-for="n in 5" :key="n" :filled="n <= starsCount(rv.stars)" size="13px" />
+        </div>
         <div class="text-[12.5px] font-semibold text-text-faint-3">{{ rv.date }}</div>
         <div v-if="isMine(rv) && editingId !== rv.id" class="ml-auto flex gap-3">
           <button

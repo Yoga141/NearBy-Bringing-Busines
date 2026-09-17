@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useGuideVideoStore } from '@/stores/guideVideo'
 import { ApiError } from '@/lib/api'
+import ClapperboardIcon from '@/components/shared/ClapperboardIcon.vue'
 import type { GuideVideo } from '@/types'
 
 const store = useGuideVideoStore()
@@ -201,7 +202,7 @@ onMounted(() => {
   </div>
 
   <div v-else-if="!store.adminVideos.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center">
-    <div class="text-[42px]">🎬</div>
+    <ClapperboardIcon size="42px" class="mx-auto text-text-faint" />
     <div class="mt-3 text-[19px] font-extrabold text-brand-navy">Belum ada video panduan</div>
     <p class="mx-auto mt-2 max-w-[440px] text-[14.5px] leading-relaxed text-text-muted">
       Unggah video pertama di atas. Sampai ada yang diunggah, halaman Panduan menampilkan kotak placeholder.

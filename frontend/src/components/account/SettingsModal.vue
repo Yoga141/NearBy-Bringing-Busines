@@ -8,6 +8,7 @@ import SecurityTab from './tabs/SecurityTab.vue'
 import PermissionsTab from './tabs/PermissionsTab.vue'
 import HistoryTab from './tabs/HistoryTab.vue'
 import DeleteAccountTab from './tabs/DeleteAccountTab.vue'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -74,7 +75,7 @@ const current = computed(() => NAV_DEFS.find((d) => d.key === ui.settingsTab) ??
             <h2 class="m-0 text-[19px] font-extrabold tracking-[-.02em] text-brand-navy mobile:text-[22px]">{{ current.label }}</h2>
             <p class="mt-1.5 text-[13.5px] leading-relaxed text-text-muted">{{ current.desc }}</p>
           </div>
-          <button type="button" class="flex-none text-2xl leading-none text-text-faint-3" @click="ui.closeSettings">×</button>
+          <button type="button" class="flex-none text-text-faint-3" @click="ui.closeSettings"><CloseIcon size="20px" /></button>
         </div>
 
         <ProfileTab v-if="ui.settingsTab === 'profil'" />

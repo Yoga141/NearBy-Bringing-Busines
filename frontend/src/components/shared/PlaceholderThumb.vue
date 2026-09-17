@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type Component } from 'vue'
 
 const props = withDefaults(
   defineProps<{
     label?: string
-    emoji?: string
+    icon?: Component
     variant?: 'warm' | 'teal' | 'blue' | 'navy'
     rounded?: string
   }>(),
@@ -40,7 +40,7 @@ const bgStyle = computed(() => {
     :class="rounded"
     :style="bgStyle"
   >
-    <span v-if="emoji">{{ emoji }}</span>
+    <component :is="icon" v-if="icon" size="1.3em" />
     <span v-if="label">{{ label }}</span>
   </div>
 </template>

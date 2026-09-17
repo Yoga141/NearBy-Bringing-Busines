@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue'
 import { useItemPortStore, useUmkmPortStore } from '@/stores/excelPort'
 import ImportPreviewModal from './ImportPreviewModal.vue'
+import ArrowDownIcon from '@/components/shared/ArrowDownIcon.vue'
+import ArrowUpIcon from '@/components/shared/ArrowUpIcon.vue'
 
 const props = withDefaults(
   defineProps<{ isAdmin: boolean; dataset?: 'umkm' | 'produk' }>(),
@@ -73,19 +75,21 @@ async function confirmImport() {
         </button>
         <button
           type="button"
-          class="rounded-[11px] border border-border-input bg-white px-4 py-2.5 text-[13.5px] font-bold text-brand-navy hover:bg-surface-alt disabled:opacity-60"
+          class="flex items-center gap-1.5 rounded-[11px] border border-border-input bg-white px-4 py-2.5 text-[13.5px] font-bold text-brand-navy hover:bg-surface-alt disabled:opacity-60"
           :disabled="port.exporting"
           @click="port.downloadExport"
         >
-          {{ port.exporting ? 'Menyiapkan…' : '↓ Unduh Excel' }}
+          <template v-if="port.exporting">Menyiapkan…</template>
+          <template v-else><ArrowDownIcon size="14px" /> Unduh Excel</template>
         </button>
         <button
           type="button"
-          class="rounded-[11px] bg-brand-blue px-5 py-2.5 text-[13.5px] font-extrabold text-white shadow-[0_6px_16px_rgba(44,94,173,.28)] disabled:opacity-60"
+          class="flex items-center gap-1.5 rounded-[11px] bg-brand-blue px-5 py-2.5 text-[13.5px] font-extrabold text-white shadow-[0_6px_16px_rgba(44,94,173,.28)] disabled:opacity-60"
           :disabled="port.analysing"
           @click="pickFile"
         >
-          {{ port.analysing ? 'Memeriksa…' : '↑ Impor Excel' }}
+          <template v-if="port.analysing">Memeriksa…</template>
+          <template v-else><ArrowUpIcon size="14px" /> Impor Excel</template>
         </button>
         <input
           ref="fileInput"

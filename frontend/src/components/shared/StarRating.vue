@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import StarIcon from './StarIcon.vue'
+
 const props = withDefaults(
   defineProps<{
     rating?: number
@@ -14,18 +16,18 @@ const emit = defineEmits<{ 'update:modelValue': [value: number] }>()
 
 <template>
   <div v-if="interactive" class="flex gap-1">
-    <span
+    <StarIcon
       v-for="n in 5"
       :key="n"
-      class="cursor-pointer text-[28px] leading-none"
+      size="28px"
+      class="cursor-pointer"
+      :filled="n <= (modelValue ?? 0)"
       :style="{ color: n <= (modelValue ?? 0) ? '#E7A83A' : '#E2DBCB' }"
       @click="emit('update:modelValue', n)"
-    >
-      ★
-    </span>
+    />
   </div>
   <div v-else class="inline-flex flex-none items-center gap-1 font-extrabold whitespace-nowrap text-gold">
-    <span>★ {{ rating.toFixed(1) }}</span>
+    <span class="inline-flex items-center gap-1"><StarIcon size="0.85em" /> {{ rating.toFixed(1) }}</span>
     <span v-if="reviews !== undefined" class="font-semibold text-text-faint-3">({{ reviews }})</span>
   </div>
 </template>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useUmkmStore } from '@/stores/umkm'
 import UmkmCard from '@/components/shared/UmkmCard.vue'
+import ArrowRightIcon from '@/components/shared/ArrowRightIcon.vue'
 
 const umkm = useUmkmStore()
 </script>
@@ -12,7 +13,7 @@ const umkm = useUmkmStore()
         <div class="text-[13px] font-bold tracking-[.08em] text-gold uppercase">Pilihan warga</div>
         <h2 class="mt-1.5 text-[24px] font-extrabold tracking-[-.02em] mobile:text-[28px] tablet:text-[32px]">UMKM unggulan minggu ini</h2>
       </div>
-      <RouterLink :to="{ name: 'daftar' }" class="font-bold whitespace-nowrap text-brand-blue">Jelajahi semua →</RouterLink>
+      <RouterLink :to="{ name: 'daftar' }" class="flex items-center gap-1 font-bold whitespace-nowrap text-brand-blue">Jelajahi semua <ArrowRightIcon size="13px" /></RouterLink>
     </div>
     <div class="grid grid-cols-1 gap-5 mobile:grid-cols-2 tablet:grid-cols-4">
       <UmkmCard v-for="(u, i) in umkm.featured" :key="u.id" v-reveal="{ delay: i * 60 }" :umkm="u" />

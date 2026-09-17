@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useVideoStore } from '@/stores/videos'
+import PlayIcon from '@/components/shared/PlayIcon.vue'
+import ClapperboardIcon from '@/components/shared/ClapperboardIcon.vue'
 import type { SocialVideo } from '@/types'
 
 const store = useVideoStore()
@@ -70,15 +72,15 @@ onMounted(() => store.fetchVideos())
             <img :src="v.thumbnailUrl!" :alt="v.title" class="h-full w-full object-cover" loading="lazy" />
             <span class="absolute inset-0 bg-[rgba(12,28,45,.28)] transition-colors duration-200 group-hover:bg-[rgba(12,28,45,.14)]" />
             <span
-              class="absolute top-1/2 left-1/2 flex h-[58px] w-[58px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 pl-1 text-[22px] text-brand-navy shadow-[0_8px_24px_rgba(9,24,40,.32)] transition-transform duration-200 group-hover:scale-105"
+              class="absolute top-1/2 left-1/2 flex h-[58px] w-[58px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 pl-1 text-brand-navy shadow-[0_8px_24px_rgba(9,24,40,.32)] transition-transform duration-200 group-hover:scale-105"
             >
-              ▶
+              <PlayIcon size="22px" />
             </span>
           </button>
 
           <!-- Empty slot — an admin hasn't pasted a link yet -->
           <div v-else class="flex h-full w-full flex-col items-center justify-center px-5 text-center">
-            <div class="text-[34px] leading-none">🎬</div>
+            <ClapperboardIcon size="34px" class="text-white" />
             <div class="mt-2.5 text-[14.5px] font-extrabold text-white">Video belum tersedia</div>
             <div class="mt-1 text-[12px] leading-relaxed text-[#AFC3DC]">
               Admin dapat menggantinya lewat dashboard.

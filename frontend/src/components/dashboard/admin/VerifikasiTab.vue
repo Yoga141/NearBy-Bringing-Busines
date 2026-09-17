@@ -3,6 +3,11 @@ import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
+import { STAT_ICONS } from '@/lib/statIcons'
+import CheckIcon from '@/components/shared/CheckIcon.vue'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
+import RefreshIcon from '@/components/shared/RefreshIcon.vue'
+import DocumentIcon from '@/components/shared/DocumentIcon.vue'
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -11,9 +16,9 @@ const dashboard = useDashboardStore()
 // Data is loaded once by DashboardView (the parent) when the panel opens.
 
 const stats = computed(() => [
-  { icon: '⏳', value: String(dashboard.pendingSubmissions.length), label: 'Menunggu verifikasi', accent: '#C98A2E', soft: '#F7EDDC' },
+  { icon: 'hourglass', value: String(dashboard.pendingSubmissions.length), label: 'Menunggu verifikasi', accent: '#C98A2E', soft: '#F7EDDC' },
   {
-    icon: '▦',
+    icon: 'grid',
     value: String(dashboard.allUmkmAdmin.filter((u) => u.verification === 'disetujui').length),
     label: 'Total UMKM aktif',
     accent: '#2C5EAD',
@@ -31,7 +36,7 @@ const stats = computed(() => [
   <div class="mb-[26px] grid grid-cols-2 gap-4 tablet:grid-cols-4">
     <div v-for="s in stats" :key="s.label" class="rounded-2xl border border-border-card bg-white p-[18px]">
       <div class="flex h-[38px] w-[38px] items-center justify-center rounded-[11px] text-[17px] font-extrabold" :style="{ background: s.soft, color: s.accent }">
-        {{ s.icon }}
+        <component :is="STAT_ICONS[s.icon]" size="18px" />
       </div>
       <div class="mt-[13px] text-[27px] font-extrabold tracking-[-.02em]">{{ s.value }}</div>
       <div class="text-[13px] font-semibold text-text-faint">{{ s.label }}</div>
@@ -70,28 +75,28 @@ const stats = computed(() => [
       <div class="mb-4 grid grid-cols-1 gap-2.5 mobile:grid-cols-2 tablet:grid-cols-3">
         <div v-for="c in p.checks" :key="c.label" class="flex items-center gap-2 text-[13px] font-semibold text-text-secondary">
           <span class="flex h-[19px] w-[19px] flex-none items-center justify-center rounded-full text-[11px] font-extrabold" :style="{ background: c.bg, color: c.color }">
-            {{ c.mark }}
+            <CheckIcon v-if="c.mark" size="11px" /><CloseIcon v-else size="11px" />
           </span>
           {{ c.label }}
         </div>
       </div>
 
       <div class="flex flex-wrap gap-2.5 border-t border-border-divider-2 pt-3.5">
-        <button type="button" class="rounded-[11px] bg-teal px-5 py-2.5 font-bold text-white" @click="dashboard.approveSubmission(p.id, p.name)">
-          ✓ Setujui &amp; tampilkan
+        <button type="button" class="flex items-center gap-1.5 rounded-[11px] bg-teal px-5 py-2.5 font-bold text-white" @click="dashboard.approveSubmission(p.id, p.name)">
+          <CheckIcon size="14px" /> Setujui &amp; tampilkan
         </button>
-        <button type="button" class="rounded-[11px] border border-[#E7C97F] bg-white px-[18px] py-2.5 font-bold text-[#B07A1E]" @click="dashboard.requestFix(p.name)">
-          ⟳ Minta perbaikan data
+        <button type="button" class="flex items-center gap-1.5 rounded-[11px] border border-[#E7C97F] bg-white px-[18px] py-2.5 font-bold text-[#B07A1E]" @click="dashboard.requestFix(p.name)">
+          <RefreshIcon size="14px" /> Minta perbaikan data
         </button>
-        <button type="button" class="rounded-[11px] border border-danger-border bg-white px-[18px] py-2.5 font-bold text-danger" @click="dashboard.rejectSubmission(p.id, p.name)">
-          ✕ Tolak
+        <button type="button" class="flex items-center gap-1.5 rounded-[11px] border border-danger-border bg-white px-[18px] py-2.5 font-bold text-danger" @click="dashboard.rejectSubmission(p.id, p.name)">
+          <CloseIcon size="14px" /> Tolak
         </button>
         <button
           type="button"
-          class="ml-auto rounded-[11px] border border-[#E7E0D2] px-[18px] py-2.5 font-bold text-text-muted hover:bg-[#F4F0E7] hover:text-brand-navy"
+          class="ml-auto flex items-center gap-1.5 rounded-[11px] border border-[#E7E0D2] px-[18px] py-2.5 font-bold text-text-muted hover:bg-[#F4F0E7] hover:text-brand-navy"
           @click="ui.openModal('submissionDetail', p)"
         >
-          📄 Lihat berkas
+          <DocumentIcon size="14px" /> Lihat berkas
         </button>
       </div>
     </div>

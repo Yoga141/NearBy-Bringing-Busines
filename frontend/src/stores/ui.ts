@@ -26,9 +26,9 @@ export const useUiStore = defineStore('ui', () => {
   }
 
   // Lightbox (detail page menu-item photo zoom)
-  const lightbox = ref<{ label: string; caption: string } | null>(null)
-  function openLightbox(label: string, caption: string) {
-    lightbox.value = { label, caption }
+  const lightbox = ref<{ icon: string; caption: string } | null>(null)
+  function openLightbox(icon: string, caption: string) {
+    lightbox.value = { icon, caption }
   }
   function closeLightbox() {
     lightbox.value = null

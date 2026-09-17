@@ -4,6 +4,9 @@ import { useRoute } from 'vue-router'
 import { useA11yStore } from '@/stores/a11y'
 import { useVoiceStore } from '@/stores/voice'
 import ToggleSwitch from '@/components/shared/ToggleSwitch.vue'
+import PlayIcon from '@/components/shared/PlayIcon.vue'
+import StopIcon from '@/components/shared/StopIcon.vue'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
 
 const a11y = useA11yStore()
 const voice = useVoiceStore()
@@ -51,8 +54,8 @@ watch(() => route.fullPath, () => a11y.stopSpeaking())
           <div class="text-[15.5px] font-extrabold">Aksesibilitas</div>
           <div class="mt-px text-xs text-[#AFC3DC]">Bantuan baca, teks &amp; keyboard</div>
         </div>
-        <button type="button" aria-label="Tutup" class="text-2xl leading-none text-[#AFC3DC]" @click="a11y.panelOpen = false">
-          ×
+        <button type="button" aria-label="Tutup" class="text-[#AFC3DC]" @click="a11y.panelOpen = false">
+          <CloseIcon size="18px" />
         </button>
       </div>
 
@@ -67,7 +70,7 @@ watch(() => route.fullPath, () => a11y.stopSpeaking())
           :disabled="!a11y.speechSupported"
           @click="a11y.toggleSpeaking"
         >
-          <span class="text-[13px]">{{ a11y.speaking ? '■' : '▶' }}</span>
+          <StopIcon v-if="a11y.speaking" size="13px" /><PlayIcon v-else size="13px" />
           {{ a11y.speaking ? 'Hentikan pembacaan' : 'Bacakan isi layar' }}
         </button>
 

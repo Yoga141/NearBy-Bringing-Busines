@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useUmkmStore } from '@/stores/umkm'
+import ArrowRightIcon from '@/components/shared/ArrowRightIcon.vue'
 
 const router = useRouter()
 const umkm = useUmkmStore()
@@ -18,7 +19,7 @@ function open(name: string) {
         <div class="text-[13px] font-bold tracking-[.08em] text-gold uppercase">Jelajahi kategori</div>
         <h2 class="mt-1.5 text-[24px] font-extrabold tracking-[-.02em] mobile:text-[28px] tablet:text-[32px]">Mau cari apa hari ini?</h2>
       </div>
-      <RouterLink :to="{ name: 'daftar' }" class="font-bold whitespace-nowrap text-brand-blue">Lihat semua →</RouterLink>
+      <RouterLink :to="{ name: 'daftar' }" class="flex items-center gap-1 font-bold whitespace-nowrap text-brand-blue">Lihat semua <ArrowRightIcon size="13px" /></RouterLink>
     </div>
     <div class="grid grid-cols-2 gap-4 mobile:grid-cols-3 tablet:grid-cols-5">
       <div

@@ -1,17 +1,17 @@
 deployment:
   tasks:
     - cp -R frontend/dist/* /home/nearby/public_html/
-    - cp -R nearby-backend/* /home/nearby/nearby-backend/
-    - cp -R nearby-backend/public/* /home/nearby/public_html/api/
+    - cp -R backend/* /home/nearby/nearby-backend/
+    - cp -R backend/public/* /home/nearby/public_html/api/
     # index.php bawaan Laravel mencari vendor & bootstrap lewat __DIR__.'/../',
     # yang setelah disalin ke public_html/api/ menunjuk ke folder kosong dan
     # bikin seluruh API balas 500. Timpa dengan entrypoint ber-path absolut.
     # Harus sesudah task copy di atas, karena task itu menimpanya lagi.
-    - cp nearby-backend/deploy/api-index.php /home/nearby/public_html/api/index.php
+    - cp backend/deploy/api-index.php /home/nearby/public_html/api/index.php
     # `cp -R public/*` melewatkan berkas diawali titik, sehingga .htaccess tidak
     # pernah ikut ter-deploy. Disalin hanya kalau belum ada, supaya aturan
     # rewrite yang mungkin sudah disesuaikan langsung di server tidak tertimpa.
-    - test -f /home/nearby/public_html/api/.htaccess || cp nearby-backend/public/.htaccess /home/nearby/public_html/api/.htaccess
+    - test -f /home/nearby/public_html/api/.htaccess || cp backend/public/.htaccess /home/nearby/public_html/api/.htaccess
     # Buang cache route & config lama, supaya endpoint baru langsung dikenali
     # setelah file tersalin. Tanpa ini, route yang baru ditambahkan bisa 404.
     - cd /home/nearby/nearby-backend && php artisan route:clear

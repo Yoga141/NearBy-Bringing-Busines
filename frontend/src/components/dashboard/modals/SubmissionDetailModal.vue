@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useUiStore } from '@/stores/ui'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
+import DocumentIcon from '@/components/shared/DocumentIcon.vue'
+import CircleOutlineIcon from '@/components/shared/CircleOutlineIcon.vue'
+import ImageIcon from '@/components/shared/ImageIcon.vue'
 import type { SubmissionFile } from '@/types'
 
 const ui = useUiStore()
@@ -13,7 +17,6 @@ const docs = computed(() =>
     .filter((f) => f.kind === 'doc')
     .map((f) => ({
       ...f,
-      icon: f.ok ? '📄' : '○',
       iconBg: f.ok ? '#E6EDF8' : '#F1ECE0',
       iconColor: f.ok ? '#2C5EAD' : '#B0A48B',
       statusLabel: f.ok ? 'Terunggah' : 'Belum ada',
@@ -31,7 +34,7 @@ const docs = computed(() =>
           <div class="text-lg font-extrabold">Berkas pengajuan</div>
           <div class="mt-0.5 text-[13px] font-semibold text-text-faint">{{ item.name }} · {{ item.owner }}</div>
         </div>
-        <button type="button" class="text-2xl leading-none text-text-faint" @click="ui.closeModal">×</button>
+        <button type="button" class="text-text-faint" @click="ui.closeModal"><CloseIcon size="20px" /></button>
       </div>
 
       <div class="overflow-y-auto px-6 py-5">
@@ -55,7 +58,7 @@ const docs = computed(() =>
                   : { background: 'repeating-linear-gradient(135deg, #FAEEEA 0 9px, #FEF6F3 9px 18px)', color: '#C0472F' }
               "
             >
-              {{ f.ok ? '🖼' : '✕' }}
+              <ImageIcon v-if="f.ok" size="18px" /><CloseIcon v-else size="16px" />
             </div>
             <div class="mt-1.5 text-center text-[11.5px] font-semibold text-[#6B6350]">{{ f.name }}</div>
           </div>
@@ -64,8 +67,8 @@ const docs = computed(() =>
         <div class="mb-[11px] text-sm font-extrabold">Dokumen</div>
         <div class="flex flex-col gap-2.5">
           <div v-for="f in docs" :key="f.name" class="flex items-center gap-3 rounded-xl border border-border-card px-3.5 py-[11px]">
-            <div class="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-[9px] text-[17px]" :style="{ background: f.iconBg, color: f.iconColor }">
-              {{ f.icon }}
+            <div class="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-[9px]" :style="{ background: f.iconBg, color: f.iconColor }">
+              <DocumentIcon v-if="f.ok" size="17px" /><CircleOutlineIcon v-else size="15px" />
             </div>
             <div class="min-w-0 flex-1">
               <div class="text-sm font-bold">{{ f.name }}</div>

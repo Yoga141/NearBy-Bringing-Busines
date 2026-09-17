@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import BookIcon from '@/components/shared/BookIcon.vue'
+import ArrowRightIcon from '@/components/shared/ArrowRightIcon.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -29,15 +31,15 @@ function goRegisterOwner() {
           :to="{ name: 'panduan' }"
           class="mt-3.5 inline-flex items-center gap-1.5 border-b-[1.5px] border-white/50 pb-0.5 text-[15px] font-bold text-white"
         >
-          📘 Lihat panduan langkah-langkah →
+          <BookIcon size="14px" /> Lihat panduan langkah-langkah <ArrowRightIcon size="14px" />
         </RouterLink>
       </div>
       <button
         type="button"
-        class="relative rounded-2xl bg-white px-[30px] py-[17px] text-base font-extrabold text-brand-navy shadow-[0_14px_30px_rgba(9,24,40,.25)]"
+        class="relative flex items-center gap-1.5 rounded-2xl bg-white px-[30px] py-[17px] text-base font-extrabold text-brand-navy shadow-[0_14px_30px_rgba(9,24,40,.25)]"
         @click="goRegisterOwner"
       >
-        Daftarkan UMKM →
+        Daftarkan UMKM <ArrowRightIcon size="15px" />
       </button>
     </div>
   </section>

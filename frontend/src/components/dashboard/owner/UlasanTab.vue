@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
-import { starsLabel } from '@/data/reviews'
+import { starsCount } from '@/data/reviews'
+import StarIcon from '@/components/shared/StarIcon.vue'
+import EditIcon from '@/components/shared/EditIcon.vue'
+import ReplyIcon from '@/components/shared/ReplyIcon.vue'
 
 const ui = useUiStore()
 const dashboard = useDashboardStore()
@@ -27,7 +30,9 @@ const dashboard = useDashboardStore()
       <div class="min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-2.5">
           <div class="text-[15px] font-extrabold">{{ r.name }}</div>
-          <div class="text-[13px] font-bold text-gold">{{ starsLabel(r.stars) }}</div>
+          <div class="flex items-center gap-0.5 text-gold">
+            <StarIcon v-for="n in 5" :key="n" :filled="n <= starsCount(r.stars)" size="13px" />
+          </div>
           <div class="text-[12.5px] font-semibold text-[#B0A990]">· {{ r.date }}</div>
         </div>
         <div class="mt-0.5 text-[12.5px] font-bold text-brand-blue">untuk {{ r.umkmName }}</div>
@@ -37,10 +42,11 @@ const dashboard = useDashboardStore()
         </div>
         <button
           type="button"
-          class="mt-[11px] rounded-[10px] border border-[#E7E0D2] px-4 py-2 text-[13px] font-bold text-brand-navy"
+          class="mt-[11px] flex items-center gap-1.5 rounded-[10px] border border-[#E7E0D2] px-4 py-2 text-[13px] font-bold text-brand-navy"
           @click="ui.openModal('replyReview', r)"
         >
-          {{ r.reply ? '✎ Ubah balasan' : '↩ Balas' }}
+          <EditIcon v-if="r.reply" size="13px" /><ReplyIcon v-else size="13px" />
+          {{ r.reply ? 'Ubah balasan' : 'Balas' }}
         </button>
       </div>
     </div>

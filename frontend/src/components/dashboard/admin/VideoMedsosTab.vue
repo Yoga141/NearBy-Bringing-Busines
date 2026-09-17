@@ -3,6 +3,8 @@ import { onMounted, reactive, ref, watch } from 'vue'
 import { useVideoStore } from '@/stores/videos'
 import { ApiError } from '@/lib/api'
 import ToggleSwitch from '@/components/shared/ToggleSwitch.vue'
+import ClapperboardIcon from '@/components/shared/ClapperboardIcon.vue'
+import PlusIcon from '@/components/shared/PlusIcon.vue'
 import type { SocialVideo, VideoPlatform } from '@/types'
 
 const store = useVideoStore()
@@ -98,11 +100,11 @@ onMounted(() => store.fetchAdminVideos())
     </div>
     <button
       type="button"
-      class="rounded-[11px] bg-brand-navy px-[18px] py-2.5 font-extrabold text-white disabled:opacity-60"
+      class="flex items-center gap-1.5 rounded-[11px] bg-brand-navy px-[18px] py-2.5 font-extrabold text-white disabled:opacity-60"
       :disabled="adding"
       @click="addSlot"
     >
-      + Tambah slot
+      <PlusIcon size="13px" /> Tambah slot
     </button>
   </div>
 
@@ -111,7 +113,7 @@ onMounted(() => store.fetchAdminVideos())
   </div>
 
   <div v-else-if="!store.adminVideos.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center">
-    <div class="text-[42px]">🎬</div>
+    <ClapperboardIcon size="42px" class="mx-auto text-text-faint" />
     <div class="mt-3 text-[19px] font-extrabold text-brand-navy">Belum ada slot video</div>
     <p class="mx-auto mt-2 max-w-[420px] text-[14.5px] leading-relaxed text-text-muted">
       Tambah slot untuk menampilkan cuplikan medsos NearBy di halaman beranda.

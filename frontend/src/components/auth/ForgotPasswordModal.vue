@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
+import CheckIcon from '@/components/shared/CheckIcon.vue'
 
 const props = defineProps<{ initialEmail: string }>()
 const emit = defineEmits<{ close: [] }>()
@@ -24,7 +26,7 @@ function submit() {
     <div class="w-[420px] max-w-full overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_rgba(9,24,40,.42)]" @click.stop>
       <div class="flex items-center justify-between bg-brand-navy px-[22px] py-[18px] text-white">
         <div class="text-base font-extrabold">Lupa password</div>
-        <button type="button" class="text-2xl leading-none text-[#AFC3DC]" @click="emit('close')">×</button>
+        <button type="button" class="text-[#AFC3DC]" @click="emit('close')"><CloseIcon size="20px" /></button>
       </div>
 
       <div v-if="!sent" class="p-[22px]">
@@ -48,7 +50,7 @@ function submit() {
       </div>
 
       <div v-else class="p-[22px] pt-[26px] text-center">
-        <div class="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-teal-tint text-2xl text-teal-deep">✓</div>
+        <div class="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-full bg-teal-tint text-teal-deep"><CheckIcon size="24px" /></div>
         <div class="text-[17px] font-extrabold text-brand-navy">Cek email kamu</div>
         <p class="mt-2 text-[13.5px] leading-relaxed text-[#5B6470]">
           Kami sudah mengirim tautan atur ulang kata sandi ke <b class="text-brand-navy">{{ email }}</b>. Buka email

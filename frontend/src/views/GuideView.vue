@@ -3,6 +3,15 @@ import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useGuideVideoStore } from '@/stores/guideVideo'
+import StopwatchIcon from '@/components/shared/ClockIcon.vue'
+import LightbulbIcon from '@/components/shared/LightbulbIcon.vue'
+import CameraIcon from '@/components/shared/CameraIcon.vue'
+import SearchIcon from '@/components/shared/SearchIcon.vue'
+import CheckIcon from '@/components/shared/CheckIcon.vue'
+import CircleOutlineIcon from '@/components/shared/CircleOutlineIcon.vue'
+import PlayIcon from '@/components/shared/PlayIcon.vue'
+import PartyPopperIcon from '@/components/shared/PartyPopperIcon.vue'
+import ArrowRightIcon from '@/components/shared/ArrowRightIcon.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -25,7 +34,8 @@ const steps = [
     body: 'Klik <strong>Daftar</strong> lalu pilih peran <strong>&ldquo;Pemilik UMKM&rdquo;</strong>. Isi nama, email, dan kata sandi. Akun ini dipakai untuk mengelola usahamu lewat dashboard.',
     tipBg: '#EAF1FB',
     tipColor: '#2C5EAD',
-    tip: '⏱ ± 1 menit',
+    tipIcon: StopwatchIcon,
+    tip: '± 1 menit',
   },
   {
     n: 2,
@@ -34,7 +44,8 @@ const steps = [
     body: 'Di dashboard, buka <strong>UMKM Saya → Tambah UMKM</strong>. Isi nama usaha, kategori (Kuliner, Penginapan, Fashion, Oleh-Oleh, atau Jasa), wilayah, alamat lengkap, jam buka, nomor telepon/WhatsApp, dan deskripsi singkat.',
     tipBg: '#E3EFED',
     tipColor: '#2E7D6E',
-    tip: '💡 Deskripsi yang jelas menarik lebih banyak pengunjung',
+    tipIcon: LightbulbIcon,
+    tip: 'Deskripsi yang jelas menarik lebih banyak pengunjung',
   },
   {
     n: 3,
@@ -43,7 +54,8 @@ const steps = [
     body: 'Tambahkan minimal <strong>3 foto usaha</strong> yang terang dan jelas. Lalu isi <strong>menu atau produk beserta harga</strong> — kamu juga bisa menambahkan foto untuk tiap item lewat kotak foto di samping namanya.',
     tipBg: '#F7EDDC',
     tipColor: '#B07A1E',
-    tip: '📸 Foto asli lebih dipercaya daripada gambar dari internet',
+    tipIcon: CameraIcon,
+    tip: 'Foto asli lebih dipercaya daripada gambar dari internet',
   },
   {
     n: 4,
@@ -52,21 +64,22 @@ const steps = [
     body: 'Setelah data lengkap, klik <strong>Simpan</strong> lalu kirim untuk ditinjau. Tim admin NearBy memeriksa kelengkapan berkas (foto, alamat, kontak, dokumen) biasanya dalam <strong>1×24 jam</strong>.',
     tipBg: '#EAF1FB',
     tipColor: '#2C5EAD',
-    tip: '🔎 Status bisa dipantau di dashboard',
+    tipIcon: SearchIcon,
+    tip: 'Status bisa dipantau di dashboard',
   },
 ]
 
 const docs = [
-  { icon: '✓', bg: '#E3EFED', color: '#2E7D6E', title: 'Minimal 3 foto usaha', sub: 'Tampak depan, area dalam, produk/menu' },
-  { icon: '✓', bg: '#E3EFED', color: '#2E7D6E', title: 'Alamat & titik lokasi', sub: 'Alamat lengkap dan kecamatan' },
+  { ok: true, bg: '#E3EFED', color: '#2E7D6E', title: 'Minimal 3 foto usaha', sub: 'Tampak depan, area dalam, produk/menu' },
+  { ok: true, bg: '#E3EFED', color: '#2E7D6E', title: 'Alamat & titik lokasi', sub: 'Alamat lengkap dan kecamatan' },
   {
-    icon: '✓',
+    ok: true,
     bg: '#E3EFED',
     color: '#2E7D6E',
     title: 'Nomor telepon / WhatsApp aktif',
     sub: 'Untuk dihubungi calon pelanggan',
   },
-  { icon: '○', bg: '#F7EDDC', color: '#B07A1E', title: 'KTP & izin usaha (opsional)', sub: 'Mempercepat verifikasi & menambah kepercayaan' },
+  { ok: false, bg: '#F7EDDC', color: '#B07A1E', title: 'KTP & izin usaha (opsional)', sub: 'Mempercepat verifikasi & menambah kepercayaan' },
 ]
 
 const faqs = [
@@ -147,8 +160,8 @@ const faqs = [
         class="relative flex aspect-video flex-col items-center justify-center gap-3.5 overflow-hidden rounded-[20px] border-2 border-dashed border-[#B9C2CE]"
         style="background: repeating-linear-gradient(135deg, #eef1f5 0 16px, #f6f8fa 16px 32px)"
       >
-        <div class="flex h-[74px] w-[74px] items-center justify-center rounded-full bg-brand-navy shadow-[0_12px_30px_rgba(19,50,77,.28)]">
-          <div class="ml-1 h-0 w-0 border-y-[15px] border-l-[24px] border-y-transparent border-l-white" />
+        <div class="flex h-[74px] w-[74px] items-center justify-center rounded-full bg-brand-navy text-white shadow-[0_12px_30px_rgba(19,50,77,.28)]">
+          <PlayIcon size="28px" />
         </div>
         <div class="font-mono text-xs font-semibold tracking-[.02em] text-[#7C8896]">
           {{ guideVideo.loading ? 'memuat video panduan…' : 'video panduan belum tersedia' }}
@@ -181,10 +194,10 @@ const faqs = [
             <h3 class="m-0 mb-1.5 text-xl font-extrabold">{{ s.title }}</h3>
             <p class="m-0 text-[15.5px] leading-[1.65] text-text-secondary" v-html="s.body" />
             <div
-              class="mt-3 inline-flex items-center gap-2 rounded-[10px] px-[13px] py-[7px] text-[13px] font-bold"
+              class="mt-3 inline-flex items-center gap-1.5 rounded-[10px] px-[13px] py-[7px] text-[13px] font-bold"
               :style="{ background: s.tipBg, color: s.tipColor }"
             >
-              {{ s.tip }}
+              <component :is="s.tipIcon" size="13px" /> {{ s.tip }}
             </div>
           </div>
         </div>
@@ -197,7 +210,7 @@ const faqs = [
             5
           </div>
           <div class="flex-1">
-            <h3 class="m-0 mb-1.5 text-xl font-extrabold text-white">UMKM tampil di direktori 🎉</h3>
+            <h3 class="m-0 mb-1.5 flex items-center gap-2 text-xl font-extrabold text-white">UMKM tampil di direktori <PartyPopperIcon size="20px" /></h3>
             <p class="m-0 text-[15.5px] leading-[1.65] text-[#D3E0F2]">
               Begitu disetujui, usahamu langsung muncul di daftar dan pencarian NearBy. Warga bisa melihat profil,
               menu, memberi rating &amp; ulasan — dan kamu bisa membalas ulasan langsung dari dashboard.
@@ -221,7 +234,7 @@ const faqs = [
               class="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-lg font-extrabold"
               :style="{ background: d.bg, color: d.color }"
             >
-              {{ d.icon }}
+              <CheckIcon v-if="d.ok" size="13px" /><CircleOutlineIcon v-else size="12px" />
             </span>
             <div>
               <div class="text-[15px] font-extrabold">{{ d.title }}</div>
@@ -251,8 +264,8 @@ const faqs = [
         <p class="mx-auto mt-3 mb-[22px] max-w-[520px] text-base leading-[1.55] text-[#E7F0EE]">
           Butuh kurang dari 10 menit. Mulai sekarang dan biarkan warga sekitaran menemukan usahamu.
         </p>
-        <button type="button" class="rounded-[13px] bg-white px-8 py-4 text-base font-extrabold text-brand-navy" @click="goRegisterOwner">
-          Daftarkan UMKM gratis →
+        <button type="button" class="flex items-center gap-2 rounded-[13px] bg-white px-8 py-4 text-base font-extrabold text-brand-navy" @click="goRegisterOwner">
+          Daftarkan UMKM gratis <ArrowRightIcon size="16px" />
         </button>
       </div>
     </section>

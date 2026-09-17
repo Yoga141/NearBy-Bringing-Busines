@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useUiStore } from '@/stores/ui'
 import PlaceholderThumb from '@/components/shared/PlaceholderThumb.vue'
+import PlateIcon from '@/components/shared/PlateIcon.vue'
+import ExpandIcon from '@/components/shared/ExpandIcon.vue'
 import type { UmkmItem } from '@/types'
 
 defineProps<{ items: UmkmItem[] }>()
@@ -11,7 +13,7 @@ function available(item: UmkmItem, index: number) {
 }
 
 function zoom(item: UmkmItem) {
-  ui.openLightbox('🍽', item.name)
+  ui.openLightbox('plate', item.name)
 }
 </script>
 
@@ -23,9 +25,9 @@ function zoom(item: UmkmItem) {
       class="flex items-center gap-[13px] rounded-xl border border-border-card bg-white px-3.5 py-2.5"
     >
       <div class="relative h-[60px] w-[60px] flex-none cursor-zoom-in" title="Klik untuk perbesar" @click="zoom(it)">
-        <PlaceholderThumb emoji="🍽" rounded="rounded-[10px]" />
-        <span class="absolute right-[3px] bottom-[3px] flex h-[17px] w-[17px] items-center justify-center rounded-[6px] bg-[rgba(15,30,45,.66)] text-[10px] text-white">
-          ⤢
+        <PlaceholderThumb :icon="PlateIcon" rounded="rounded-[10px]" />
+        <span class="absolute right-[3px] bottom-[3px] flex h-[17px] w-[17px] items-center justify-center rounded-[6px] bg-[rgba(15,30,45,.66)] text-white">
+          <ExpandIcon size="10px" />
         </span>
       </div>
       <div class="flex min-w-0 flex-1 flex-col gap-[3px]">

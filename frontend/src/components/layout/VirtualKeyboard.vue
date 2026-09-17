@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useA11yStore } from '@/stores/a11y'
+import CloseIcon from '@/components/shared/CloseIcon.vue'
+import ShiftIcon from '@/components/shared/ShiftIcon.vue'
+import BackspaceIcon from '@/components/shared/BackspaceIcon.vue'
+import EnterKeyIcon from '@/components/shared/EnterKeyIcon.vue'
 
 const a11y = useA11yStore()
 
@@ -100,11 +104,11 @@ const keyClass =
         <span v-if="!target" class="text-[12px] font-semibold text-gold">Pilih kolom teks dulu</span>
         <button
           type="button"
-          class="ml-auto text-[12.5px] font-bold text-text-muted hover:text-brand-navy"
+          class="ml-auto flex items-center gap-1 text-[12.5px] font-bold text-text-muted hover:text-brand-navy"
           @mousedown.prevent
           @click="a11y.virtualKeyboard = false"
         >
-          Tutup ✕
+          Tutup <CloseIcon size="12px" />
         </button>
       </div>
 
@@ -125,31 +129,31 @@ const keyClass =
       <div class="flex gap-1.5">
         <button
           type="button"
-          class="flex h-11 flex-none items-center justify-center rounded-[9px] border border-border-input px-4 text-[13px] font-extrabold transition-colors duration-150"
+          class="flex h-11 flex-none items-center justify-center gap-1 rounded-[9px] border border-border-input px-4 text-[13px] font-extrabold transition-colors duration-150"
           :class="shift ? 'bg-brand-blue text-white' : 'bg-white text-brand-navy hover:bg-surface-alt'"
           @mousedown.prevent
           @click="shift = !shift"
         >
-          ⇧ Shift
+          <ShiftIcon size="13px" /> Shift
         </button>
         <button type="button" :class="keyClass" :disabled="!target" @mousedown.prevent @click="press(' ')">Spasi</button>
         <button
           type="button"
-          class="flex h-11 flex-none items-center justify-center rounded-[9px] border border-border-input bg-white px-4 text-[13px] font-extrabold text-brand-navy hover:bg-surface-alt"
+          class="flex h-11 flex-none items-center justify-center gap-1 rounded-[9px] border border-border-input bg-white px-4 text-[13px] font-extrabold text-brand-navy hover:bg-surface-alt"
           :disabled="!target"
           @mousedown.prevent
           @click="write('', true)"
         >
-          ⌫ Hapus
+          <BackspaceIcon size="14px" /> Hapus
         </button>
         <button
           type="button"
-          class="flex h-11 flex-none items-center justify-center rounded-[9px] bg-brand-navy px-4 text-[13px] font-extrabold text-white"
+          class="flex h-11 flex-none items-center justify-center gap-1 rounded-[9px] bg-brand-navy px-4 text-[13px] font-extrabold text-white"
           :disabled="!target"
           @mousedown.prevent
           @click="submit"
         >
-          ⏎ Enter
+          <EnterKeyIcon size="14px" /> Enter
         </button>
       </div>
     </div>
