@@ -67,6 +67,16 @@ class User extends Authenticatable
         }
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === 'owner';
+    }
+
     /** UMKM owned by this user (owner role). */
     public function umkms(): HasMany
     {

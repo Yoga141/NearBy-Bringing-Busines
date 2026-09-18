@@ -10,20 +10,40 @@ Backend REST API untuk aplikasi **NearBy**. Frontend Vue-nya ada di folder `fron
 
 ```bash
 cd backend
-composer install
+composer install             # tidak perlu kalau vendor/ sudah ada
 cp .env.example .env         # sudah pakai SQLite
 php artisan key:generate
 php artisan migrate:fresh --seed
 php artisan serve            # http://127.0.0.1:8000
 ```
 
-## Akun demo (password semua: `password`)
+`php artisan db:seed` aman dijalankan berulang (idempoten). Untuk hanya
+membuat/mereset akun demo: `php artisan db:seed --class=UserSeeder`.
 
-| Email                 | Role  | Nama          |
-|-----------------------|-------|---------------|
-| `jekikilo15@mail.com` | user  | Jeki          |
-| `dewi@mail.com`       | owner | Dewi Anjani (punya UMKM #1 & #4) |
-| `admin@nearby.id`     | admin | Admin NearBy  |
+## Akun demo
+
+Dibuat oleh `database/seeders/UserSeeder.php`. Password bisa diganti lewat
+`SEED_ADMIN_PASSWORD`, `SEED_OWNER_PASSWORD`, `SEED_USER_PASSWORD` di `.env`
+(**wajib** diganti sebelum seeding server yang bisa diakses publik).
+
+| Peran    | Email                | Password        | Keterangan                                   |
+|----------|----------------------|-----------------|----------------------------------------------|
+| admin    | `admin@nearby.id`    | `admin12345`    | Dashboard admin                              |
+| pemilik  | `pemilik@nearby.id`  | `pemilik12345`  | Dewi Anjani - UMKM #1 & #4                   |
+| pemilik  | `pemilik2@nearby.id` | `pemilik12345`  | Budi Santoso - UMKM #2 & #7                  |
+| pengguna | `pengguna@nearby.id` | `pengguna12345` | Pengunjung biasa                             |
+
+## Struktur kode
+
+| Folder                        | Isi                                                                 |
+|-------------------------------|---------------------------------------------------------------------|
+| `app/Http/Controllers/Api`    | Controller REST (tipis: validasi → model/service → resource)       |
+| `app/Http/Requests/Auth`      | FormRequest login & register (normalisasi email, pesan Indonesia)  |
+| `app/Http/Middleware`         | `EnsureUserHasRole` → dipakai sebagai `role:admin`, `role:owner,admin` |
+| `app/Excel`                   | Logika export/impor Excel per dataset (`UmkmPorter`, `UmkmItemPorter`) |
+| `app/Support/Xlsx`            | Penulis & pembaca `.xlsx` murni PHP (tanpa library tambahan)       |
+| `app/Support/UmkmCatalog.php` | Daftar kategori, wilayah, status, verifikasi (satu sumber)         |
+| `lang/id`                     | Pesan validasi Bahasa Indonesia                                     |
 
 ---
 
@@ -138,10 +158,10 @@ pun dari tombol *Share* (`watch?v=`, `youtu.be`, Shorts, `/reel/`, `/p/`).
 Semua di-prefix `/api`. Yang butuh login ditandai 🔒 (Sanctum token).
 
 ### Auth
-| Method | Endpoint            | Fungsi                         |
-|--------|---------------------|--------------------------------|
-| POST   | `/register`         | Daftar (pilih role user/owner) |
-| POST   | `/login`            | Login, balikin token           |
+| Method | Endpoint            | Fungsi                                          |
+|--------|---------------------|-------------------------------------------------|
+| POST   | `/register`         | Daftar (pilih role user/owner) - maks. 10/jam/IP |
+| POST   | `/login`            | Login, balikin token - maks. 5/menit per akun   |
 | POST   | `/logout` 🔒        | Logout                         |
 | GET    | `/me` 🔒            | Data user yang sedang login    |
 
@@ -178,7 +198,23 @@ Semua di-prefix `/api`. Yang butuh login ditandai 🔒 (Sanctum token).
 |--------|-------------------|-------------------------------------------------|
 | GET    | `/social-videos`  | Kartu video beranda (hanya yang `active`)       |
 
-### Dashboard Owner 🔒
+### Excel Export / Impor 🔒 (role: owner & admin)
+
+Prefix `/umkm-excel` (data UMKM) atau `/umkm-item-excel` (produk). File `.xlsx`
+dibuat & dibaca di server (`app/Support/Xlsx`); owner hanya melihat/menulis
+datanya sendiri, UMKM baru dari owner otomatis masuk antrian verifikasi.
+
+| Method | Endpoint     | Fungsi                                                         |
+|--------|--------------|----------------------------------------------------------------|
+| GET    | `/download`  | Unduh data sebagai `.xlsx`                                     |
+| GET    | `/template`  | Unduh template kosong + lembar "Petunjuk"                     |
+| POST   | `/preview`   | Upload `file` (.xlsx, maks. 5 MB / 2000 baris) → laporan, tanpa menyimpan |
+| POST   | `/commit`    | Upload file yang sama → validasi ulang lalu simpan (semua-atau-tidak-sama-sekali) |
+| GET    | `/export`    | Data yang sama dalam JSON (untuk klien API)                    |
+
+`/preview` & `/commit` juga menerima JSON `{ "rows": [...] }`.
+
+### Dashboard Owner 🔒 (role: owner & admin)
 | Method | Endpoint              | Fungsi                             |
 |--------|-----------------------|------------------------------------|
 | GET    | `/owner/summary`      | Ringkasan (statistik, chart)       |
@@ -211,31 +247,6 @@ Semua di-prefix `/api`. Yang butuh login ditandai 🔒 (Sanctum token).
 Tautan yang tidak cocok dengan platform-nya ditolak **422** beserta pesan
 berbahasa Indonesia, supaya kartu tidak diam-diam jadi kosong. Mengosongkan
 `url` (kirim `""`) mengembalikan kartu ke keadaan placeholder.
-
----
-
-## Dua jalur backend di folder ini
-
-Repo ini memuat **dua** implementasi backend yang berdiri sendiri:
-
-| | Laravel (`routes/api.php`) | Plain PHP (`api/*.php`) |
-|---|---|---|
-| Dipakai frontend Vue | **Ya** | Tidak |
-| Skema | `database/migrations/` (`umkms`, `umkm_items`, …) | `database/schema.sql` (`umkm_profiles`, `umkm_photos`, …) |
-| Database | SQLite (default `.env.example`) | MySQL |
-| Auth | Sanctum token | tabel `auth_tokens` sendiri |
-| Koneksi | otomatis oleh Laravel | `helpers/pdo.php` |
-
-Keduanya **tidak berbagi tabel**. Frontend Vue hanya memanggil jalur Laravel.
-
-Endpoint `api/*.php` dulu selalu fatal error karena me-`require`
-`config/database.php` - file itu hanya mengembalikan array config Laravel dan
-tidak pernah membuat `$pdo`. Sekarang semuanya me-`require` **`helpers/pdo.php`**,
-yang benar-benar membuat koneksi PDO. Untuk memakainya: impor
-`database/schema.sql` ke MySQL, lalu set `DB_HOST`/`DB_DATABASE`/`DB_USERNAME`/
-`DB_PASSWORD` di `.env` (default: `127.0.0.1` / `nearby_balikpapan` / `root` /
-kosong). Bila koneksi gagal, endpoint menjawab JSON 500 yang rapi - bukan lagi
-fatal error yang membocorkan jejak.
 
 ---
 

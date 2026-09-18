@@ -42,9 +42,9 @@ class ReviewController extends Controller
             'text' => $data['text'] ?? null,
         ]);
 
-        // Bump the cached review count (seeded values are inflated mock data,
-        // so we increment rather than recount from stored rows).
-        $umkm->increment('reviews_count');
+        // Keep the cached rating / count in step (see Umkm::applyReviewDelta
+        // for why this is incremental rather than a recount).
+        $umkm->applyReviewDelta($review->stars, 1);
 
         return new ReviewResource($review);
     }
@@ -59,7 +59,12 @@ class ReviewController extends Controller
             'text' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        $oldStars = $review->stars;
         $review->update($data);
+
+        if ($review->stars !== $oldStars) {
+            $review->umkm()->withTrashed()->first()?->applyReviewDelta($review->stars - $oldStars, 0);
+        }
 
         return new ReviewResource($review);
     }
@@ -70,7 +75,7 @@ class ReviewController extends Controller
         abort_unless($review->user_id === $request->user()->id, 403, 'Hanya penulis ulasan yang bisa menghapusnya.');
 
         $review->delete();
-        $review->umkm()->decrement('reviews_count');
+        $review->umkm()->withTrashed()->first()?->applyReviewDelta(-$review->stars, -1);
 
         return response()->json(['message' => 'Ulasan dihapus.']);
     }
@@ -81,7 +86,7 @@ class ReviewController extends Controller
         $user = $request->user();
         $umkm = $review->umkm()->withTrashed()->first();
         abort_unless(
-            $user->role === 'admin' || ($umkm && $umkm->owner_id === $user->id),
+            $user->isAdmin() || ($umkm && $umkm->owner_id === $user->id),
             403,
             'Hanya pemilik UMKM yang bisa membalas.'
         );

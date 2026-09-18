@@ -3,25 +3,42 @@
 namespace Database\Seeders;
 
 use App\Models\Umkm;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class UmkmSeeder extends Seeder
 {
     /**
      * Verbatim seed data extracted from the frontend `src/data/umkm.ts`.
-     * Owner assignment: ids 1 and 4 belong to the demo owner "Dewi Anjani"
-     * (matches the frontend dashboard seed), the rest are unassigned.
+     *
+     * Owners are looked up by email (see UserSeeder), never assumed by id:
+     * UMKM 1 & 4 belong to the first demo owner, 2 & 7 to the second - two
+     * owners make it easy to check that one cannot see or edit the other's
+     * data. The rest have no owner.
+     *
+     * Safe to run repeatedly: rows are upserted by id, and products are only
+     * added to a UMKM that has none yet.
      */
     public function run(): void
     {
+        $owners = User::whereIn('email', [UserSeeder::OWNER_EMAIL, UserSeeder::SECOND_OWNER_EMAIL])
+            ->pluck('id', 'email');
+        $ownerOf = [
+            1 => $owners[UserSeeder::OWNER_EMAIL] ?? null,
+            4 => $owners[UserSeeder::OWNER_EMAIL] ?? null,
+            2 => $owners[UserSeeder::SECOND_OWNER_EMAIL] ?? null,
+            7 => $owners[UserSeeder::SECOND_OWNER_EMAIL] ?? null,
+        ];
+
         foreach ($this->data() as $row) {
             $items = $row['items'];
             unset($row['items']);
+            $row['owner_id'] = $ownerOf[$row['id']] ?? null;
 
-            $umkm = Umkm::create($row);
+            $umkm = Umkm::withTrashed()->updateOrCreate(['id' => $row['id']], $row);
 
-            foreach ($items as $item) {
-                $umkm->items()->create($item);
+            if (! $umkm->items()->exists()) {
+                $umkm->items()->createMany($items);
             }
         }
     }
@@ -31,12 +48,9 @@ class UmkmSeeder extends Seeder
      */
     private function data(): array
     {
-        // Demo owner (Dewi Anjani) is user id 2 - see UserSeeder.
-        $ownerId = 2;
-
         return [
             [
-                'id' => 1, 'owner_id' => $ownerId, 'name' => 'Warung Kepiting Kenari',
+                'id' => 1, 'name' => 'Warung Kepiting Kenari',
                 'category' => 'Kuliner', 'location' => 'Balikpapan Timur',
                 'rating' => 4.8, 'reviews_count' => 213, 'price_label' => 'Rp25–75rb',
                 'tag' => 'Seafood kepiting soka & lada hitam legendaris, resep turun-temurun.',
@@ -81,7 +95,7 @@ class UmkmSeeder extends Seeder
                 ],
             ],
             [
-                'id' => 4, 'owner_id' => $ownerId, 'name' => 'Amplang Bahari',
+                'id' => 4, 'name' => 'Amplang Bahari',
                 'category' => 'Oleh-Oleh', 'location' => 'Balikpapan Utara',
                 'rating' => 4.9, 'reviews_count' => 321, 'price_label' => 'Rp20–60rb',
                 'tag' => 'Amplang ikan tenggiri renyah, oleh-oleh khas Balikpapan paling dicari.',

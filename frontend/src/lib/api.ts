@@ -50,7 +50,8 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
+/** Sends the request with the JSON `Accept` header and the bearer token; throws ApiError on network failure. */
+async function send(path: string, options: RequestInit): Promise<Response> {
   const headers = new Headers(options.headers)
   headers.set('Accept', 'application/json')
   if (options.body && !(options.body instanceof FormData)) {
@@ -59,21 +60,61 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
   const token = getToken()
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
-  let res: Response
   try {
-    res = await fetch(`/api${path}`, { ...options, headers })
+    return await fetch(`/api${path}`, { ...options, headers })
   } catch {
     throw new ApiError('Tidak dapat terhubung ke server. Periksa koneksi internetmu.', 0)
   }
+}
 
+async function readJson(res: Response): Promise<unknown> {
   const contentType = res.headers.get('content-type') ?? ''
-  const payload = contentType.includes('application/json') ? await res.json().catch(() => null) : null
+  return contentType.includes('application/json') ? await res.json().catch(() => null) : null
+}
 
-  if (!res.ok) {
-    const message = (payload as { message?: string } | null)?.message ?? 'Terjadi kesalahan. Silakan coba lagi.'
-    const errors = (payload as { errors?: Record<string, string[]> } | null)?.errors
-    throw new ApiError(message, res.status, errors)
-  }
+function toApiError(res: Response, payload: unknown): ApiError {
+  const body = payload as { message?: string; errors?: Record<string, string[]> } | null
+  return new ApiError(body?.message ?? 'Terjadi kesalahan. Silakan coba lagi.', res.status, body?.errors)
+}
 
+export async function apiFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
+  const res = await send(path, options)
+  const payload = await readJson(res)
+  if (!res.ok) throw toApiError(res, payload)
   return payload as T
+}
+
+/** File name from a Content-Disposition header, preferring the UTF-8 `filename*` form. */
+function filenameFrom(header: string | null): string | null {
+  if (!header) return null
+  const star = /filename\*=(?:UTF-8'')?([^;]+)/i.exec(header)
+  if (star?.[1]) {
+    try {
+      return decodeURIComponent(star[1].trim().replace(/^"|"$/g, ''))
+    } catch {
+      // Malformed encoding - fall through to the plain form.
+    }
+  }
+  return /filename="?([^";]+)"?/i.exec(header)?.[1] ?? null
+}
+
+/**
+ * Downloads a file the API generates (e.g. an Excel export) and hands it to
+ * the browser's save dialog. A plain `<a href>` can't be used for this: the
+ * endpoints need the bearer token, which only a fetch can send.
+ */
+export async function apiDownload(path: string, fallbackName: string): Promise<void> {
+  const res = await send(path, { method: 'GET' })
+  if (!res.ok) throw toApiError(res, await readJson(res))
+
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filenameFrom(res.headers.get('content-disposition')) ?? fallbackName
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  // Revoke on the next tick so the download has certainly started.
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }

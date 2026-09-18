@@ -58,10 +58,14 @@ Repositori ini berisi dua bagian utama yang berdiri sendiri-sendiri:
 
 ```
 NearBy-Bringing-Busines/
-├── backend/    Laravel REST API (PHP, autentikasi, database, penyimpanan berkas)
+├── backend/    Laravel REST API (PHP, autentikasi, database, Excel, penyimpanan berkas)
 ├── frontend/   Aplikasi Vue 3 + TypeScript (SPA yang dikonsumsi publik)
+├── _arsip/     Kode lama yang sudah tidak dipakai (backend PHP native) - boleh dihapus
 └── README.md   Dokumen ini
 ```
+
+`backend/` adalah satu-satunya backend. Folder `nearby-backend/` yang dulu ada
+hanyalah kerangka folder kosong (tiruan path server cPanel) dan sudah dilebur.
 
 ## 🛠 Teknologi
 
@@ -73,12 +77,12 @@ NearBy-Bringing-Busines/
 - Pinia (state management)
 - Vue Router
 - Three.js (3D graphics)
-- ExcelJS (ekspor/impor data ke Excel)
 
 ### Backend (`backend/`)
 - PHP 8.3
 - Laravel 13
-- Laravel Sanctum (autentikasi API berbasis token)
+- Laravel Sanctum (autentikasi API berbasis token, berlaku 30 hari)
+- Penulis/pembaca `.xlsx` bawaan (tanpa library tambahan) untuk ekspor/impor Excel
 
 ### Database
 - SQLite (default untuk pengembangan lokal, cukup satu berkas, tanpa server terpisah)
@@ -88,6 +92,7 @@ NearBy-Bringing-Busines/
 
 - Validasi input pengguna di setiap endpoint API.
 - Autentikasi API berbasis token dengan Laravel Sanctum.
+- Pembatasan percobaan login/daftar (rate limiting) dan pembatasan akses per peran (admin / pemilik).
 - Perlindungan terhadap SQL Injection (Eloquent ORM, tanpa raw query dari input pengguna).
 - Perlindungan terhadap Cross Site Scripting (XSS).
 - Sanitasi data sebelum disimpan ke database.
@@ -111,9 +116,18 @@ composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
-php artisan db:seed   # opsional, mengisi data contoh
+php artisan db:seed   # opsional, mengisi data contoh + akun demo (aman diulang)
 php artisan serve
 ```
+
+Akun demo setelah `db:seed`:
+
+| Peran    | Email                | Password        |
+|----------|----------------------|-----------------|
+| Admin    | `admin@nearby.id`    | `admin12345`    |
+| Pemilik  | `pemilik@nearby.id`  | `pemilik12345`  |
+| Pemilik  | `pemilik2@nearby.id` | `pemilik12345`  |
+| Pengguna | `pengguna@nearby.id` | `pengguna12345` |
 
 Backend API akan berjalan di `http://localhost:8000` secara default. Sesuaikan koneksi database di `backend/.env` bila ingin memakai MySQL alih-alih SQLite bawaan.
 
@@ -135,12 +149,18 @@ npm run build
 
 ## 🧪 Menjalankan Pengujian
 
-Backend menggunakan PHPUnit lewat Artisan:
+Backend menggunakan PHPUnit lewat Artisan. `vendor/` yang ikut di repo hanya
+berisi paket produksi (karena disalin apa adanya ke server), jadi pasang paket
+pengembangan dulu:
 
 ```bash
 cd backend
+composer install      # menambahkan phpunit dkk. ke vendor/
 php artisan test
 ```
+
+> Jangan men-deploy `vendor/` hasil `composer install` di atas. Sebelum deploy,
+> kembalikan ke paket produksi saja dengan `composer install --no-dev`.
 
 Frontend melakukan type-check TypeScript sebagai bagian dari proses build:
 

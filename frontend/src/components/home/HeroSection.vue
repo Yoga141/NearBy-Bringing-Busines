@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUmkmStore } from '@/stores/umkm'
 import { CATEGORY_FILTERS, CATEGORY_NAMES, LOCATION_NAMES } from '@/data/categories'
 import PlaceholderThumb from '@/components/shared/PlaceholderThumb.vue'
-import HeroCanvas from '@/components/home/HeroCanvas.vue'
 import SearchIcon from '@/components/shared/SearchIcon.vue'
 import StarIcon from '@/components/shared/StarIcon.vue'
+
+// The 3D backdrop is decoration: loading it (and three.js, ~500 kB) in its own
+// chunk lets the hero text and search box render without waiting for it.
+const HeroCanvas = defineAsyncComponent(() => import('@/components/home/HeroCanvas.vue'))
 
 const router = useRouter()
 const umkm = useUmkmStore()

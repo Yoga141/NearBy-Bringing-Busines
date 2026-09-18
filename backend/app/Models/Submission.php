@@ -20,6 +20,28 @@ class Submission extends Model
         ];
     }
 
+    /**
+     * Queue a freshly created UMKM for admin verification.
+     *
+     * Every path that lets a non-admin create a UMKM (the "ajukan UMKM" form,
+     * the Excel import) must go through here: without a Submission row the
+     * UMKM never reaches the approval queue and stays invisible for good.
+     */
+    public static function openFor(Umkm $umkm, User $owner): self
+    {
+        return self::create([
+            'umkm_id' => $umkm->id,
+            'owner_id' => $owner->id,
+            'name' => $umkm->name,
+            'owner_name' => $owner->name,
+            'category' => $umkm->category,
+            'location' => $umkm->location,
+            'status' => 'menunggu',
+            'checks' => [],
+            'files' => [],
+        ]);
+    }
+
     public function umkm(): BelongsTo
     {
         return $this->belongsTo(Umkm::class);

@@ -14,14 +14,14 @@ class OwnerController extends Controller
     /** Dashboard summary: aggregate stats for the owner's businesses. */
     public function summary(Request $request)
     {
-        $user = $request->user();
-        $umkms = $user->umkms()->get();
+        $umkms = $request->user()->umkms()->withCount('favoritedBy')->get();
 
         $totalViews = $umkms->sum('views');
         $totalReviews = $umkms->sum('reviews_count');
         $avgRating = $umkms->count() ? round($umkms->avg('rating'), 1) : 0;
-        $favorites = \App\Models\Umkm::whereIn('id', $umkms->pluck('id'))
-            ->withCount('favoritedBy')->get()->sum('favorited_by_count');
+        // Counted by the same query that loads the UMKM (a withCount subquery),
+        // instead of a second round-trip that re-fetched every row.
+        $favorites = $umkms->sum('favorited_by_count');
 
         return response()->json([
             'stats' => [

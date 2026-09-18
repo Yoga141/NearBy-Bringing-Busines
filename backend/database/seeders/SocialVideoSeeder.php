@@ -20,8 +20,10 @@ class SocialVideoSeeder extends Seeder
             ['platform' => 'youtube', 'title' => 'Cerita UMKM Kuliner Balikpapan'],
         ];
 
+        // Keyed by position so re-running never adds extra slots or wipes a
+        // link an admin has already pasted.
         foreach ($slots as $i => $slot) {
-            SocialVideo::create($slot + ['url' => null, 'sort_order' => $i + 1, 'active' => true]);
+            SocialVideo::firstOrCreate(['sort_order' => $i + 1], $slot + ['url' => null, 'active' => true]);
         }
     }
 }

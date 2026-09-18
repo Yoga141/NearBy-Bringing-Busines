@@ -10,6 +10,9 @@ class ReviewSeeder extends Seeder
     /**
      * Mirrors the frontend `seedReviewsFor()` - every UMKM gets the same
      * 3 base reviews. Timestamps approximate the "x hari/minggu lalu" labels.
+     *
+     * Only UMKM without any review get them, so re-running never duplicates.
+     * The cached rating/reviews_count are mock figures and stay untouched.
      */
     public function run(): void
     {
@@ -28,7 +31,7 @@ class ReviewSeeder extends Seeder
             ],
         ];
 
-        foreach (Umkm::all() as $umkm) {
+        foreach (Umkm::doesntHave('reviews')->get() as $umkm) {
             foreach ($base as $r) {
                 $umkm->reviews()->create([
                     'author_name' => $r['author_name'],

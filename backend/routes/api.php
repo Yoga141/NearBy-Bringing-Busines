@@ -21,8 +21,8 @@ use Illuminate\Support\Facades\Route;
 | Auth
 |--------------------------------------------------------------------------
 */
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:register');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
 /*
 |--------------------------------------------------------------------------
@@ -61,8 +61,10 @@ Route::get('/avatar/{filename}', [ProfilePhotoController::class, 'show'])
 | Help widget (public - works for guests too)
 |--------------------------------------------------------------------------
 */
-Route::post('/problem-reports', [ProblemReportController::class, 'store']);
-Route::post('/questions', [QuestionController::class, 'store']);
+Route::middleware('throttle:public-forms')->group(function () {
+    Route::post('/problem-reports', [ProblemReportController::class, 'store']);
+    Route::post('/questions', [QuestionController::class, 'store']);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -80,25 +82,40 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/me/photo', [ProfilePhotoController::class, 'destroy']);
     Route::get('/me/reviews', [ReviewController::class, 'mine']);
 
-    // UMKM write (owner)
-    Route::post('/umkm', [UmkmController::class, 'store']);
-    Route::put('/umkm/{umkm}', [UmkmController::class, 'update']);
-    Route::delete('/umkm/{umkm}', [UmkmController::class, 'destroy']);
+    // Everything below this line belongs to the dashboard, which only UMKM
+    // owners and admins can open (see the frontend router guard).
+    Route::middleware('role:owner,admin')->group(function () {
+        // UMKM write
+        Route::post('/umkm', [UmkmController::class, 'store']);
+        Route::put('/umkm/{umkm}', [UmkmController::class, 'update']);
+        Route::delete('/umkm/{umkm}', [UmkmController::class, 'destroy']);
 
-    // Excel export / import. Deliberately NOT under /umkm/*, because the
-    // public `GET /umkm/{umkm}` route is registered first and would swallow
-    // `/umkm/export` as an id lookup.
-    Route::prefix('umkm-excel')->group(function () {
-        Route::get('/export', [UmkmPortController::class, 'export']);
-        Route::post('/preview', [UmkmPortController::class, 'preview']);
-        Route::post('/commit', [UmkmPortController::class, 'commit']);
-    });
+        // Excel export / import (see ExcelPortController). Deliberately NOT
+        // under /umkm/*, because the public `GET /umkm/{umkm}` route would
+        // swallow `/umkm/export` as an id lookup.
+        foreach ([
+            'umkm-excel' => UmkmPortController::class,       // UMKM rows
+            'umkm-item-excel' => UmkmItemPortController::class, // their products
+        ] as $prefix => $controller) {
+            Route::prefix($prefix)->controller($controller)->group(function () {
+                Route::get('/download', 'download');
+                Route::get('/template', 'template');
+                Route::get('/export', 'export');
+                Route::post('/preview', 'preview');
+                Route::post('/commit', 'commit');
+            });
+        }
 
-    // The same Excel flow for the products listed under each UMKM.
-    Route::prefix('umkm-item-excel')->group(function () {
-        Route::get('/export', [UmkmItemPortController::class, 'export']);
-        Route::post('/preview', [UmkmItemPortController::class, 'preview']);
-        Route::post('/commit', [UmkmItemPortController::class, 'commit']);
+        // Owner dashboard
+        Route::prefix('owner')->group(function () {
+            Route::get('/summary', [OwnerController::class, 'summary']);
+            Route::get('/umkm', [OwnerController::class, 'umkms']);
+            Route::get('/reviews', [OwnerController::class, 'reviews']);
+            Route::get('/trash', [OwnerController::class, 'trash']);
+            Route::post('/umkm/{id}/restore', [OwnerController::class, 'restoreUmkm'])->whereNumber('id');
+            Route::delete('/umkm/{id}/force', [OwnerController::class, 'forceDeleteUmkm'])->whereNumber('id');
+            Route::delete('/trash', [OwnerController::class, 'emptyTrash']);
+        });
     });
 
     // Reviews
@@ -111,19 +128,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::post('/umkm/{umkm}/favorite', [FavoriteController::class, 'toggle']);
 
-    // Owner dashboard
-    Route::prefix('owner')->group(function () {
-        Route::get('/summary', [OwnerController::class, 'summary']);
-        Route::get('/umkm', [OwnerController::class, 'umkms']);
-        Route::get('/reviews', [OwnerController::class, 'reviews']);
-        Route::get('/trash', [OwnerController::class, 'trash']);
-        Route::post('/umkm/{id}/restore', [OwnerController::class, 'restoreUmkm']);
-        Route::delete('/umkm/{id}/force', [OwnerController::class, 'forceDeleteUmkm']);
-        Route::delete('/trash', [OwnerController::class, 'emptyTrash']);
-    });
-
     // Admin dashboard (role: admin)
-    Route::prefix('admin')->middleware('admin')->group(function () {
+    Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/users', [AdminController::class, 'users']);
         Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus']);
         Route::get('/umkm', [AdminController::class, 'umkms']);
@@ -133,7 +139,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/submissions/{submission}/reject', [AdminController::class, 'reject']);
         Route::get('/reports', [AdminController::class, 'reports']);
         Route::get('/trash', [AdminController::class, 'trash']);
-        Route::post('/trash/{id}/restore', [AdminController::class, 'restore']);
+        Route::post('/trash/{id}/restore', [AdminController::class, 'restore'])->whereNumber('id');
         Route::get('/problem-reports', [AdminController::class, 'problemReports']);
         Route::post('/problem-reports/{problemReport}/status', [AdminController::class, 'updateProblemReportStatus']);
 

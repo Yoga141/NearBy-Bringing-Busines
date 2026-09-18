@@ -49,7 +49,7 @@ async function onFile(e: Event) {
   const file = input.files?.[0]
   // Reset first so choosing the same file twice in a row still fires change.
   input.value = ''
-  if (file) await port.value.analyse(file, props.isAdmin)
+  if (file) await port.value.analyse(file)
 }
 
 async function confirmImport() {
@@ -68,10 +68,11 @@ async function confirmImport() {
       <div class="flex flex-wrap gap-2">
         <button
           type="button"
-          class="rounded-[11px] border border-border-input bg-white px-4 py-2.5 text-[13.5px] font-bold text-brand-navy hover:bg-surface-alt"
-          @click="port.downloadTemplate(isAdmin)"
+          class="rounded-[11px] border border-border-input bg-white px-4 py-2.5 text-[13.5px] font-bold text-brand-navy hover:bg-surface-alt disabled:opacity-60"
+          :disabled="port.templating"
+          @click="port.downloadTemplate"
         >
-          Unduh template
+          {{ port.templating ? 'Menyiapkan…' : 'Unduh template' }}
         </button>
         <button
           type="button"

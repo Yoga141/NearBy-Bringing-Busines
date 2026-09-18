@@ -11,6 +11,10 @@ class DatabaseSeeder extends Seeder
 
     /**
      * Seed the application's database from the frontend mock data.
+     *
+     * Every seeder is idempotent, so `php artisan db:seed` can be re-run on a
+     * database that already has data. UserSeeder must come first: UmkmSeeder
+     * looks the demo owners up by email.
      */
     public function run(): void
     {

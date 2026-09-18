@@ -62,8 +62,9 @@ class SubmissionSeeder extends Seeder
             ],
         ];
 
+        // Keyed by name so re-running the seeder doesn't queue duplicates.
         foreach ($rows as $row) {
-            Submission::create([...$row, 'status' => 'menunggu']);
+            Submission::firstOrCreate(['name' => $row['name']], [...$row, 'status' => 'menunggu']);
         }
     }
 }

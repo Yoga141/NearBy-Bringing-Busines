@@ -3,69 +3,52 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /** Register a new account (role: user or owner). */
-    public function register(Request $request)
+    /**
+     * Hash compared against when the email is unknown, so a wrong email and a
+     * wrong password take the same time and the response time can't be used
+     * to find out which addresses have an account.
+     */
+    private const DUMMY_HASH = '$2y$12$PsBOwTf1ljjoeY5M/1wIJOmFc5TU2RkM8B0XsdkQV76.YzXmZaZgq';
+
+    /** Register a new account (role: user or owner) and sign it in. */
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['nullable', 'string', 'max:40'],
-            'password' => ['required', 'string', 'min:8'],
-            'role' => ['nullable', Rule::in(['user', 'owner'])],
-        ], [
-            'name.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Masukkan alamat email yang valid, misalnya nama@email.com.',
-            'email.unique' => 'Email ini sudah terdaftar. Silakan masuk.',
-            'password.required' => 'Kata sandi wajib diisi.',
-            'password.min' => 'Kata sandi minimal 8 karakter.',
-        ]);
+        $data = $request->validated();
+        $role = $data['role'] ?? 'user';
 
         $user = User::create([
             'name' => $data['name'],
-            'email' => Str::lower($data['email']),
+            'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'password' => $data['password'],
-            'role' => $data['role'] ?? 'user',
-            'status' => ($data['role'] ?? 'user') === 'owner' ? 'menunggu' : 'aktif',
+            'role' => $role,
+            // An owner is 'menunggu' until their first UMKM is approved; they
+            // can still sign in and use the dashboard meanwhile.
+            'status' => $role === 'owner' ? 'menunggu' : 'aktif',
         ]);
 
-        $token = $user->createToken($this->deviceName($request))->plainTextToken;
-
-        return response()->json([
-            'user' => new UserResource($user),
-            'token' => $token,
-        ], 201);
+        return $this->issueToken($request, $user, 201);
     }
 
     /** Log in and return an API token. */
-    public function login(Request $request)
+    public function login(LoginRequest $request): JsonResponse
     {
-        // Messages are in Indonesian because the frontend shows `message` /
-        // `errors` verbatim (see ApiError.firstError) and the rest of the UI
-        // is Indonesian.
-        $data = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ], [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Masukkan alamat email yang valid, misalnya nama@email.com.',
-            'password.required' => 'Kata sandi wajib diisi.',
-        ]);
+        $data = $request->validated();
+        $user = User::where('email', $data['email'])->first();
 
-        $user = User::where('email', Str::lower($data['email']))->first();
-
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
+        if (! Hash::check($data['password'], $user?->password ?? self::DUMMY_HASH) || ! $user) {
             throw ValidationException::withMessages([
                 'email' => ['Email atau kata sandi salah.'],
             ]);
@@ -73,20 +56,43 @@ class AuthController extends Controller
 
         // An account the admin switched off must not get a new token. Only
         // 'nonaktif' blocks sign-in: a freshly registered owner is 'menunggu'
-        // until their UMKM is verified, and they are meant to be able to log
-        // in while they wait.
+        // until their UMKM is verified, and may log in while they wait.
         if ($user->status === 'nonaktif') {
             throw ValidationException::withMessages([
                 'email' => ['Akun ini dinonaktifkan. Hubungi admin untuk mengaktifkannya kembali.'],
             ]);
         }
 
+        // Upgrade the stored hash transparently if the cost factor changed.
+        if (Hash::needsRehash($user->password)) {
+            $user->forceFill(['password' => $data['password']])->save();
+        }
+
+        return $this->issueToken($request, $user);
+    }
+
+    /** Revoke the current access token. */
+    public function logout(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()?->delete();
+
+        return response()->json(['message' => 'Berhasil keluar.']);
+    }
+
+    /** Currently authenticated user. */
+    public function me(Request $request): UserResource
+    {
+        return new UserResource($request->user());
+    }
+
+    private function issueToken(Request $request, User $user, int $status = 200): JsonResponse
+    {
         $token = $user->createToken($this->deviceName($request))->plainTextToken;
 
         return response()->json([
             'user' => new UserResource($user),
             'token' => $token,
-        ]);
+        ], $status);
     }
 
     /**
@@ -99,19 +105,5 @@ class AuthController extends Controller
     private function deviceName(Request $request): string
     {
         return Str::limit($request->userAgent() ?: 'api', 255, '');
-    }
-
-    /** Revoke the current access token. */
-    public function logout(Request $request)
-    {
-        $request->user()->currentAccessToken()->delete();
-
-        return response()->json(['message' => 'Berhasil keluar.']);
-    }
-
-    /** Currently authenticated user. */
-    public function me(Request $request)
-    {
-        return new UserResource($request->user());
     }
 }

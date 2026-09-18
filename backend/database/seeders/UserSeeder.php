@@ -5,65 +5,84 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
+/**
+ * Demo accounts for trying every role right away.
+ *
+ *   php artisan db:seed --class=UserSeeder     (accounts only)
+ *   php artisan migrate:fresh --seed            (everything)
+ *
+ * Safe to run repeatedly: accounts are matched by email and brought back to
+ * the documented state (password, role, active status) instead of failing on
+ * the unique email. A soft-deleted demo account is restored.
+ *
+ * Passwords can be overridden from .env (SEED_*_PASSWORD) so a shared or
+ * production environment never ends up with the public defaults below. env()
+ * is safe here only because seeders run from the CLI; request-time code must
+ * go through config() instead.
+ */
 class UserSeeder extends Seeder
 {
-    /**
-     * One demo account per role, mirroring the frontend's mocked logins:
-     *  - user  : Rizky Pratama
-     *  - owner : Dewi Anjani  (owns UMKM ids 1 & 4 - see UmkmSeeder, which
-     *            assumes she is the 2nd user created, i.e. id 2)
-     *  - admin : Admin NearBy
-     *
-     * Passwords come from .env (SEED_*_PASSWORD) instead of being hardcoded,
-     * so a shared/production environment can seed these accounts with real
-     * passwords instead of the "password" placeholder. Note: env() reads
-     * .env directly and is only safe here because seeders run as CLI
-     * commands - if this were request-time app code, a cached config
-     * (`config:cache`) would make env() return null.
-     *
-     * The fallback is `?:`, not env()'s second argument: a key that is present
-     * but blank (`SEED_ADMIN_PASSWORD=`) makes env() return an empty string
-     * rather than the default, which would otherwise seed every demo account
-     * with an empty password and break the documented `password` login.
-     */
+    /** Emails other seeders use to look the demo owners up (never by id). */
+    public const OWNER_EMAIL = 'pemilik@nearby.id';
+
+    public const SECOND_OWNER_EMAIL = 'pemilik2@nearby.id';
+
     public function run(): void
     {
-        $accounts = [
-            [
-                'name' => 'Jeki',
-                'email' => 'jekikilo15@mail.com',
-                'role' => 'user',
+        $rows = [];
+
+        foreach ($this->accounts() as $account) {
+            $user = User::withTrashed()->firstOrNew(['email' => $account['email']]);
+            $user->fill([
+                'name' => $account['name'],
+                'phone' => $account['phone'],
+                'role' => $account['role'],
                 'status' => 'aktif',
-                'password' => env('SEED_USER_PASSWORD') ?: 'password',
+                'password' => $account['password'],
+            ]);
+            $user->deleted_at = null;
+            $user->save();
+
+            $rows[] = [$account['label'], $account['email'], $account['password'], $account['note']];
+        }
+
+        $this->command?->newLine();
+        $this->command?->info('Akun demo siap dipakai untuk login:');
+        $this->command?->table(['Peran', 'Email', 'Password', 'Keterangan'], $rows);
+    }
+
+    /**
+     * @return list<array{label: string, name: string, email: string, phone: string, role: string, password: string, note: string}>
+     */
+    private function accounts(): array
+    {
+        // `?:` instead of env()'s default: a key that is present but blank
+        // (`SEED_ADMIN_PASSWORD=`) returns "" and would seed an empty password.
+        $admin = env('SEED_ADMIN_PASSWORD') ?: 'admin12345';
+        $owner = env('SEED_OWNER_PASSWORD') ?: 'pemilik12345';
+        $user = env('SEED_USER_PASSWORD') ?: 'pengguna12345';
+
+        return [
+            [
+                'label' => 'Admin', 'name' => 'Admin NearBy', 'email' => 'admin@nearby.id',
+                'phone' => '0812-0000-0001', 'role' => 'admin', 'password' => $admin,
+                'note' => 'Dashboard admin: verifikasi, pengguna, laporan',
             ],
             [
-                'name' => 'Dewi Anjani',
-                'email' => 'dewi@mail.com',
-                'role' => 'owner',
-                'status' => 'aktif',
-                'password' => env('SEED_OWNER_PASSWORD') ?: 'password',
+                'label' => 'Pemilik', 'name' => 'Dewi Anjani', 'email' => self::OWNER_EMAIL,
+                'phone' => '0812-0000-0002', 'role' => 'owner', 'password' => $owner,
+                'note' => 'Pemilik "Warung Kepiting Kenari" & "Amplang Bahari"',
             ],
             [
-                'name' => 'Admin',
-                'email' => 'admin@nearby.id',
-                'role' => 'admin',
-                'status' => 'aktif',
-                'password' => env('SEED_ADMIN_PASSWORD') ?: 'password',
+                'label' => 'Pemilik', 'name' => 'Budi Santoso', 'email' => self::SECOND_OWNER_EMAIL,
+                'phone' => '0812-0000-0003', 'role' => 'owner', 'password' => $owner,
+                'note' => 'Pemilik "Kopi Saluang" & "Nasi Kuning Sambal Raja"',
             ],
             [
-                'name' => 'Admin',
-                'email' => 'admin@gmail.com',
-                'role' => 'admin',
-                'status' => 'aktif',
-                'password' => env('SEED_ADMIN_GMAIL_PASSWORD') ?: '1234',
+                'label' => 'Pengguna', 'name' => 'Jeki', 'email' => 'pengguna@nearby.id',
+                'phone' => '0812-0000-0004', 'role' => 'user', 'password' => $user,
+                'note' => 'Pengunjung biasa: ulasan & favorit',
             ],
         ];
-
-        foreach ($accounts as $account) {
-            User::create([
-                ...$account,
-                'phone' => '0812-0000-0000',
-            ]);
-        }
     }
 }

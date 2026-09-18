@@ -50,7 +50,10 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Tokens live for 30 days by default (SANCTUM_EXPIRATION, in minutes;
+    // set it to an empty value for tokens that never expire). The SPA already
+    // drops a rejected token and sends the user to the login page.
+    'expiration' => env('SANCTUM_EXPIRATION', 60 * 24 * 30) ?: null,
 
     /*
     |--------------------------------------------------------------------------

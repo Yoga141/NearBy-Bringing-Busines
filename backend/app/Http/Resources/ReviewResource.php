@@ -15,7 +15,11 @@ class ReviewResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $name = $this->author_name ?? $this->user?->name ?? 'Pengguna';
+        // Only fall back to the user relation when it is already loaded, so a
+        // list of reviews never triggers one extra query per row.
+        $name = $this->author_name
+            ?? ($this->relationLoaded('user') ? $this->user?->name : null)
+            ?? 'Pengguna';
 
         return [
             'id' => (string) $this->id,

@@ -1,11 +1,14 @@
 <?php
 
-use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Middleware\EnsureUserHasRole;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request;
 use Illuminate\Http\Exceptions\PostTooLargeException;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,8 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // `role:admin`, `role:owner,admin` ... - see EnsureUserHasRole.
         $middleware->alias([
-            'admin' => EnsureUserIsAdmin::class,
+            'role' => EnsureUserHasRole::class,
         ]);
 
         // This app is an SPA + token API and has no server-rendered "login"
@@ -49,5 +53,28 @@ return Application::configure(basePath: dirname(__DIR__))
                     .', post_max_size = '.ini_get('post_max_size')
                     .'. Naikkan kedua nilai itu di php.ini lalu mulai ulang server.',
             ], 413);
+        });
+
+        // Laravel's own wording for these is English ("Unauthenticated.",
+        // "No query results for model [App\Models\Umkm] 12") and the SPA shows
+        // `message` verbatim, so answer in the language of the UI.
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            return $request->is('api/*')
+                ? response()->json(['message' => 'Sesi kamu sudah berakhir. Silakan masuk kembali.'], 401)
+                : null;
+        });
+
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+            // Keep a deliberate abort(404, '...') message; replace only the
+            // generic ones (unknown route, missing model).
+            $generic = $e->getPrevious() instanceof ModelNotFoundException
+                || $e->getMessage() === '' || str_starts_with($e->getMessage(), 'The route ');
+
+            return response()->json([
+                'message' => $generic ? 'Data yang dicari tidak ditemukan.' : $e->getMessage(),
+            ], 404);
         });
     })->create();

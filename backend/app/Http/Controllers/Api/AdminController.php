@@ -26,7 +26,7 @@ class AdminController extends Controller
     /** Activate/deactivate a user account (not for admins, and never a delete). */
     public function toggleUserStatus(User $user)
     {
-        abort_if($user->role === 'admin', 403, 'Tidak bisa menonaktifkan akun admin.');
+        abort_if($user->isAdmin(), 403, 'Tidak bisa menonaktifkan akun admin.');
 
         $user->update(['status' => $user->status === 'nonaktif' ? 'aktif' : 'nonaktif']);
 
@@ -116,16 +116,20 @@ class AdminController extends Controller
      */
     private function monthlyGrowth(): array
     {
-        $months = collect(range(5, 0))->map(fn ($i) => now()->subMonths($i)->startOfMonth());
+        // subMonthsNoOverflow: on the 31st, subMonths(1) would skip a short
+        // month entirely (31 Mar - 1 month = 3 Mar) and chart March twice.
+        $months = collect(range(5, 0))->map(fn ($i) => now()->startOfMonth()->subMonthsNoOverflow($i));
 
+        // Only the charted window is read, and only its timestamps - not
+        // every UMKM row ever created.
         $counts = Umkm::query()
-            ->selectRaw('created_at')
-            ->get()
-            ->groupBy(fn ($u) => $u->created_at?->format('Y-m'));
+            ->where('created_at', '>=', $months->first())
+            ->pluck('created_at')
+            ->countBy(fn ($createdAt) => $createdAt?->format('Y-m'));
 
         return $months->map(fn ($m) => [
             'label' => $m->translatedFormat('M'),
-            'val' => $counts->get($m->format('Y-m'), collect())->count(),
+            'val' => (int) $counts->get($m->format('Y-m'), 0),
         ])->all();
     }
 
