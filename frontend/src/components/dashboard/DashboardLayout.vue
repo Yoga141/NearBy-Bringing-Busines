@@ -6,6 +6,10 @@ import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
 import UserAvatar from '@/components/shared/UserAvatar.vue'
 import ChevronDownIcon from '@/components/shared/ChevronDownIcon.vue'
+import ThemeToggle from '@/components/shared/ThemeToggle.vue'
+import SunIcon from '@/components/shared/SunIcon.vue'
+import MoonIcon from '@/components/shared/MoonIcon.vue'
+import { useThemeStore } from '@/stores/theme'
 import logo from '@/assets/logo-nearby.png'
 
 const props = defineProps<{ tab: string }>()
@@ -13,6 +17,7 @@ const props = defineProps<{ tab: string }>()
 const router = useRouter()
 const auth = useAuthStore()
 const ui = useUiStore()
+const theme = useThemeStore()
 const dashboard = useDashboardStore()
 
 const isAdmin = computed(() => auth.user?.role === 'admin')
@@ -60,6 +65,9 @@ function logout() {
           <div class="text-[11px] font-bold tracking-[.03em] text-gold">{{ auth.authRoleLabel }}</div>
         </div>
         <div class="ml-auto flex items-center gap-2.5">
+          <!-- On phones the header has no room for it (the title and name would
+               wrap); there it lives in the profile menu below instead. -->
+          <ThemeToggle class="hidden tablet:flex" />
           <div class="relative">
             <button
               type="button"
@@ -85,6 +93,17 @@ function logout() {
                 @click="ui.openSettings"
               >
                 Pengaturan
+              </button>
+              <button
+                type="button"
+                role="switch"
+                :aria-checked="theme.isDark"
+                class="flex w-full items-center gap-2 rounded-[9px] px-[13px] py-2.5 text-left text-[13.5px] font-bold text-brand-navy hover:bg-surface-alt tablet:hidden"
+                @click="theme.toggle"
+              >
+                <SunIcon v-if="theme.isDark" size="15px" />
+                <MoonIcon v-else size="15px" />
+                {{ theme.isDark ? 'Mode terang' : 'Mode gelap' }}
               </button>
               <button
                 type="button"

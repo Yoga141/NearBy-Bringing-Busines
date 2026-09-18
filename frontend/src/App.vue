@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUiStore } from '@/stores/ui'
 import { useA11yStore } from '@/stores/a11y'
+import { useThemeStore } from '@/stores/theme'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import HelpWidget from '@/components/layout/HelpWidget.vue'
@@ -15,6 +16,9 @@ import RestoreBanner from '@/components/account/RestoreBanner.vue'
 const route = useRoute()
 const ui = useUiStore()
 const a11y = useA11yStore()
+// Instantiated here so the theme follows OS changes on every route, including
+// the ones (login, dashboard) that don't render the header with the toggle.
+useThemeStore()
 const showChrome = computed(() => route.meta.chrome !== false)
 </script>
 

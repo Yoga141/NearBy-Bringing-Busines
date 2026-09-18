@@ -1,0 +1,253 @@
+/*
+ * Dark theme ("Mode Gelap").
+ *
+ * Active when <html> has the `dark` class - set by src/stores/theme.ts (and by
+ * the inline script in index.html before first paint). Nothing in this file
+ * matches without that class, so the light theme is untouched by it.
+ *
+ * Three layers, from broad to specific:
+ *
+ * 1. Design tokens. Surfaces, borders, grey text and the pastel tints are only
+ *    ever used for one purpose each (a background token is never used as text),
+ *    so redefining the variables flips every `bg-cream`, `text-text-muted`,
+ *    `border-border-card`, ... at once.
+ *
+ * 2. Accent colours (navy, blue, teal, red). These are used both as text AND as
+ *    button / hero backgrounds, so their variables are left alone: only the
+ *    `text-*` utilities get a lighter shade, and navy/blue buttons keep their
+ *    brand colour with white text.
+ *
+ * 3. Hard-coded colours: `bg-white`, arbitrary `[#hex]` classes and a few
+ *    inline styles that paint large light areas. Light text meant for the navy
+ *    hero/footer (e.g. text-[#C6D6EC]) already works on dark and is not listed.
+ *
+ * These rules are unlayered, so they beat Tailwind's layered utilities - which
+ * includes `hover:` variants. Every hover variant that is in use is therefore
+ * restated below with one extra class of specificity, so hovers keep working.
+ *
+ * Palette: navy-based, not neutral grey, so the dark theme still looks like the
+ * NearBy brand. Text contrast on the card surface (#16222f): primary 14:1,
+ * muted 7:1, faint 5:1, accent blue 6:1 - all above WCAG AA.
+ */
+
+/* ------------------------------------------------------------------ tokens */
+
+html.dark {
+  /* surfaces */
+  --color-cream: #0f1a26;
+  --color-dash-bg: #0c1620;
+  --color-surface-alt: #1e2c3b;
+
+  /* text */
+  --color-text-primary: #e8eef5;
+  --color-text-secondary: #c5cfda;
+  --color-text-muted: #a4b0be;
+  --color-text-faint: #909cab;
+  --color-text-faint-2: #7f8b9a;
+  --color-text-faint-3: #6f7b8a;
+
+  /* borders */
+  --color-border-hairline: #253447;
+  --color-border-card: #223143;
+  --color-border-input: #33475d;
+  --color-border-role: #2c3d51;
+  --color-border-divider: #1f2d3c;
+  --color-border-divider-2: #213040;
+
+  /* pastel tints (always backgrounds) */
+  --color-brand-blue-tint: #1c3050;
+  --color-brand-blue-tint-2: #1a2c47;
+  --color-teal-tint: #173833;
+  --color-danger-tint: #3b211d;
+  --color-danger-tint-2: #36201c;
+  --color-danger-border: #6b3a30;
+  --color-cat-kuliner-soft: #3a2d17;
+  --color-cat-penginapan-soft: #173833;
+  --color-cat-fashion-soft: #1c2e4a;
+  --color-cat-oleholeh-soft: #13324a;
+  --color-cat-jasa-soft: #252f3a;
+
+  /* Accent shades for text on dark surfaces (see section 2). */
+  --dark-surface: #16222f;
+  --dark-surface-hover: #243446;
+  --dark-accent-blue: #7fa9ea;
+}
+
+/* ------------------------------------------------------ accent text colours */
+
+.dark .text-brand-navy {
+  color: var(--color-text-primary);
+}
+.dark .text-brand-blue,
+.dark .file\:text-brand-blue::file-selector-button {
+  color: var(--dark-accent-blue);
+}
+.dark .text-brand-blue-deep {
+  color: #9dbcf0;
+}
+.dark .text-teal,
+.dark .text-teal-deep {
+  color: #62c3ae;
+}
+.dark .text-danger {
+  color: #f08c77;
+}
+.dark .text-danger-deep {
+  color: #f4a898;
+}
+.dark .text-cat-penginapan {
+  color: #5fb8a9;
+}
+.dark .text-cat-fashion {
+  color: var(--dark-accent-blue);
+}
+.dark .text-cat-oleholeh {
+  color: #4fb0ea;
+}
+.dark .text-cat-jasa {
+  color: var(--color-text-muted);
+}
+
+/* hover variants in use - one class more specific than the rules above */
+.dark .hover\:text-brand-navy:hover {
+  color: var(--color-text-primary);
+}
+.dark .hover\:text-brand-blue:hover {
+  color: var(--dark-accent-blue);
+}
+.dark .hover\:text-danger:hover {
+  color: #f08c77;
+}
+
+/* --------------------------------------------------------- white surfaces */
+
+.dark .bg-white {
+  background-color: var(--dark-surface);
+}
+.dark .bg-white\/95 {
+  background-color: rgb(22 34 47 / 0.95);
+}
+
+/* --------------------------------------- arbitrary colour classes (#hex) */
+
+/* dark-on-light text → light-on-dark */
+.dark .text-\[\#4B5563\] {
+  color: var(--color-text-secondary);
+}
+.dark .text-\[\#5B6470\],
+.dark .text-\[\#7A8089\],
+.dark .text-\[\#7C8896\],
+.dark .text-\[\#7E90A5\] {
+  color: var(--color-text-muted);
+}
+.dark .text-\[\#6B6350\],
+.dark .text-\[\#A69F8E\],
+.dark .text-\[\#A79D89\] {
+  color: #b8ae98;
+}
+.dark .text-\[\#B07A1E\],
+.dark .text-\[\#8A5A12\],
+.dark .text-\[\#7A5B1E\] {
+  color: #dcae5c;
+}
+.dark .text-\[\#8A2818\],
+.dark .text-\[\#7A1F12\],
+.dark .text-\[\#7A4A40\] {
+  color: #f4a898;
+}
+.dark .text-\[\#5B4A44\] {
+  color: #d3c0b8;
+}
+
+/* light backgrounds */
+.dark .bg-\[\#F4F0E7\],
+.dark .bg-\[\#F1ECE0\],
+.dark .bg-\[\#F0EADD\] {
+  background-color: var(--color-surface-alt);
+}
+.dark .bg-\[\#F7F3EA\],
+.dark .bg-\[\#F3F1EA\],
+.dark .bg-\[\#EEF2F7\] {
+  background-color: #1a2735;
+}
+.dark .bg-\[\#E8EDF3\],
+.dark .bg-\[\#D8D0C0\],
+.dark .bg-\[\#D6CFC0\] {
+  background-color: #2c3d51;
+}
+.dark .bg-\[\#F7EDDC\],
+.dark .bg-\[\#FBF3E4\] {
+  background-color: #33291a;
+}
+.dark .bg-\[\#E7C9C1\] {
+  background-color: #4a2a24;
+}
+.dark .hover\:bg-\[\#F4F0E7\]:hover {
+  background-color: var(--dark-surface-hover);
+}
+.dark .hover\:bg-\[\#FBF3E4\]:hover {
+  background-color: #3d311d;
+}
+
+/* light borders */
+.dark .border-\[\#E7E0D2\],
+.dark .border-\[\#F4EFE4\],
+.dark .border-\[\#F2ECDF\],
+.dark .border-\[\#F0EADD\],
+.dark .border-\[\#EFE9DC\],
+.dark .border-\[\#EEE8DB\],
+.dark .border-\[\#EEE7D9\],
+.dark .border-\[\#E9E2D4\],
+.dark .border-\[\#E7DFCF\] {
+  border-color: var(--color-border-hairline);
+}
+.dark .border-\[\#D6CFC0\],
+.dark .border-\[\#B9C2CE\] {
+  border-color: var(--color-border-input);
+}
+.dark .border-\[\#E7C97F\],
+.dark .border-\[\#EBD9B4\] {
+  border-color: #6b5220;
+}
+.dark .border-\[\#E3B7AC\] {
+  border-color: #6b3a30;
+}
+.dark .border-\[\#DCE7DF\] {
+  border-color: #28453f;
+}
+.dark .border-\[\#8FC3B8\] {
+  border-color: #3f7d71;
+}
+
+/* ---------------------------------------------- inline-styled light areas */
+
+/* The sticky header's frosted cream background. */
+.dark header[style*='250, 247, 241'] {
+  background: rgb(15 26 38 / 0.86) !important;
+}
+
+/*
+ * Striped "no photo yet" placeholders, written as inline gradients. Vue renders
+ * even a static style="" through the DOM, so the browser serialises the hex
+ * colours as rgb(...) - that is the form these selectors have to match.
+ */
+.dark [style*='rgb(236, 230, 218)'],
+.dark [style*='rgb(246, 241, 232)'],
+.dark [style*='rgb(238, 241, 245)'],
+.dark .placeholder-thumb:not([data-variant='navy']) {
+  background: repeating-linear-gradient(135deg, #1c2a38 0 10px, #213142 10px 20px) !important;
+  color: #7f8b9a !important;
+}
+
+/* ------------------------------------------------------------ odds & ends */
+
+/* The logo artwork is navy on transparent: give it a light tile so it doesn't
+   disappear into the dark header and footer. */
+.dark img[src*='logo-nearby'] {
+  background-color: #faf7f1;
+  border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #33475d;
+}

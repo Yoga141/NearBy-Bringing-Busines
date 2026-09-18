@@ -10,7 +10,26 @@
       href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <meta name="theme-color" content="#faf7f1" />
+    <meta name="color-scheme" content="light dark" />
     <title>NearBy Balikpapan</title>
+    <script>
+      // Apply the saved (or OS) theme before the first paint, so a dark-mode
+      // visitor never sees a flash of the light page while the app loads.
+      // Mirrors src/stores/theme.ts, which takes over once Vue has booted.
+      ;(function () {
+        var choice = null
+        try {
+          choice = localStorage.getItem('nearby_theme')
+        } catch (e) {}
+        var dark =
+          choice === 'dark' ||
+          (choice !== 'light' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+        var root = document.documentElement
+        if (dark) root.classList.add('dark')
+        root.style.colorScheme = dark ? 'dark' : 'light'
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>

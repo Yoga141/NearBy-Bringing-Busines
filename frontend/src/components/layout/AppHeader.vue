@@ -10,6 +10,7 @@ import MobileNav from './MobileNav.vue'
 import MenuIcon from '@/components/shared/MenuIcon.vue'
 import HeartIcon from '@/components/shared/HeartIcon.vue'
 import ChevronDownIcon from '@/components/shared/ChevronDownIcon.vue'
+import ThemeToggle from '@/components/shared/ThemeToggle.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -73,6 +74,8 @@ function logout() {
         >
           <MenuIcon size="19px" />
         </button>
+
+        <ThemeToggle />
 
         <RouterLink
           :to="{ name: 'favorit' }"

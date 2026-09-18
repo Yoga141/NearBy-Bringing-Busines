@@ -1,4 +1,9 @@
 @import "tailwindcss";
+@import "./dark.css";
+
+/* `dark:` utilities follow the site theme (the `dark` class on <html>, set by
+   stores/theme.ts), not only the OS setting - so the header toggle wins. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;

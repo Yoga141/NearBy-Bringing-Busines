@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import logo from '@/assets/logo-nearby.png'
+import ThemeToggle from '@/components/shared/ThemeToggle.vue'
 
 withDefaults(defineProps<{ brandGradient: string; footerColor?: string }>(), {
   footerColor: '#8FA6C6',
@@ -29,7 +30,9 @@ const router = useRouter()
 
     <!-- data-a11y-read: what "Bacakan isi layar" reads on this page, since the
          auth screens have no <main> and the decorative panel isn't worth reading. -->
-    <div data-a11y-read class="flex items-center justify-center bg-cream px-6 py-10">
+    <div data-a11y-read class="relative flex items-center justify-center bg-cream px-6 py-10">
+      <!-- Top-left: the accessibility button already owns the top-right corner. -->
+      <ThemeToggle class="absolute top-5 left-5" />
       <slot name="form" />
     </div>
   </div>

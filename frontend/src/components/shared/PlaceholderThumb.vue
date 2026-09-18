@@ -36,7 +36,8 @@ const bgStyle = computed(() => {
 
 <template>
   <div
-    class="flex h-full w-full items-center justify-center gap-1 font-mono text-[11px] font-semibold"
+    class="placeholder-thumb flex h-full w-full items-center justify-center gap-1 font-mono text-[11px] font-semibold"
+    :data-variant="variant"
     :class="rounded"
     :style="bgStyle"
   >
