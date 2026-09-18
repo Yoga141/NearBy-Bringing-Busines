@@ -2,7 +2,7 @@
 /**
  * Headless mount point for the voice assistant (`stores/voice.ts`).
  *
- * Renders no visible UI on purpose — the feature is meant to be usable with the
+ * Renders no visible UI on purpose - the feature is meant to be usable with the
  * screen switched off entirely. What it does render is a visually hidden
  * aria-live region, so a user already running NVDA or TalkBack gets the same
  * answer through their own screen reader instead of only through our
@@ -22,7 +22,7 @@ const a11y = useA11yStore()
 const voice = useVoiceStore()
 
 function onKeydown(event: KeyboardEvent) {
-  // Alt+V: toggle. Deliberately not a bare key — it must stay usable while a
+  // Alt+V: toggle. Deliberately not a bare key - it must stay usable while a
   // text field has focus.
   if (event.altKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === 'v') {
     event.preventDefault()

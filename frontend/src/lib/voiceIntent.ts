@@ -21,7 +21,7 @@ export type VoiceIntent =
   | 'beranda'
   | 'tidak_dikenal'
 
-/** A static page reachable by name — everything except the UMKM catalog/detail/auth flows. */
+/** A static page reachable by name - everything except the UMKM catalog/detail/auth flows. */
 export type PageName = 'panduan' | 'tentang' | 'akun' | 'privacy' | 'terms'
 
 export interface ParsedCommand {
@@ -39,7 +39,7 @@ export interface ParsedCommand {
 }
 
 /**
- * Wake word. The alternatives are not sloppiness — `id-ID` recognition
+ * Wake word. The alternatives are not sloppiness - `id-ID` recognition
  * transcribes an English brand name inconsistently, so "Oke NearBy" comes back
  * as "oke near by", "ok nearbi", "oke nerbi" and friends. Anything stricter
  * would leave the assistant unreachable for the very users it exists for.
@@ -67,7 +67,7 @@ export function hasWakeWord(text: string): boolean {
 
 /**
  * Everything the speaker said *after* the wake word, or null when the wake word
- * isn't there. An empty string means the wake word was all they said — the
+ * isn't there. An empty string means the wake word was all they said - the
  * assistant answers and waits for the command instead of guessing.
  */
 export function stripWakeWord(text: string): string | null {
@@ -191,7 +191,7 @@ const LOCATION_KEYWORDS: Record<LocationName, string[]> = {
 /**
  * Named static pages. "Panduan" used to double as a synonym for "bantuan"
  * (spoken help), which meant "buka halaman panduan" read out the help menu
- * instead of opening the actual Panduan page — that collision is why it's a
+ * instead of opening the actual Panduan page - that collision is why it's a
  * dedicated table now instead of living inside `INTENT_KEYWORDS`.
  */
 const PAGE_KEYWORDS: Record<PageName, string[]> = {
@@ -346,7 +346,7 @@ export function parseCommand(input: string): ParsedCommand {
   if (intent === 'daftar' && (categoryHit || locationHit)) intent = 'cari'
   if (intent === 'daftar' && pageHit) intent = 'halaman'
 
-  // Naming a category or a kecamatan is a search on its own — someone saying
+  // Naming a category or a kecamatan is a search on its own - someone saying
   // just "makanan di Balikpapan Selatan" means the obvious thing. Same for a
   // named page: "halaman panduan" alone is still a request to open it.
   if (intent === 'tidak_dikenal' && (categoryHit || locationHit)) intent = 'cari'

@@ -19,7 +19,7 @@ const umkmPort = useUmkmPortStore()
 const itemPort = useItemPortStore()
 const port = computed(() => (isUmkm.value ? umkmPort : itemPort))
 
-const title = computed(() => (isUmkm.value ? 'Export & Import Excel — UMKM' : 'Export & Import Excel — Produk'))
+const title = computed(() => (isUmkm.value ? 'Export & Import Excel - UMKM' : 'Export & Import Excel - Produk'))
 
 const intro = computed(() => {
   if (isUmkm.value) {
@@ -113,7 +113,7 @@ async function confirmImport() {
       class="mt-3.5 flex flex-wrap items-center gap-2.5 rounded-[11px] bg-teal-tint px-3.5 py-2.5 text-[13px] font-semibold text-teal-deep"
     >
       <span>
-        Impor selesai — {{ port.done.create }} data baru, {{ port.done.update }} diperbarui.
+        Impor selesai - {{ port.done.create }} data baru, {{ port.done.update }} diperbarui.
         <template v-if="needsVerification && port.done.create">
           Data baru menunggu verifikasi admin sebelum tampil di website.
         </template>

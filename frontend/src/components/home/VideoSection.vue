@@ -7,7 +7,7 @@ import type { SocialVideo } from '@/types'
 
 const store = useVideoStore()
 
-/** Ids the visitor has clicked play on — the iframe only mounts after that, so
+/** Ids the visitor has clicked play on - the iframe only mounts after that, so
  *  a homepage with three videos doesn't load three players up front. */
 const playing = ref(new Set<number>())
 
@@ -78,7 +78,7 @@ onMounted(() => store.fetchVideos())
             </span>
           </button>
 
-          <!-- Empty slot — an admin hasn't pasted a link yet -->
+          <!-- Empty slot - an admin hasn't pasted a link yet -->
           <div v-else class="flex h-full w-full flex-col items-center justify-center px-5 text-center">
             <ClapperboardIcon size="34px" class="text-white" />
             <div class="mt-2.5 text-[14.5px] font-extrabold text-white">Video belum tersedia</div>

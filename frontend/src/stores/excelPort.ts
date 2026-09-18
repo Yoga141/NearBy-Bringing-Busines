@@ -37,7 +37,7 @@ interface PreviewResponse {
  *
  * Each dataset gets its own store instance so that a product import in
  * progress can't be clobbered by the UMKM card's state sitting on the same
- * page — the two cards are shown together.
+ * page - the two cards are shown together.
  */
 function definePortStore(id: string, spec: SheetSpec, basePath: string) {
   return defineStore(id, () => {

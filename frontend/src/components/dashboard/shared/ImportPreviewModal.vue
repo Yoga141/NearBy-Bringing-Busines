@@ -5,7 +5,7 @@ import type { PreviewRow, PreviewSummary } from '@/stores/excelPort'
 
 const props = defineProps<{
   preview: { summary: PreviewSummary; rows: PreviewRow[] }
-  /** Header for the name column — "Nama Usaha" or "Nama Produk". */
+  /** Header for the name column - "Nama Usaha" or "Nama Produk". */
   nameLabel: string
   /** Whether new rows will queue for admin verification once imported. */
   needsVerification: boolean
@@ -76,7 +76,7 @@ const ordered = computed(() =>
               {{ r.row }}
             </td>
             <td class="border-b border-border-divider py-2.5 pr-3">
-              <div class="text-[13.5px] font-bold text-brand-navy">{{ r.name || '—' }}</div>
+              <div class="text-[13.5px] font-bold text-brand-navy">{{ r.name || '-' }}</div>
               <ul v-if="r.messages.length" class="mt-1 list-disc pl-4">
                 <li v-for="(m, i) in r.messages" :key="i" class="text-[12.5px] leading-relaxed text-danger">{{ m }}</li>
               </ul>

@@ -135,7 +135,7 @@ export const useAuthStore = defineStore('auth', () => {
    * Persist the name / email / phone fields.
    *
    * These three refs are an edit buffer seeded from the session user, so until
-   * this call succeeds nothing has actually changed — which is why the screens
+   * this call succeeds nothing has actually changed - which is why the screens
    * used to show "Profil berhasil disimpan" while saving nothing at all.
    */
   async function saveProfile(): Promise<boolean> {
@@ -171,7 +171,7 @@ export const useAuthStore = defineStore('auth', () => {
    * Upload (or replace) the profile photo.
    *
    * The API answers with the whole updated user, so `applyUser` refreshes every
-   * avatar in the app at once — header, dashboard, settings modal — instead of
+   * avatar in the app at once - header, dashboard, settings modal - instead of
    * each one having to be told about the new URL.
    */
   async function uploadPhoto(file: File): Promise<boolean> {

@@ -155,7 +155,7 @@ export const useUmkmStore = defineStore('umkm', () => {
     q.value = ''
   }
 
-  /** Load the public catalog (approved, non-hidden UMKM). Cached — pass force to refetch. */
+  /** Load the public catalog (approved, non-hidden UMKM). Cached - pass force to refetch. */
   async function fetchAll(force = false) {
     if (loaded.value && !force) return
     loading.value = true
@@ -174,7 +174,7 @@ export const useUmkmStore = defineStore('umkm', () => {
   const detailLoading = ref(false)
   const detailError = ref('')
 
-  /** Full detail (items, reviews, isFavorite) for the detail page. Not cached — always fresh. */
+  /** Full detail (items, reviews, isFavorite) for the detail page. Not cached - always fresh. */
   async function fetchDetail(id: number): Promise<UmkmDetail | null> {
     detailLoading.value = true
     detailError.value = ''

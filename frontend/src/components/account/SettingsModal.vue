@@ -18,7 +18,7 @@ const NAV_DEFS = [
   { key: 'keamanan', label: 'Keamanan', desc: 'Verifikasi dua langkah, perangkat, dan ganti kata sandi.' },
   { key: 'izin', label: 'Izin & Privasi', desc: 'Atur izin notifikasi, lokasi, dan penggunaan data.' },
   { key: 'history', label: 'History', desc: 'Riwayat komentar & kunjungan UMKM-mu.' },
-  { key: 'hapus', label: 'Hapus Akun', desc: 'Nonaktifkan akunmu — bisa dipulihkan dalam 30 hari.' },
+  { key: 'hapus', label: 'Hapus Akun', desc: 'Nonaktifkan akunmu - bisa dipulihkan dalam 30 hari.' },
 ]
 
 const showHistory = computed(() => auth.isAuthed && auth.user?.role === 'user')

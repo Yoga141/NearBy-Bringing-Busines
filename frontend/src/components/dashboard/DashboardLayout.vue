@@ -114,7 +114,7 @@ function logout() {
         </button>
       </aside>
 
-      <!-- data-a11y-read: what "Bacakan isi layar" reads here — the dashboard
+      <!-- data-a11y-read: what "Bacakan isi layar" reads here - the dashboard
            has no <main>, and the sidebar menu isn't useful to read aloud. -->
       <div data-a11y-read><slot /></div>
     </div>

@@ -16,7 +16,7 @@ const savedMessage = ref('')
 
 const maxLabel = computed(() => {
   const bytes = store.limits?.maxBytes
-  return bytes ? `${(bytes / 1024 / 1024).toFixed(0)} MB` : '—'
+  return bytes ? `${(bytes / 1024 / 1024).toFixed(0)} MB` : '-'
 })
 
 function humanSize(bytes: number): string {
@@ -104,7 +104,7 @@ onMounted(() => {
   <div class="mb-[22px]">
     <h1 class="m-0 text-[29px] font-extrabold tracking-[-.02em]">Video Panduan</h1>
     <p class="mt-[7px] text-text-muted">
-      Unggah video cara mendaftarkan UMKM — video yang aktif langsung tampil di halaman
+      Unggah video cara mendaftarkan UMKM - video yang aktif langsung tampil di halaman
       <RouterLink :to="{ name: 'panduan' }" class="font-bold text-brand-blue">Panduan</RouterLink>.
     </p>
   </div>

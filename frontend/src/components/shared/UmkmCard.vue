@@ -11,7 +11,7 @@ withDefaults(defineProps<{ umkm: EnrichedUmkm; size?: 'md' | 'lg' }>(), { size: 
 
 <template>
   <!--
-    FavoriteButton must NOT be a descendant of the RouterLink's <a> — a
+    FavoriteButton must NOT be a descendant of the RouterLink's <a> - a
     <button> nested inside an <a> is invalid content and browsers can
     navigate the anchor on click regardless of stopPropagation. Render it
     as an absolutely-positioned sibling instead.

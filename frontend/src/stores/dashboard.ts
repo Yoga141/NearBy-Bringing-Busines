@@ -133,7 +133,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     ]
   })
 
-  /** Views per owned UMKM — a real substitute for the old fake "7-day visits" chart. */
+  /** Views per owned UMKM - a real substitute for the old fake "7-day visits" chart. */
   const ownerViewsBars = computed(() => {
     const max = Math.max(1, ...ownerUmkmRaw.value.map((u) => u.views))
     return ownerUmkmRaw.value.map((u) => ({ label: u.name, pct: Math.round((u.views / max) * 100), value: u.views }))
@@ -261,8 +261,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     await fetchAdminUsers()
   }
   function userReset(email: string) {
-    // No email/reset-token flow is wired up yet — this is an honest placeholder, not a real send.
-    alert(`Belum ada layanan email terhubung — tautan reset untuk ${email} belum benar-benar terkirim.`)
+    // No email/reset-token flow is wired up yet - this is an honest placeholder, not a real send.
+    alert(`Belum ada layanan email terhubung - tautan reset untuk ${email} belum benar-benar terkirim.`)
   }
   async function userToggleActive(id: number, name: string) {
     const row = await apiFetch<any>(`/admin/users/${id}/toggle-status`, { method: 'POST' })
@@ -369,7 +369,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     alert(`Pengajuan "${name}" ditolak.`)
   }
   function requestFix(name: string) {
-    // There's no owner-facing resubmission/notification flow yet — this stays a local nudge for now.
+    // There's no owner-facing resubmission/notification flow yet - this stays a local nudge for now.
     alert(`Permintaan perbaikan data dikirim ke pemilik "${name}".`)
   }
 

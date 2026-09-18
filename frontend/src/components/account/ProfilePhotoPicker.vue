@@ -3,7 +3,7 @@
  * Avatar plus the controls to change it.
  *
  * One component for all three profile screens (/akun, the account settings
- * modal, and the dashboard profile card) — they showed the same avatar and the
+ * modal, and the dashboard profile card) - they showed the same avatar and the
  * same dead "Ganti foto" button, so the working version lives in one place.
  *
  * The <input type="file"> is visually hidden and driven by the button: a raw
@@ -36,7 +36,7 @@ async function onPick(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   // Reset straight away so picking the same file twice still fires a change
-  // event — otherwise a failed upload can't be retried with the same photo.
+  // event - otherwise a failed upload can't be retried with the same photo.
   input.value = ''
   if (!file) return
 

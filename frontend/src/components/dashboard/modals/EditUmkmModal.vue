@@ -115,7 +115,7 @@ async function saveUmkm() {
     ui.closeModal()
     alert(
       isNew.value
-        ? 'UMKM berhasil dikirim. Menunggu verifikasi admin — akan tampil & aktif setelah disetujui.'
+        ? 'UMKM berhasil dikirim. Menunggu verifikasi admin - akan tampil & aktif setelah disetujui.'
         : 'Perubahan disimpan.',
     )
   } catch (e) {

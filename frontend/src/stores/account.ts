@@ -55,7 +55,7 @@ export const useAccountStore = defineStore('account', () => {
    * Change the password.
    *
    * The API signs every *other* device out on success, so the session list is
-   * refetched — leaving it showing devices that no longer have access would be
+   * refetched - leaving it showing devices that no longer have access would be
    * worse than not listing them at all.
    */
   async function changePassword(current: string, next: string, confirmation: string): Promise<boolean> {

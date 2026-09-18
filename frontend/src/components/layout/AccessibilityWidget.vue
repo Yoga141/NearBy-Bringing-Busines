@@ -14,7 +14,7 @@ const route = useRoute()
 
 const PHASE_LABEL: Record<string, string> = {
   mati: 'Nonaktif',
-  siaga: 'Siaga — ucapkan "Oke NearBy"',
+  siaga: 'Siaga - ucapkan "Oke NearBy"',
   mendengar: 'Mendengarkan perintah…',
   memproses: 'Memproses…',
   bicara: 'Sedang menjawab…',
@@ -103,7 +103,7 @@ watch(() => route.fullPath, () => a11y.stopSpeaking())
             <div class="min-w-0">
               <div class="text-[14px] font-extrabold text-brand-navy">Asisten suara</div>
               <div class="mt-0.5 text-[12.5px] leading-relaxed text-text-muted">
-                Bebas layar — ucapkan &ldquo;Oke NearBy&rdquo;
+                Bebas layar - ucapkan &ldquo;Oke NearBy&rdquo;
               </div>
             </div>
             <div class="ml-auto">

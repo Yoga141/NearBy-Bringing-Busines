@@ -10,7 +10,7 @@ const a11y = useA11yStore()
 
 type Field = HTMLInputElement | HTMLTextAreaElement
 
-/** The field the visitor last focused — where the taps get typed. */
+/** The field the visitor last focused - where the taps get typed. */
 const target = ref<Field | null>(null)
 const shift = ref(false)
 
@@ -39,7 +39,7 @@ onBeforeUnmount(() => document.removeEventListener('focusin', onFocusIn))
 
 /**
  * Replaces the field's selection with `text` (or deletes backwards when
- * `text` is empty), then fires an `input` event so `v-model` picks it up —
+ * `text` is empty), then fires an `input` event so `v-model` picks it up -
  * assigning `.value` alone is invisible to Vue.
  *
  * The selection API isn't available on every input type (`email`, `number`
@@ -67,7 +67,7 @@ function write(text: string, deleteBackwards = false) {
     try {
       el.setSelectionRange(caret, caret)
     } catch {
-      // Input type doesn't support a caret after all — the text still landed.
+      // Input type doesn't support a caret after all - the text still landed.
     }
   }
 

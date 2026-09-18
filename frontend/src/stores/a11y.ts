@@ -22,7 +22,7 @@ function readPrefs(): StoredPrefs {
 /**
  * Accessibility preferences: screen reading, an on-screen keyboard, a calmer
  * motion setting, and the hands-free voice assistant. Persisted per browser so
- * a visitor who needs them doesn't have to switch them on again every visit —
+ * a visitor who needs them doesn't have to switch them on again every visit -
  * which matters most for `voiceAssistant`, the one setting a blind user would
  * otherwise have to find on screen after every reload.
  */
@@ -33,7 +33,7 @@ export const useA11yStore = defineStore('a11y', () => {
   /** 0.5x–2.0x, matching the slider in the design (default 1.0x). */
   const speechRate = ref(stored.speechRate ?? 1)
   const virtualKeyboard = ref(stored.virtualKeyboard ?? false)
-  /** On by default — the design ships the calmer-motion setting enabled. */
+  /** On by default - the design ships the calmer-motion setting enabled. */
   const slowMotion = ref(stored.slowMotion ?? true)
   /**
    * Hands-free voice assistant ("Oke NearBy"). Off by default: it holds the
@@ -105,7 +105,7 @@ export const useA11yStore = defineStore('a11y', () => {
     for (const u of utterances) window.speechSynthesis.speak(u)
   }
 
-  // A rate change applies to the next reading — restarting mid-sentence is
+  // A rate change applies to the next reading - restarting mid-sentence is
   // more disorienting than finishing the current one.
   watch(speechRate, () => {
     persist()

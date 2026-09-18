@@ -95,7 +95,7 @@ onMounted(() => store.fetchAdminVideos())
     <div>
       <h1 class="m-0 text-[29px] font-extrabold tracking-[-.02em]">Video Medsos</h1>
       <p class="mt-[7px] text-text-muted">
-        Tempel tautan Instagram atau YouTube di sini — kartu di beranda langsung ikut berubah.
+        Tempel tautan Instagram atau YouTube di sini - kartu di beranda langsung ikut berubah.
       </p>
     </div>
     <button
@@ -167,7 +167,7 @@ onMounted(() => store.fetchAdminVideos())
         <label class="mb-1.5 block text-[12.5px] font-bold text-brand-navy">Tautan video</label>
         <input
           v-model="drafts[v.id].url"
-          placeholder="Tempel tautan YouTube / Instagram — kosongkan untuk mengosongkan kartu"
+          placeholder="Tempel tautan YouTube / Instagram - kosongkan untuk mengosongkan kartu"
           class="w-full rounded-[11px] border border-border-input bg-white px-3.5 py-2.5 text-brand-navy"
         />
         <p class="mt-1.5 text-[12px] leading-relaxed text-text-faint">

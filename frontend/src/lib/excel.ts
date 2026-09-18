@@ -6,12 +6,12 @@
  * file handling client-side means the API only ever deals in plain JSON rows.
  *
  * Everything below is driven by a {@link SheetSpec}, so a dataset is added by
- * describing its columns — see `UMKM_SPEC` and `ITEM_SPEC` at the bottom.
+ * describing its columns - see `UMKM_SPEC` and `ITEM_SPEC` at the bottom.
  */
 import type { Workbook, Worksheet } from 'exceljs'
 
 /**
- * exceljs is ~950 kB — far too much to sit in the dashboard bundle for the
+ * exceljs is ~950 kB - far too much to sit in the dashboard bundle for the
  * many visits that never touch a spreadsheet. Loading it on first use keeps it
  * in its own chunk, fetched only when someone actually exports or imports.
  */
@@ -26,9 +26,9 @@ export interface ColumnDef {
   width: number
   /**
    * How the cell and the API value differ:
-   * - `number` — read back as a number (ids).
-   * - `boolean` — written as Ya/Tidak, read back as a real boolean.
-   * - `titleCase` — stored lowercase in the API, shown title-cased in the sheet.
+   * - `number` - read back as a number (ids).
+   * - `boolean` - written as Ya/Tidak, read back as a real boolean.
+   * - `titleCase` - stored lowercase in the API, shown title-cased in the sheet.
    */
   type?: 'number' | 'boolean' | 'titleCase'
   /** Only present in an admin's sheet. */
@@ -285,7 +285,7 @@ export const UMKM_SPEC: SheetSpec = {
     'Status: Aktif, Libur, Tutup',
     isAdmin ? 'Verifikasi: Menunggu, Disetujui, Ditolak' : '',
     '',
-    'Kolom Rating, Jumlah Ulasan, dan Dilihat hanya informasi — perubahannya diabaikan saat impor.',
+    'Kolom Rating, Jumlah Ulasan, dan Dilihat hanya informasi - perubahannya diabaikan saat impor.',
   ],
 }
 
@@ -305,13 +305,13 @@ export const ITEM_SPEC: SheetSpec = {
   ],
   guide: () => [
     ...howToLines('produk', 'Produk'),
-    'Kolom "ID UMKM" wajib diisi untuk produk baru — ambil angkanya dari kolom ID',
+    'Kolom "ID UMKM" wajib diisi untuk produk baru - ambil angkanya dari kolom ID',
     'pada hasil "Unduh Excel" di kartu Export & Import UMKM.',
     '',
     'Tersedia: Ya atau Tidak (kosong dianggap Ya untuk produk baru).',
     'Harga boleh ditulis bebas, misalnya "Rp20.000" atau "20rb".',
     '',
-    'Kolom Nama Usaha hanya informasi — perubahannya diabaikan saat impor.',
+    'Kolom Nama Usaha hanya informasi - perubahannya diabaikan saat impor.',
     'Untuk memindahkan produk ke UMKM lain, ubah kolom ID UMKM-nya.',
   ],
 }

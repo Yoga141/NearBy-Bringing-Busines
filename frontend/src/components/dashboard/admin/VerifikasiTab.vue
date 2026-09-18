@@ -30,7 +30,7 @@ const stats = computed(() => [
 <template>
   <div class="mb-[22px]">
     <h1 class="m-0 text-[29px] font-extrabold tracking-[-.02em]">Antrian Verifikasi UMKM</h1>
-    <p class="mt-[7px] text-text-muted">Halo, {{ auth.authFirst }} — tinjau kelayakan usaha dan kelengkapan data sebelum ditampilkan ke publik.</p>
+    <p class="mt-[7px] text-text-muted">Halo, {{ auth.authFirst }} - tinjau kelayakan usaha dan kelengkapan data sebelum ditampilkan ke publik.</p>
   </div>
 
   <div class="mb-[26px] grid grid-cols-2 gap-4 tablet:grid-cols-4">

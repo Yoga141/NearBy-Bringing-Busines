@@ -136,7 +136,7 @@ export interface GuideVideo {
   id: number
   title: string
   description: string | null
-  /** Relative streaming URL (`/api/guide-video/{id}/file`) — same origin as the SPA. */
+  /** Relative streaming URL (`/api/guide-video/{id}/file`) - same origin as the SPA. */
   url: string
   mimeType: string
   size: number
@@ -144,7 +144,7 @@ export interface GuideVideo {
   sizeLabel: string
   originalName: string
   active: boolean
-  /** True when the row survived but its file did not — admin list only. */
+  /** True when the row survived but its file did not - admin list only. */
   fileMissing: boolean
   /** Admin list only; absent from the public endpoint. */
   uploadedBy?: string | null
@@ -156,7 +156,7 @@ export interface GuideVideoLimits {
   maxBytes: number
   configuredBytes: number
   phpLimitBytes: number
-  /** True when php.ini is stricter than the app's own limit — worth warning about. */
+  /** True when php.ini is stricter than the app's own limit - worth warning about. */
   phpLimited: boolean
   allowedMimes: string[]
 }
@@ -166,7 +166,7 @@ export interface AccountSession {
   id: number
   /** e.g. "Chrome · Windows"; tokens carry no IP or location, so none is shown. */
   device: string
-  /** The device making the current request — it can't sign itself out here. */
+  /** The device making the current request - it can't sign itself out here. */
   current: boolean
   mobile: boolean
   lastUsed: string
@@ -185,7 +185,7 @@ export interface SocialVideo {
   url: string | null
   /** Player URL derived from `url` by the API; null when the slot is empty. */
   embedUrl: string | null
-  /** Poster image — YouTube only; Instagram exposes no public thumbnail. */
+  /** Poster image - YouTube only; Instagram exposes no public thumbnail. */
   thumbnailUrl: string | null
   sortOrder: number
   active: boolean

@@ -43,7 +43,7 @@ onMounted(() => account.fetchSessions())
         <div class="text-sm font-extrabold text-brand-navy">Verifikasi dua langkah</div>
         <!-- Honest label: nothing behind this toggle yet, and pretending
              otherwise on a security screen is worse than saying so. -->
-        <div class="mt-0.5 text-[12.5px] text-text-faint">Belum tersedia — sedang disiapkan</div>
+        <div class="mt-0.5 text-[12.5px] text-text-faint">Belum tersedia - sedang disiapkan</div>
       </div>
       <ToggleSwitch v-model="account.security.twofa" :disabled="true" label="Verifikasi dua langkah" />
     </div>

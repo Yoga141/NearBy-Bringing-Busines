@@ -102,7 +102,7 @@ async function save(id: string) {
         />
         <p v-if="errors[q.id]" class="mt-1.5 text-[12.5px] font-semibold text-danger">{{ errors[q.id] }}</p>
         <p class="mt-1.5 text-[12px] leading-relaxed text-text-faint">
-          Belum ada layanan email terhubung — jawaban ini tersimpan sebagai catatan, kirim balasannya lewat kontak di atas.
+          Belum ada layanan email terhubung - jawaban ini tersimpan sebagai catatan, kirim balasannya lewat kontak di atas.
         </p>
       </div>
 

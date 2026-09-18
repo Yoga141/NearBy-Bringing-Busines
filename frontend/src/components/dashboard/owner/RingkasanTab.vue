@@ -13,7 +13,7 @@ const ui = useUiStore()
 const dashboard = useDashboardStore()
 
 // Data is loaded once by DashboardView (the parent) when the panel opens,
-// shared across every tab via the store — no per-tab fetch needed here.
+// shared across every tab via the store - no per-tab fetch needed here.
 
 function addUmkm() {
   ui.openModal('editUmkm', { isNew: true })

@@ -14,7 +14,7 @@ import logo from '@/assets/logo-nearby.png'
           </div>
         </div>
         <p class="mt-3 max-w-[320px] text-[#94A5B8]">
-          Direktori UMKM lokal Balikpapan — kuliner, penginapan, fashion, oleh-oleh, hingga jasa, semua dalam satu
+          Direktori UMKM lokal Balikpapan - kuliner, penginapan, fashion, oleh-oleh, hingga jasa, semua dalam satu
           tempat.
         </p>
       </div>

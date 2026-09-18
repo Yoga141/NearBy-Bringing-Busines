@@ -34,7 +34,7 @@ export const useUiStore = defineStore('ui', () => {
     lightbox.value = null
   }
 
-  // Pengaturan (account settings) modal — global overlay, opened from the
+  // Pengaturan (account settings) modal - global overlay, opened from the
   // header dropdown on any page (matches the prototype's openSettings()).
   const settingsOpen = ref(false)
   const settingsTab = ref('profil')
@@ -47,7 +47,7 @@ export const useUiStore = defineStore('ui', () => {
     settingsOpen.value = false
   }
 
-  // Dashboard modals — one generic slot, matching the prototype's single
+  // Dashboard modals - one generic slot, matching the prototype's single
   // modalKind/modalItem pair reused by all 5 dashboard modals.
   type ModalKind = 'editUmkm' | 'manageUser' | 'submissionDetail' | 'replyReview' | null
   const modalKind = ref<ModalKind>(null)

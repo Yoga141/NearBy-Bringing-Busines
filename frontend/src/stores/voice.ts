@@ -21,7 +21,7 @@ import { parseCommand, stripWakeWord, type ParsedCommand, type PageName } from '
  *     stops recognition first and restarts it when the last word is out.
  *  2. Chrome ends a recognition session on its own every few seconds (and after
  *     every result). "Always listening" is therefore a restart loop, not one
- *     long session — see `scheduleRestart`.
+ *     long session - see `scheduleRestart`.
  *
  * Searching reuses the directory filters in the umkm store instead of querying
  * separately, so a sighted helper looking over the user's shoulder sees exactly
@@ -44,7 +44,7 @@ const HELP_TEXT =
   'buka nomor dua untuk mendengar detail, ' +
   'favorit saya, ulangi, kembali ke beranda, atau berhenti.'
 
-/** Spoken name for each named static page — matches the router's own route names. */
+/** Spoken name for each named static page - matches the router's own route names. */
 const PAGE_LABELS: Record<PageName, string> = {
   panduan: 'Panduan',
   tentang: 'Tentang Kami',
@@ -58,7 +58,7 @@ function spokenRating(rating: number): string {
   return rating.toFixed(1).replace('.', ',')
 }
 
-/** Digits one by one — "0812…" is otherwise read as one huge number. */
+/** Digits one by one - "0812…" is otherwise read as one huge number. */
 function spokenDigits(text: string): string {
   return text.replace(/\d/g, (d) => `${d} `).trim()
 }
@@ -98,7 +98,7 @@ export const useVoiceStore = defineStore('voice', () => {
   const enabled = ref(false)
   const phase = ref<VoicePhase>('mati')
   const error = ref('')
-  /** Last thing heard and last thing said — mirrored into an aria-live region. */
+  /** Last thing heard and last thing said - mirrored into an aria-live region. */
   const heard = ref('')
   const spoken = ref('')
   /** Results of the last search, so "buka nomor dua" has something to refer to. */
@@ -125,7 +125,7 @@ export const useVoiceStore = defineStore('voice', () => {
    * Resolves when the last chunk ends. The watchdog is not paranoia: some
    * engines never fire `onend` if the utterance is cancelled mid-flight, and a
    * promise that never settles would strand the assistant in 'bicara' with the
-   * microphone off — i.e. permanently deaf.
+   * microphone off - i.e. permanently deaf.
    */
   function speak(text: string): Promise<void> {
     spoken.value = text
@@ -255,7 +255,7 @@ export const useVoiceStore = defineStore('voice', () => {
     try {
       rec.abort()
     } catch {
-      // Already stopped — nothing to undo.
+      // Already stopped - nothing to undo.
     }
     recognitionRunning = false
   }
@@ -285,7 +285,7 @@ export const useVoiceStore = defineStore('voice', () => {
     if (afterWake === null) return // background chatter, stay asleep
 
     if (!afterWake) {
-      // Just the wake word — answer and give them a window to speak.
+      // Just the wake word - answer and give them a window to speak.
       await speak('Ya, silakan.')
       if (!enabled.value) return
       phase.value = 'mendengar'
@@ -346,7 +346,7 @@ export const useVoiceStore = defineStore('voice', () => {
   async function runSearch(cmd: ParsedCommand) {
     const umkm = useUmkmStore()
 
-    // Open the page first, independent of whether the fetch below succeeds —
+    // Open the page first, independent of whether the fetch below succeeds -
     // otherwise a slow or failed load leaves the assistant only talking, with
     // nothing to show for it, which reads as "it can't open pages" even
     // though the command was understood just fine.
@@ -366,7 +366,7 @@ export const useVoiceStore = defineStore('voice', () => {
     let list = umkm.filteredDirectory
     let relaxed = false
     // A misheard word in the free-text part shouldn't sink an otherwise good
-    // search — fall back to the category and kecamatan alone and say so.
+    // search - fall back to the category and kecamatan alone and say so.
     if (!list.length && cmd.keyword && (cmd.category || cmd.location)) {
       umkm.q = ''
       list = umkm.filteredDirectory
@@ -398,7 +398,7 @@ export const useVoiceStore = defineStore('voice', () => {
     )
   }
 
-  /** "buka daftar UMKM", "buka direktori" — the whole catalog, no filters. */
+  /** "buka daftar UMKM", "buka direktori" - the whole catalog, no filters. */
   async function runDirectory() {
     const umkm = useUmkmStore()
 
@@ -427,7 +427,7 @@ export const useVoiceStore = defineStore('voice', () => {
     )
   }
 
-  /** "buka halaman panduan", "tentang kami", "syarat dan ketentuan" — a named static page. */
+  /** "buka halaman panduan", "tentang kami", "syarat dan ketentuan" - a named static page. */
   async function runOpenPage(page: PageName | null) {
     if (!page) {
       await reply(`Maaf, saya belum mengerti halaman yang dimaksud. Ucapkan bantuan untuk mendengar daftar perintah.`)

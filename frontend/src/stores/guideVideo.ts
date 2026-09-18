@@ -13,7 +13,7 @@ export interface GuideVideoDraft {
  * The registration tutorial video shown on /panduan: uploaded by an admin from
  * the dashboard, streamed back from our own storage.
  *
- * Distinct from `videos.ts` (social media *links* on the homepage) — this one
+ * Distinct from `videos.ts` (social media *links* on the homepage) - this one
  * owns an actual file, which is why the upload goes through XMLHttpRequest
  * rather than `apiFetch`.
  */
@@ -28,7 +28,7 @@ export const useGuideVideoStore = defineStore('guideVideo', () => {
     if (loaded.value && !force) return
     loading.value = true
     try {
-      // 204 when no video is live yet — apiFetch gives back null for that.
+      // 204 when no video is live yet - apiFetch gives back null for that.
       video.value = (await apiFetch<GuideVideo | null>('/guide-video')) ?? null
       loaded.value = true
     } catch {

@@ -48,7 +48,7 @@ import ArrowLeftIcon from '@/components/shared/ArrowLeftIcon.vue'
         <div class="rounded-2xl border border-border-hairline bg-[#F4F0E7] px-6 py-[22px]">
           <div class="mb-1 text-base font-extrabold text-brand-navy">Pertanyaan seputar privasi?</div>
           <p class="m-0 text-[14.5px] leading-relaxed text-text-muted">
-            Hubungi kami di <span class="font-bold text-brand-blue">privasi@nearby.id</span> — kami siap membantu.
+            Hubungi kami di <span class="font-bold text-brand-blue">privasi@nearby.id</span> - kami siap membantu.
           </p>
         </div>
         <RouterLink :to="{ name: 'beranda' }" class="flex items-center gap-1.5 text-[14.5px] font-bold text-brand-blue"><ArrowLeftIcon size="13px" /> Kembali ke beranda</RouterLink>

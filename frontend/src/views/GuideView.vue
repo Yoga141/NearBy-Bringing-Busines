@@ -51,7 +51,7 @@ const steps = [
     n: 3,
     bg: '#3E8E82',
     title: 'Unggah foto & daftar menu / produk',
-    body: 'Tambahkan minimal <strong>3 foto usaha</strong> yang terang dan jelas. Lalu isi <strong>menu atau produk beserta harga</strong> — kamu juga bisa menambahkan foto untuk tiap item lewat kotak foto di samping namanya.',
+    body: 'Tambahkan minimal <strong>3 foto usaha</strong> yang terang dan jelas. Lalu isi <strong>menu atau produk beserta harga</strong> - kamu juga bisa menambahkan foto untuk tiap item lewat kotak foto di samping namanya.',
     tipBg: '#F7EDDC',
     tipColor: '#B07A1E',
     tipIcon: CameraIcon,
@@ -213,7 +213,7 @@ const faqs = [
             <h3 class="m-0 mb-1.5 flex items-center gap-2 text-xl font-extrabold text-white">UMKM tampil di direktori <PartyPopperIcon size="20px" /></h3>
             <p class="m-0 text-[15.5px] leading-[1.65] text-[#D3E0F2]">
               Begitu disetujui, usahamu langsung muncul di daftar dan pencarian NearBy. Warga bisa melihat profil,
-              menu, memberi rating &amp; ulasan — dan kamu bisa membalas ulasan langsung dari dashboard.
+              menu, memberi rating &amp; ulasan - dan kamu bisa membalas ulasan langsung dari dashboard.
             </p>
           </div>
         </div>
