@@ -8,6 +8,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -22,6 +23,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
         ]);
+
+        // Check the role before route-model binding looks the record up, so a
+        // refused request gets 403 without a database query - and without a
+        // 404-vs-403 difference revealing which ids exist. Authentication still
+        // runs first (it sits higher in the same priority list).
+        $middleware->prependToPriorityList(
+            before: SubstituteBindings::class,
+            prepend: EnsureUserHasRole::class,
+        );
 
         // This app is an SPA + token API and has no server-rendered "login"
         // route. Without this, an unauthenticated API call that doesn't send

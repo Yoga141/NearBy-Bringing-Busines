@@ -60,12 +60,12 @@ Repositori ini berisi dua bagian utama yang berdiri sendiri-sendiri:
 NearBy-Bringing-Busines/
 ├── backend/    Laravel REST API (PHP, autentikasi, database, Excel, penyimpanan berkas)
 ├── frontend/   Aplikasi Vue 3 + TypeScript (SPA yang dikonsumsi publik)
-├── _arsip/     Kode lama yang sudah tidak dipakai (backend PHP native) - boleh dihapus
+├── PERINTAH_SUARA.md  Daftar perintah suara asisten aksesibilitas
 └── README.md   Dokumen ini
 ```
 
-`backend/` adalah satu-satunya backend. Folder `nearby-backend/` yang dulu ada
-hanyalah kerangka folder kosong (tiruan path server cPanel) dan sudah dilebur.
+`backend/` adalah satu-satunya backend. Backend PHP native lama (`api/`,
+`helpers/`, `schema.sql`) dan folder kosong `nearby-backend/` sudah dihapus.
 
 ## 🛠 Teknologi
 
