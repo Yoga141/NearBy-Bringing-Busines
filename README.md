@@ -9,19 +9,35 @@
 ![Pinia](https://img.shields.io/badge/Pinia-3.0-FFD859?style=for-the-badge&logo=pinia&logoColor=black)
 ![Vue Router](https://img.shields.io/badge/Vue_Router-5.1-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white)
 ![Three.js](https://img.shields.io/badge/Three.js-0.185-000000?style=for-the-badge&logo=threedotjs&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)
 
 </div>
 
 NearBy Balikpapan adalah website yang dirancang untuk membantu masyarakat menemukan dan mengenal Usaha Mikro, Kecil, dan Menengah (UMKM) di Kalimantan Timur. Platform ini bertujuan untuk mendukung digitalisasi UMKM dengan menyediakan informasi usaha yang lengkap, mudah diakses, dan berbasis lokasi.
 
-# 🎯 Tujuan Proyek
+## Daftar Isi
+
+- [Tujuan Proyek](#-tujuan-proyek)
+- [Fitur](#-fitur)
+- [Struktur Proyek](#-struktur-proyek)
+- [Teknologi](#-teknologi)
+- [Keamanan](#-keamanan)
+- [Instalasi dan Menjalankan Proyek](#-instalasi-dan-menjalankan-proyek)
+- [Menjalankan Pengujian](#-menjalankan-pengujian)
+- [Dokumentasi Tambahan](#-dokumentasi-tambahan)
+- [Tim Pengembang](#-tim-pengembang)
+- [Status Proyek](#-status-proyek)
+- [Lisensi](#-lisensi)
+
+## 🎯 Tujuan Proyek
 
 - Mempermudah masyarakat menemukan UMKM di sekitarnya.
 - Mendukung promosi dan digitalisasi UMKM lokal.
 - Menyediakan informasi UMKM yang akurat dan mudah diakses.
 - Meningkatkan eksposur UMKM kepada masyarakat.
 
-# ✨ Fitur
+## ✨ Fitur
 
 - 🏠 Landing Page
 - 📋 Katalog UMKM
@@ -30,14 +46,26 @@ NearBy Balikpapan adalah website yang dirancang untuk membantu masyarakat menemu
 - ⭐ Rekomendasi UMKM
 - 🏪 Detail UMKM
 - 👤 Profil UMKM
-- 🛠 Dashboard Admin
+- 🛠 Dashboard Pemilik UMKM dan Admin
+- 📥 Ekspor/Impor data UMKM lewat Excel
 - 🎬 Video Medsos (cuplikan Instagram & YouTube, dikelola dari dashboard)
-- ♿ Menu Aksesibilitas (bacakan halaman, keyboard virtual, animasi lambat)
+- ♿ Menu Aksesibilitas (asisten suara, bacakan halaman, keyboard virtual, animasi lambat) - lihat [PERINTAH_SUARA.md](PERINTAH_SUARA.md)
 - 📱 Responsive Design
 
-# 🛠 Teknologi
+## 📁 Struktur Proyek
 
-## Frontend
+Repositori ini berisi dua bagian utama yang berdiri sendiri-sendiri:
+
+```
+NearBy-Bringing-Busines/
+├── backend/    Laravel REST API (PHP, autentikasi, database, penyimpanan berkas)
+├── frontend/   Aplikasi Vue 3 + TypeScript (SPA yang dikonsumsi publik)
+└── README.md   Dokumen ini
+```
+
+## 🛠 Teknologi
+
+### Frontend (`frontend/`)
 - Vue 3 (Composition API)
 - TypeScript
 - Vite
@@ -45,35 +73,95 @@ NearBy Balikpapan adalah website yang dirancang untuk membantu masyarakat menemu
 - Pinia (state management)
 - Vue Router
 - Three.js (3D graphics)
+- ExcelJS (ekspor/impor data ke Excel)
 
-## Backend
-- PHP
+### Backend (`backend/`)
+- PHP 8.3
+- Laravel 13
+- Laravel Sanctum (autentikasi API berbasis token)
 
-## Database
-- MySQL
+### Database
+- SQLite (default untuk pengembangan lokal, cukup satu berkas, tanpa server terpisah)
+- MySQL (didukung untuk lingkungan produksi, tinggal ubah konfigurasi koneksi)
 
-## 🛡 Keamanan
-- Validasi input pengguna.
-- Perlindungan terhadap SQL Injection.
+## Keamanan
+
+- Validasi input pengguna di setiap endpoint API.
+- Autentikasi API berbasis token dengan Laravel Sanctum.
+- Perlindungan terhadap SQL Injection (Eloquent ORM, tanpa raw query dari input pengguna).
 - Perlindungan terhadap Cross Site Scripting (XSS).
 - Sanitasi data sebelum disimpan ke database.
 
-# 🚀 Cara Menjalankan
+## 🚀 Instalasi dan Menjalankan Proyek
 
-1. Clone repository ini.
-2. Jalankan web server (XAMPP, Laragon, atau sejenisnya).
-3. Import database ke MySQL.
-4. Sesuaikan konfigurasi koneksi database.
-5. Akses aplikasi melalui browser.
+Persyaratan: PHP 8.3+, Composer, Node.js 20+, dan npm.
 
-# 👥 Tim Pengembang
+### 1. Clone repository
 
-Proyek ini dikembangkan oleh mahasiswa Institut Teknologi Kalimantan (ITK) dalam rangka pengembangan sistem informasi berbasis web untuk mendukung digitalisasi UMKM melalui program INSOS Nearby.
+```bash
+git clone <url-repository-ini>
+cd NearBy-Bringing-Busines
+```
 
-# 📌 Status Proyek
+### 2. Backend (Laravel API)
 
-Development — Proyek masih dalam tahap pengembangan dan penyempurnaan fitur.
+```bash
+cd backend
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed   # opsional, mengisi data contoh
+php artisan serve
+```
 
-# 📄 Lisensi
+Backend API akan berjalan di `http://localhost:8000` secara default. Sesuaikan koneksi database di `backend/.env` bila ingin memakai MySQL alih-alih SQLite bawaan.
+
+### 3. Frontend (Vue 3 + Vite)
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend akan berjalan di alamat lokal yang ditampilkan Vite (biasanya `http://localhost:5173`), dan memanggil backend API di atas.
+
+Untuk build produksi:
+
+```bash
+npm run build
+```
+
+## 🧪 Menjalankan Pengujian
+
+Backend menggunakan PHPUnit lewat Artisan:
+
+```bash
+cd backend
+php artisan test
+```
+
+Frontend melakukan type-check TypeScript sebagai bagian dari proses build:
+
+```bash
+cd frontend
+npm run build
+```
+
+## 📚 Dokumentasi Tambahan
+
+- [PERINTAH_SUARA.md](PERINTAH_SUARA.md) - daftar lengkap perintah suara yang dikenali asisten aksesibilitas.
+- [backend/BACKEND_PLAN.md](backend/BACKEND_PLAN.md) - catatan rencana dan desain backend.
+
+## 👥 Tim Pengembang
+
+Proyek ini dikembangkan oleh mahasiswa Institut Teknologi Kalimantan (ITK) dalam rangka pengembangan sistem informasi berbasis web untuk mendukung digitalisasi UMKM melalui mata kuliah Inovasi Sosial.
+
+## 📌 Status Proyek
+
+Development - Proyek masih dalam tahap pengembangan dan penyempurnaan fitur.
+
+## 📄 Lisensi
 
 Proyek ini dibuat untuk tujuan akademik dan pengembangan pembelajaran.
