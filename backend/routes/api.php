@@ -35,14 +35,14 @@ Route::get('/umkm/{umkm}/reviews', [ReviewController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
-| Social videos (public read — homepage "Video dari medsos" section)
+| Social videos (public read - homepage "Video dari medsos" section)
 |--------------------------------------------------------------------------
 */
 Route::get('/social-videos', [SocialVideoController::class, 'index']);
 
 /*
 |--------------------------------------------------------------------------
-| Guide video (public read — the tutorial on /panduan)
+| Guide video (public read - the tutorial on /panduan)
 |--------------------------------------------------------------------------
 */
 Route::get('/guide-video', [GuideVideoController::class, 'current']);
@@ -50,7 +50,7 @@ Route::get('/guide-video/{guideVideo}/file', [GuideVideoController::class, 'stre
 
 /*
 |--------------------------------------------------------------------------
-| Profile photos (public read — an <img> cannot send the bearer token)
+| Profile photos (public read - an <img> cannot send the bearer token)
 |--------------------------------------------------------------------------
 */
 Route::get('/avatar/{filename}', [ProfilePhotoController::class, 'show'])
@@ -58,7 +58,7 @@ Route::get('/avatar/{filename}', [ProfilePhotoController::class, 'show'])
 
 /*
 |--------------------------------------------------------------------------
-| Help widget (public — works for guests too)
+| Help widget (public - works for guests too)
 |--------------------------------------------------------------------------
 */
 Route::post('/problem-reports', [ProblemReportController::class, 'store']);

@@ -31,7 +31,7 @@ class UmkmSeeder extends Seeder
      */
     private function data(): array
     {
-        // Demo owner (Dewi Anjani) is user id 2 — see UserSeeder.
+        // Demo owner (Dewi Anjani) is user id 2 - see UserSeeder.
         $ownerId = 2;
 
         return [
@@ -144,7 +144,7 @@ class UmkmSeeder extends Seeder
                 'id' => 8, 'name' => 'Kriya Rotan Manggar',
                 'category' => 'Oleh-Oleh', 'location' => 'Balikpapan Timur',
                 'rating' => 4.6, 'reviews_count' => 58, 'price_label' => 'Rp45–300rb',
-                'tag' => 'Kerajinan rotan handmade — tas, keranjang, dan dekorasi rumah.',
+                'tag' => 'Kerajinan rotan handmade - tas, keranjang, dan dekorasi rumah.',
                 'img_label' => 'foto kerajinan', 'address' => 'Jl. Mulawarman, Manggar, Balikpapan Timur',
                 'hours' => '09.00 – 17.00 WITA', 'phone' => '0813-7788-4455', 'ig' => '@kriya.manggar',
                 'list_label' => 'Produk', 'verification' => 'disetujui',

@@ -19,7 +19,7 @@ class ProblemReportController extends Controller
         ]);
 
         // This endpoint is public (the help widget works for guests too), so
-        // auth:sanctum isn't in the route's middleware — resolve the token
+        // auth:sanctum isn't in the route's middleware - resolve the token
         // directly against the sanctum guard to attach a user when present.
         $report = ProblemReport::create([
             'user_id' => $request->user('sanctum')?->id,

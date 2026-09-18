@@ -25,7 +25,7 @@ class QuestionController extends Controller
             'contact' => ['nullable', 'string', 'max:160'],
         ]);
 
-        // Public route, so auth:sanctum isn't in the middleware stack —
+        // Public route, so auth:sanctum isn't in the middleware stack -
         // resolve the token directly to attach a user when one is signed in.
         $question = Question::create([
             'user_id' => $request->user('sanctum')?->id,

@@ -77,7 +77,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Devices currently signed in — one row per Sanctum token.
+     * Devices currently signed in - one row per Sanctum token.
      *
      * The device label comes from the User-Agent recorded as the token's name
      * at login. Tokens carry no IP or location, so this reports what we

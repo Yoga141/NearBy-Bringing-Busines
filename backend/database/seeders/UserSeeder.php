@@ -10,7 +10,7 @@ class UserSeeder extends Seeder
     /**
      * One demo account per role, mirroring the frontend's mocked logins:
      *  - user  : Rizky Pratama
-     *  - owner : Dewi Anjani  (owns UMKM ids 1 & 4 — see UmkmSeeder, which
+     *  - owner : Dewi Anjani  (owns UMKM ids 1 & 4 - see UmkmSeeder, which
      *            assumes she is the 2nd user created, i.e. id 2)
      *  - admin : Admin NearBy
      *
@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
      * so a shared/production environment can seed these accounts with real
      * passwords instead of the "password" placeholder. Note: env() reads
      * .env directly and is only safe here because seeders run as CLI
-     * commands — if this were request-time app code, a cached config
+     * commands - if this were request-time app code, a cached config
      * (`config:cache`) would make env() return null.
      *
      * The fallback is `?:`, not env()'s second argument: a key that is present

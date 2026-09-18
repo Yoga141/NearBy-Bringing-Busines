@@ -14,9 +14,9 @@ use Illuminate\Validation\Rule;
  * Bulk export / import of UMKM rows for the Excel feature in the dashboard.
  *
  * The spreadsheet itself is written and parsed in the browser (SheetJS); this
- * controller only speaks JSON rows. Import is deliberately two-phase —
+ * controller only speaks JSON rows. Import is deliberately two-phase -
  * `preview` validates and reports without touching the database, `commit`
- * re-validates from scratch and applies inside a transaction — so a bad sheet
+ * re-validates from scratch and applies inside a transaction - so a bad sheet
  * can never half-apply, and the preview can't be tampered with to skip checks.
  */
 class UmkmPortController extends Controller
@@ -113,7 +113,7 @@ class UmkmPortController extends Controller
                 $umkm = Umkm::create([
                     ...$data,
                     'owner_id' => $user->id,
-                    // An owner can never publish by importing — new rows queue for
+                    // An owner can never publish by importing - new rows queue for
                     // verification exactly like the normal "ajukan UMKM" flow.
                     'verification' => $isAdmin ? ($data['verification'] ?? 'disetujui') : 'menunggu',
                     'status' => $data['status'] ?? 'aktif',

@@ -6,15 +6,15 @@
  * Kenapa file ini ada:
  * .cpanel.yml menyalin isi `backend/public/` ke `public_html/api/`,
  * sementara aplikasinya sendiri tinggal di `/home/nearby/nearby-backend/`.
- * Akibatnya `public/index.php` bawaan Laravel — yang mencari vendor dan
- * bootstrap lewat `__DIR__.'/../'` — ikut berpindah dan jadi menunjuk ke
+ * Akibatnya `public/index.php` bawaan Laravel - yang mencari vendor dan
+ * bootstrap lewat `__DIR__.'/../'` - ikut berpindah dan jadi menunjuk ke
  * `/home/nearby/public_html/`, tempat yang tidak berisi apa-apa. PHP fatal
  * di baris `require` sebelum Laravel sempat boot, dan seluruh endpoint API
  * balas HTTP 500 dengan body kosong.
  *
  * File ini menyelesaikannya dengan menunjuk path aplikasi secara absolut,
  * lalu disalin menimpa index.php hasil copy pada task deploy terakhir.
- * Karena ikut ter-commit, perbaikannya tidak akan tertimpa lagi tiap deploy —
+ * Karena ikut ter-commit, perbaikannya tidak akan tertimpa lagi tiap deploy -
  * berbeda dengan menambal index.php langsung di server.
  *
  * `public/index.php` sengaja dibiarkan apa adanya supaya `php artisan serve`
@@ -34,7 +34,7 @@ $appBase = '/home/nearby/nearby-backend';
 
 if (! is_file($appBase.'/vendor/autoload.php')) {
     // Tanpa ini, kegagalan path cuma tampil sebagai 500 kosong yang sulit
-    // dilacak — persis masalah yang file ini perbaiki.
+    // dilacak - persis masalah yang file ini perbaiki.
     http_response_code(500);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([

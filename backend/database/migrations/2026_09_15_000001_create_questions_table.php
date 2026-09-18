@@ -19,7 +19,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name')->nullable();
-            // How the admin can get back to the asker — there's no in-app inbox
+            // How the admin can get back to the asker - there's no in-app inbox
             // and no mail service wired up, so a reply happens out of band.
             $table->string('contact')->nullable();
             $table->text('text');

@@ -22,7 +22,7 @@ class ProfilePhotoController extends Controller
     /**
      * Public: serve one photo by its stored filename.
      *
-     * Unauthenticated on purpose — an <img> tag cannot send the Bearer token,
+     * Unauthenticated on purpose - an <img> tag cannot send the Bearer token,
      * so a protected URL simply would not render. What stands in for auth is
      * the filename: Laravel's 40-character random upload name, which cannot be
      * guessed and, unlike a `/users/{id}/avatar` route, lets nobody walk the

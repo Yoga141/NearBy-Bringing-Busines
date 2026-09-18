@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 class SubmissionSeeder extends Seeder
 {
     /**
-     * Verification queue — mirrors the frontend `SUBMISSIONS_RAW`.
+     * Verification queue - mirrors the frontend `SUBMISSIONS_RAW`.
      */
     public function run(): void
     {

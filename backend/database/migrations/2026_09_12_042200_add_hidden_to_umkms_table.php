@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Admin-only visibility toggle, independent of the owner's `status`
-     * (open/on leave/closed) and the approval `verification` state — lets
+     * (open/on leave/closed) and the approval `verification` state - lets
      * an admin temporarily unpublish an already-approved UMKM without
      * rejecting or deleting it.
      */

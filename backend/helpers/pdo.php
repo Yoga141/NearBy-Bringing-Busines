@@ -4,12 +4,12 @@
  * PDO connection for the standalone endpoints under `api/`.
  *
  * Those files are plain PHP and never boot Laravel, so they can't use
- * `config/database.php` (which just returns Laravel's config array — requiring
+ * `config/database.php` (which just returns Laravel's config array - requiring
  * it was the reason `$pdo` was always undefined). This file is the missing
  * piece: it defines `$pdo` and nothing else.
  *
  * The schema it expects is `database/schema.sql` (MySQL: users, auth_tokens,
- * umkm_profiles, umkm_photos, umkm_products, categories, locations) — import
+ * umkm_profiles, umkm_photos, umkm_products, categories, locations) - import
  * that first, as the README's "Cara Menjalankan" describes. Note this is a
  * different data model from the Laravel migrations, which the Vue frontend
  * uses via `routes/api.php`.
@@ -21,7 +21,7 @@
 require_once __DIR__ . '/response.php';
 
 /**
- * Minimal .env reader — Laravel's `env()` isn't available here.
+ * Minimal .env reader - Laravel's `env()` isn't available here.
  *
  * @return array<string, string>
  */

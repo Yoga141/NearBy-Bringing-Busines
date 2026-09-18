@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 class ReviewSeeder extends Seeder
 {
     /**
-     * Mirrors the frontend `seedReviewsFor()` — every UMKM gets the same
+     * Mirrors the frontend `seedReviewsFor()` - every UMKM gets the same
      * 3 base reviews. Timestamps approximate the "x hari/minggu lalu" labels.
      */
     public function run(): void

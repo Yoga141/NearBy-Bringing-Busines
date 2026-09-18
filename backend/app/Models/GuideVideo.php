@@ -30,7 +30,7 @@ class GuideVideo extends Model
      *
      * The bytes are streamed back through the API rather than linked straight
      * into `storage/`, because the public disk is only reachable from the web
-     * after `php artisan storage:link` — a symlink that quietly fails to exist
+     * after `php artisan storage:link` - a symlink that quietly fails to exist
      * on plenty of Windows and shared-hosting setups. Going through a route
      * works the same everywhere, and keeps range requests (seeking) working.
      *
@@ -43,7 +43,7 @@ class GuideVideo extends Model
         return Attribute::get(fn (): string => "/api/guide-video/{$this->id}/file");
     }
 
-    /** "12,4 MB" — ready to print, in Indonesian decimal notation. */
+    /** "12,4 MB" - ready to print, in Indonesian decimal notation. */
     protected function sizeLabel(): Attribute
     {
         return Attribute::get(function (): string {

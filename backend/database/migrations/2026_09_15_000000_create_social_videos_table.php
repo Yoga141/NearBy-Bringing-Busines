@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * Social-media video slots shown in the "Video dari medsos NearBy" section
      * on the homepage. The rows are created up front (three slots, matching the
-     * design) and an admin fills in `url` later from the dashboard — a slot with
+     * design) and an admin fills in `url` later from the dashboard - a slot with
      * a null `url` renders as the "Video belum tersedia" placeholder card.
      */
     public function up(): void

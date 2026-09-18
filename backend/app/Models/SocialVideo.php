@@ -16,7 +16,7 @@ class SocialVideo extends Model
     /**
      * Player URL for an <iframe>, derived from the pasted share link so admins
      * can paste whatever the platform's "Share" button gives them. Null when no
-     * link is set yet, or when the link isn't in a shape we can embed — the card
+     * link is set yet, or when the link isn't in a shape we can embed - the card
      * then falls back to the placeholder / a plain outbound link.
      */
     protected function embedUrl(): Attribute

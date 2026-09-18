@@ -42,7 +42,7 @@ class GuideVideoController extends Controller
      * Public: stream the bytes.
      *
      * `response()->file()` returns a BinaryFileResponse, which answers `Range`
-     * requests with a 206 — that is what lets the viewer drag the scrubber
+     * requests with a 206 - that is what lets the viewer drag the scrubber
      * instead of having to download the whole video before seeking.
      */
     public function stream(GuideVideo $guideVideo): BinaryFileResponse
@@ -66,7 +66,7 @@ class GuideVideoController extends Controller
      * Admin: limits the upload form needs to state up front.
      *
      * PHP's own `upload_max_filesize` / `post_max_size` silently truncate a
-     * request that exceeds them — the browser finishes uploading and Laravel
+     * request that exceeds them - the browser finishes uploading and Laravel
      * then sees no file at all. Surfacing the real ceiling lets the dashboard
      * say "maksimal 2 MB" before the admin waits through a doomed upload.
      */
@@ -105,7 +105,7 @@ class GuideVideoController extends Controller
             'video.max' => 'Ukuran video melebihi batas '.$this->maxMegabytes().' MB.',
             // A file between `upload_max_filesize` and `post_max_size` arrives
             // flagged UPLOAD_ERR_INI_SIZE, and the stock message for that is
-            // "The video failed to upload" — which sends an admin hunting for a
+            // "The video failed to upload" - which sends an admin hunting for a
             // network fault instead of the php.ini line that actually rejected it.
             'video.uploaded' => 'Berkas ditolak PHP karena melebihi upload_max_filesize ('
                 .ini_get('upload_max_filesize').'). Naikkan upload_max_filesize dan post_max_size '

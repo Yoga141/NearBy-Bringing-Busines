@@ -1,9 +1,6 @@
+# NearBy - Backend API (Laravel)
 
-
-# NearBy — Backend API (Laravel)
-
-Backend REST API untuk aplikasi **NearBy** (direktori UMKM Balikpapan).
-Frontend Vue-nya ada di **branch `front-end`** repo ini (bukan di branch `Back-end`).
+Backend REST API untuk aplikasi **NearBy**. Frontend Vue-nya ada di folder `frontend/` pada repo yang sama.
 
 > ✅ **Backend sudah dibuat & jalan.** Laravel 13 + Sanctum, database **SQLite**.
 > Semua tabel, model, controller, resource, route, dan seeder di dokumen ini
@@ -27,66 +24,6 @@ php artisan serve            # http://127.0.0.1:8000
 | `jekikilo15@mail.com` | user  | Jeki          |
 | `dewi@mail.com`       | owner | Dewi Anjani (punya UMKM #1 & #4) |
 | `admin@nearby.id`     | admin | Admin NearBy  |
-
----
-
-## Struktur Folder Keseluruhan
-
-```
-NearBy-Bringing-Busines-front-end/          ← folder induk
-├── NearBy-Bringing-Busines-front-end/       ← FRONTEND (Vue 3 + Vite) — sudah ada
-└── backend/                                  ← BACKEND (Laravel) — folder ini
-    ├── app/
-    │   ├── Http/
-    │   │   ├── Controllers/Api/             ← controller endpoint API
-    │   │   ├── Requests/                    ← validasi form request
-    │   │   └── Resources/                   ← transformasi JSON (API Resource)
-    │   └── Models/                          ← Eloquent model
-    ├── database/
-    │   ├── migrations/                      ← skema tabel
-    │   └── seeders/                         ← data awal (dari frontend)
-    ├── routes/api.php                        ← definisi endpoint
-    └── .env                                  ← config DB, dsb.
-```
-
----
-
-## Cara Membuat (setelah PHP + Composer terinstall)
-
-Jalankan dari folder induk. Perintah ini akan mengisi folder `backend`:
-
-```bash
-# 1. Buat project Laravel di folder ini
-composer create-project laravel/laravel backend
-
-# 2. Masuk ke folder
-cd backend
-
-# 3. Install Laravel Sanctum (untuk auth token API)
-composer require laravel/sanctum
-
-# 4. Setup database di file .env (lihat bagian Database)
-#    lalu jalankan migrasi + seeder
-php artisan migrate --seed
-
-# 5. Jalankan server (default http://127.0.0.1:8000)
-php artisan serve
-```
-
----
-
-## Database (contoh `.env`)
-
-Sesuaikan dengan MySQL dari Laragon/XAMPP:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=nearby
-DB_USERNAME=root
-DB_PASSWORD=
-```
 
 ---
 
@@ -173,7 +110,7 @@ Diturunkan dari `src/types/index.ts` dan data di `src/data/` pada frontend.
 | id         | bigint PK                             |                                           |
 | user_id    | bigint FK → users.id, nullable        | null bila dikirim tamu                    |
 | name       | string nullable                       | nama yang diisi pengirim                  |
-| contact    | string nullable                       | WhatsApp/email — tidak ada inbox in-app   |
+| contact    | string nullable                       | WhatsApp/email - tidak ada inbox in-app   |
 | text       | text                                  | isi pertanyaan                            |
 | answer     | text nullable                         | catatan jawaban admin                     |
 | status     | enum('baru','dijawab','ditutup')      | default `baru`                            |
@@ -190,7 +127,7 @@ Diturunkan dari `src/types/index.ts` dan data di `src/data/` pada frontend.
 | active     | boolean default true             | `false` = tidak tampil di endpoint publik    |
 | timestamps |                                  |                                              |
 
-`embedUrl` & `thumbnailUrl` tidak disimpan — keduanya diturunkan dari `url`
+`embedUrl` & `thumbnailUrl` tidak disimpan - keduanya diturunkan dari `url`
 oleh model (`App\Models\SocialVideo`), supaya admin bisa menempel tautan apa
 pun dari tombol *Share* (`watch?v=`, `youtu.be`, Shorts, `/reel/`, `/p/`).
 
@@ -230,7 +167,7 @@ Semua di-prefix `/api`. Yang butuh login ditandai 🔒 (Sanctum token).
 | GET    | `/favorites`          | List favorit user         |
 | POST   | `/umkm/{id}/favorite` | Toggle favorit            |
 
-### Pusat Bantuan (publik — tamu pun bisa)
+### Pusat Bantuan (publik - tamu pun bisa)
 | Method | Endpoint            | Fungsi                                  |
 |--------|---------------------|-----------------------------------------|
 | POST   | `/problem-reports`  | Kirim laporan masalah / bug             |
@@ -287,17 +224,17 @@ Repo ini memuat **dua** implementasi backend yang berdiri sendiri:
 | Skema | `database/migrations/` (`umkms`, `umkm_items`, …) | `database/schema.sql` (`umkm_profiles`, `umkm_photos`, …) |
 | Database | SQLite (default `.env.example`) | MySQL |
 | Auth | Sanctum token | tabel `auth_tokens` sendiri |
-| Koneksi | otomatis oleh Laravel | `config/pdo.php` |
+| Koneksi | otomatis oleh Laravel | `helpers/pdo.php` |
 
 Keduanya **tidak berbagi tabel**. Frontend Vue hanya memanggil jalur Laravel.
 
 Endpoint `api/*.php` dulu selalu fatal error karena me-`require`
-`config/database.php` — file itu hanya mengembalikan array config Laravel dan
-tidak pernah membuat `$pdo`. Sekarang semuanya me-`require` **`config/pdo.php`**,
+`config/database.php` - file itu hanya mengembalikan array config Laravel dan
+tidak pernah membuat `$pdo`. Sekarang semuanya me-`require` **`helpers/pdo.php`**,
 yang benar-benar membuat koneksi PDO. Untuk memakainya: impor
 `database/schema.sql` ke MySQL, lalu set `DB_HOST`/`DB_DATABASE`/`DB_USERNAME`/
 `DB_PASSWORD` di `.env` (default: `127.0.0.1` / `nearby_balikpapan` / `root` /
-kosong). Bila koneksi gagal, endpoint menjawab JSON 500 yang rapi — bukan lagi
+kosong). Bila koneksi gagal, endpoint menjawab JSON 500 yang rapi - bukan lagi
 fatal error yang membocorkan jejak.
 
 ---
@@ -315,18 +252,4 @@ Di `config/cors.php` Laravel, izinkan origin tersebut:
 Di frontend, base URL API bisa disimpan di `.env`:
 ```env
 VITE_API_URL=http://127.0.0.1:8000/api
-```
-
----
-
-## Langkah Migrasi Frontend (mock → API)
-
-Saat ini frontend pakai data mock di `src/data/*.ts` dan store Pinia.
-Rencana penggantian bertahap:
-
-1. Buat file `src/lib/api.ts` (wrapper `fetch` ke `VITE_API_URL`).
-2. Ganti isi store satu per satu (`umkm.ts`, `reviews.ts`, `auth.ts`, dst.)
-   dari data statis → panggil API.
-3. Pindahkan seed di `src/data/*.ts` menjadi Laravel Seeder
-   (`database/seeders/`) supaya data awal sama persis.
 ```

@@ -56,7 +56,7 @@ class SocialVideoController extends Controller
     /**
      * Shared validation. A link is optional (an empty slot is a valid state),
      * but when given it has to be one we can actually turn into an embed for
-     * the chosen platform — otherwise the card would silently stay blank.
+     * the chosen platform - otherwise the card would silently stay blank.
      *
      * @return array<string, mixed>
      */

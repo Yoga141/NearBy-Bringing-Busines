@@ -14,7 +14,7 @@ return new class extends Migration
      * and the metadata needed to serve it back (`mime_type`, `size`), while the
      * bytes live under `storage/app/public/guide-videos`.
      *
-     * Several videos may be uploaded, but the guide page shows one — the newest
+     * Several videos may be uploaded, but the guide page shows one - the newest
      * row with `active` set. Keeping the older ones lets an admin swap back
      * without re-uploading.
      */

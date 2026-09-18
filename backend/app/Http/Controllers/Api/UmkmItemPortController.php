@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Validator;
  *
  * Mirrors {@see UmkmPortController}: the spreadsheet is written and parsed in
  * the browser (exceljs), this controller only speaks JSON rows, and import is
- * two-phase — `preview` reports without touching the database, `commit`
+ * two-phase - `preview` reports without touching the database, `commit`
  * re-validates from scratch and applies inside a transaction.
  *
  * A product only exists inside a UMKM, so every row carries the parent's id.
@@ -41,7 +41,7 @@ class UmkmItemPortController extends Controller
         $rows = $query->get()->map(fn (UmkmItem $item) => [
             'id' => $item->id,
             'umkm_id' => $item->umkm_id,
-            // Context only — the sheet matches on ID UMKM, never on this name.
+            // Context only - the sheet matches on ID UMKM, never on this name.
             'umkm_name' => $item->umkm?->name,
             'name' => $item->name,
             'price' => $item->price,

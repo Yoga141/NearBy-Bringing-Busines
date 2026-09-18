@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Profile photo. Only the location on the `public` disk is stored — the
+     * Profile photo. Only the location on the `public` disk is stored - the
      * bytes live under `storage/app/public/avatars`, and `User::avatarUrl`
      * turns the path into the URL the frontend renders.
      *

@@ -36,7 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // A body larger than php.ini's `post_max_size` is discarded by PHP
         // before Laravel sees it, so the guide-video upload would otherwise
-        // fail with a bare "Pilih berkas video terlebih dahulu" — technically
+        // fail with a bare "Pilih berkas video terlebih dahulu" - technically
         // true, useless in practice. Name the real cause instead.
         $exceptions->render(function (PostTooLargeException $e, Request $request) {
             if (! $request->is('api/*')) {

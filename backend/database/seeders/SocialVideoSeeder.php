@@ -8,7 +8,7 @@ use Illuminate\Database\Seeder;
 class SocialVideoSeeder extends Seeder
 {
     /**
-     * The three homepage video slots. Links are intentionally left empty — the
+     * The three homepage video slots. Links are intentionally left empty - the
      * cards render as "Video belum tersedia" until an admin pastes the real
      * Instagram/YouTube link from the dashboard.
      */

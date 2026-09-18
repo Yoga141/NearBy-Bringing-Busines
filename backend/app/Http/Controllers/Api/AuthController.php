@@ -93,7 +93,7 @@ class AuthController extends Controller
      * Name a token after the device that asked for it.
      *
      * Sanctum stores no IP or user agent of its own, so the token name is the
-     * only place to record which device a session belongs to — without it the
+     * only place to record which device a session belongs to - without it the
      * "Sesi aktif" list could only ever show anonymous rows.
      */
     private function deviceName(Request $request): string

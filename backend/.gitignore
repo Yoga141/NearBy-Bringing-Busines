@@ -22,7 +22,7 @@
 /storage/pail
 # /vendor is intentionally tracked (not ignored): .cpanel.yml deploys this
 # directory with a plain `cp -R`, no `composer install` step, and no shell
-# access is assumed on the host — so vendor/ has to already be here, the same
+# access is assumed on the host - so vendor/ has to already be here, the same
 # way frontend/dist is committed instead of built on the server.
 _ide_helper.php
 Homestead.json
