@@ -433,6 +433,10 @@ export const useVoiceStore = defineStore('voice', () => {
       await reply(`Maaf, saya belum mengerti halaman yang dimaksud. Ucapkan bantuan untuk mendengar daftar perintah.`)
       return
     }
+    if (page === 'akun' && useAuthStore().isGuest) {
+      await reply('Halaman akun hanya ada setelah Anda masuk ke akun.')
+      return
+    }
     await router.push({ name: page })
     await reply(`Membuka halaman ${PAGE_LABELS[page]}.`)
   }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Submission;
 use App\Models\Umkm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -109,7 +110,7 @@ class UmkmPortController extends Controller
                     continue;
                 }
 
-                Umkm::create([
+                $umkm = Umkm::create([
                     ...$data,
                     'owner_id' => $user->id,
                     // An owner can never publish by importing — new rows queue for
@@ -117,6 +118,23 @@ class UmkmPortController extends Controller
                     'verification' => $isAdmin ? ($data['verification'] ?? 'disetujui') : 'menunggu',
                     'status' => $data['status'] ?? 'aktif',
                 ]);
+
+                // Same as UmkmController::store(): a non-admin's new row still
+                // needs a Submission row, or it can never reach the approval
+                // queue and stays permanently invisible.
+                if (! $isAdmin) {
+                    Submission::create([
+                        'umkm_id' => $umkm->id,
+                        'owner_id' => $user->id,
+                        'name' => $umkm->name,
+                        'owner_name' => $user->name,
+                        'category' => $umkm->category,
+                        'location' => $umkm->location,
+                        'status' => 'menunggu',
+                        'checks' => [],
+                        'files' => [],
+                    ]);
+                }
             }
         });
 

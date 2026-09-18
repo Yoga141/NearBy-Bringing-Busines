@@ -332,10 +332,19 @@ export function parseCommand(input: string): ParsedCommand {
   // "buka jam berapa" is a question about opening hours, not a command.
   // Failing that, a named page ("buka halaman panduan") or a category/
   // kecamatan ("buka kuliner") tell us what to open instead; with none of
-  // those either, "buka" is aimed at the directory itself.
+  // those either, it isn't a recognizable command.
   if (intent === 'buka' && index === null) {
-    intent = categoryHit ? 'cari' : locationHit ? 'cari' : pageHit ? 'halaman' : 'daftar'
+    intent = categoryHit ? 'cari' : locationHit ? 'cari' : pageHit ? 'halaman' : 'tidak_dikenal'
   }
+
+  // The 'daftar' catch-all keywords ("lihat semua", "tampilkan semua", …) are
+  // deliberately generic, so they win the ordered match above even when a
+  // category/kecamatan was also named ("tampilkan semua kuliner di selatan")
+  // or when the phrase was really about a named page ("cara daftar umkm"
+  // overlaps "daftar umkm"). Both are more specific than a bare directory
+  // listing, so they take priority over it.
+  if (intent === 'daftar' && (categoryHit || locationHit)) intent = 'cari'
+  if (intent === 'daftar' && pageHit) intent = 'halaman'
 
   // Naming a category or a kecamatan is a search on its own — someone saying
   // just "makanan di Balikpapan Selatan" means the obvious thing. Same for a

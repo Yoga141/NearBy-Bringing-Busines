@@ -47,10 +47,15 @@ class UmkmController extends Controller
     /** Detail with menu items and reviews. */
     public function show(Request $request, Umkm $umkm)
     {
+        $user = $request->user();
+        $isVisible = $umkm->verification === 'disetujui' && ! $umkm->hidden;
+        $isOwnerOrAdmin = $user && ($user->role === 'admin' || $umkm->owner_id === $user->id);
+        abort_unless($isVisible || $isOwnerOrAdmin, 404);
+
         $umkm->increment('views');
         $umkm->load(['items', 'reviews' => fn ($q) => $q->latest()]);
 
-        if ($user = $request->user()) {
+        if ($user) {
             $umkm->is_favorite = $user->favorites()->where('umkm_id', $umkm->id)->exists();
         }
 

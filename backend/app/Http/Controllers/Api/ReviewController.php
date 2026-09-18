@@ -79,8 +79,9 @@ class ReviewController extends Controller
     public function reply(Request $request, Review $review)
     {
         $user = $request->user();
+        $umkm = $review->umkm()->withTrashed()->first();
         abort_unless(
-            $user->role === 'admin' || $review->umkm->owner_id === $user->id,
+            $user->role === 'admin' || ($umkm && $umkm->owner_id === $user->id),
             403,
             'Hanya pemilik UMKM yang bisa membalas.'
         );
