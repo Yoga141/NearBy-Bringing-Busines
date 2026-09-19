@@ -1,10 +1,11 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import router from '@/router'
 import { useUmkmStore, type EnrichedUmkm } from './umkm'
 import { useAuthStore } from './auth'
 import { useA11yStore } from './a11y'
-import { parseCommand, stripWakeWord, type ParsedCommand, type PageName } from '@/lib/voiceIntent'
+import type { PageName } from '@/lib/voiceIntent'
+import { interpret, type VoiceCommand } from '@/lib/voiceNlp'
 
 /**
  * Hands-free voice assistant for blind and low-vision visitors.
@@ -21,7 +22,14 @@ import { parseCommand, stripWakeWord, type ParsedCommand, type PageName } from '
  *     stops recognition first and restarts it when the last word is out.
  *  2. Chrome ends a recognition session on its own every few seconds (and after
  *     every result). "Always listening" is therefore a restart loop, not one
- *     long session - see `scheduleRestart`.
+ *     long session - see `scheduleRestart`. A keep-alive tick backs that loop
+ *     up, so a session that dies without an `end` event (tab hidden, engine
+ *     hiccup, a command that threw) still comes back. The only ways out are
+ *     the user switching the assistant off or leaving the page.
+ *
+ * What an utterance means is decided by the Python NLP service
+ * (`nlp-service/`, via `lib/voiceNlp.ts`), which also supplies the first
+ * sentence of the answer; this store only executes the result.
  *
  * Searching reuses the directory filters in the umkm store instead of querying
  * separately, so a sighted helper looking over the user's shoulder sees exactly
@@ -35,6 +43,16 @@ export type VoicePhase = 'mati' | 'siaga' | 'mendengar' | 'memproses' | 'bicara'
 const COMMAND_WINDOW_MS = 12_000
 /** Results read out loud per search. More than this is a wall of speech. */
 const SPOKEN_RESULTS = 5
+/** How often the keep-alive checks that the microphone is really open. */
+const KEEPALIVE_MS = 3_000
+/** A 'bicara'/'memproses' phase older than this with nothing playing is stuck. */
+const STUCK_MS = 45_000
+/** Longest we wait for the first `start` event (the permission prompt) before greeting anyway. */
+const MIC_READY_TIMEOUT_MS = 15_000
+
+/** Spoken the first time the microphone comes on after a tap or key press. */
+export const ACTIVATION_GREETING =
+  'Mode aksesibilitas suara aktif. Silakan ucapkan Oke Near By untuk mulai mencari.'
 
 const HELP_TEXT =
   'Ucapkan Oke NearBy lebih dulu, lalu perintahnya. ' +
@@ -112,6 +130,19 @@ export const useVoiceStore = defineStore('voice', () => {
   let wantRecognition = false
   let restartTimer: ReturnType<typeof setTimeout> | undefined
   let commandTimer: ReturnType<typeof setTimeout> | undefined
+  let keepAliveTimer: ReturnType<typeof setInterval> | undefined
+  /** Consecutive sessions that ended in a real error - drives the restart backoff. */
+  let failures = 0
+  /** Has any session reached `start` yet, i.e. is the microphone permission granted? */
+  let micConfirmed = false
+  /** When the current phase began, for the stuck-phase guard in the keep-alive. */
+  let phaseSince = Date.now()
+  /** Resolves `enable()`'s wait for the microphone to actually open. */
+  let micWaiter: ((ok: boolean) => void) | null = null
+
+  watch(phase, () => {
+    phaseSince = Date.now()
+  })
 
   // ---- Keluaran suara ----
 
@@ -162,8 +193,27 @@ export const useVoiceStore = defineStore('voice', () => {
       const estimate = (text.length / 13 / Math.max(a11y.speechRate, 0.5)) * 1000 + 4000
       const watchdog = setTimeout(finish, estimate)
 
+      // Chrome sometimes leaves the engine paused after a cancel(), and every
+      // later utterance then queues silently behind it.
+      window.speechSynthesis.resume()
       for (const u of utterances) window.speechSynthesis.speak(u)
     })
+  }
+
+  /**
+   * Must run inside a tap/key handler: iOS Safari and Chrome only let a page
+   * talk once it has spoken during a user gesture. An empty utterance is
+   * enough to unlock every later `speak()` for the rest of the session.
+   */
+  function unlockSpeech() {
+    if (!ttsSupported) return
+    try {
+      const u = new SpeechSynthesisUtterance('')
+      u.volume = 0
+      window.speechSynthesis.speak(u)
+    } catch {
+      // Nothing to unlock on engines that don't need it.
+    }
   }
 
   /** Speak, then go back to waiting for the wake word. */
@@ -197,21 +247,41 @@ export const useVoiceStore = defineStore('voice', () => {
       if (transcript) void handleTranscript(transcript)
     }
 
+    rec.onstart = () => {
+      if (rec !== recognition) return
+      recognitionRunning = true
+      micConfirmed = true
+      failures = 0
+      if (error.value) error.value = ''
+      micWaiter?.(true)
+    }
+
     rec.onerror = (event) => {
+      if (rec !== recognition) return
       // 'no-speech' and 'aborted' are the normal rhythm of a restart loop, not
       // failures worth telling the user about.
       if (event.error === 'no-speech' || event.error === 'aborted') return
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        error.value = 'Izin mikrofon ditolak. Aktifkan izin mikrofon di peramban untuk memakai asisten suara.'
+        // The restart loop cannot fix a refused permission. Stop, say so, and
+        // let the next tap or key press (VoiceAssistant.vue) try again.
+        micWaiter?.(false)
+        const message =
+          'Izin mikrofon ditolak. Aktifkan izin mikrofon di peramban, lalu sentuh layar untuk mencoba lagi.'
         disable()
+        error.value = message
+        announce(message)
         return
       }
+      failures++
       if (event.error === 'network') {
-        error.value = 'Pengenalan suara butuh koneksi internet.'
+        error.value = 'Pengenalan suara butuh koneksi internet. Saya akan terus mencoba.'
+      } else if (event.error === 'audio-capture') {
+        error.value = 'Mikrofon tidak ditemukan. Saya akan terus mencoba.'
       }
     }
 
     rec.onend = () => {
+      if (rec !== recognition) return
       recognitionRunning = false
       scheduleRestart()
     }
@@ -249,6 +319,7 @@ export const useVoiceStore = defineStore('voice', () => {
     recognition = null
     // Detach handlers first: abort()'s 'end' event fires asynchronously, and
     // by then `rec` may no longer be the instance we're tracking.
+    rec.onstart = null
     rec.onresult = null
     rec.onerror = null
     rec.onend = null
@@ -263,33 +334,76 @@ export const useVoiceStore = defineStore('voice', () => {
   function scheduleRestart() {
     if (!wantRecognition || !enabled.value) return
     clearTimeout(restartTimer)
+    // Quick after a normal timeout; backing off to 5 s while the network or
+    // the microphone is failing, so we don't spin but never give up either.
+    const delay = failures ? Math.min(1000 * failures, 5000) : 300
     restartTimer = setTimeout(() => {
       if (wantRecognition && !recognitionRunning) startRecognition()
-    }, 400)
+    }, delay)
+  }
+
+  /**
+   * Safety net under the restart loop. `onend` is not guaranteed - a hidden
+   * tab, a command that threw, or a TTS engine that never reported finishing
+   * can all leave the assistant deaf with nothing scheduled. Every few seconds
+   * this makes sure that whenever we are not talking, we are listening.
+   */
+  function keepAlive() {
+    if (!enabled.value) return
+    const idle =
+      !ttsSupported || (!window.speechSynthesis.speaking && !window.speechSynthesis.pending)
+
+    if (
+      (phase.value === 'bicara' || phase.value === 'memproses') &&
+      idle &&
+      Date.now() - phaseSince > STUCK_MS
+    ) {
+      phase.value = 'siaga'
+    }
+
+    if ((phase.value === 'siaga' || phase.value === 'mendengar') && !recognitionRunning) {
+      startRecognition()
+    }
   }
 
   // ---- Alur perintah ----
 
+  /**
+   * Every final transcript goes to the Python NLP service (`lib/voiceNlp.ts`);
+   * nothing is interpreted here. While idle that includes background chatter -
+   * the server is what decides whether "Oke NearBy" was said.
+   */
   async function handleTranscript(transcript: string) {
     if (phase.value === 'bicara' || phase.value === 'memproses') return
-    heard.value = transcript
+    const awake = phase.value === 'mendengar'
 
-    if (phase.value === 'mendengar') {
-      // Already woken: whatever was said is the command.
+    if (awake) {
+      // Already woken: whatever was said is the command. Close the microphone
+      // while the server thinks, and don't let the command window run out
+      // mid-request.
       clearTimeout(commandTimer)
-      await runCommand(parseCommand(transcript))
-      return
+      phase.value = 'memproses'
+      stopRecognition()
     }
 
-    const afterWake = stripWakeWord(transcript)
-    if (afterWake === null) return // background chatter, stay asleep
+    const cmd = await interpret(transcript, !awake)
+    if (!enabled.value) return
+    // While idle the microphone stays open during the request, so another
+    // utterance may already have woken us - first answer wins.
+    if (!awake && phase.value !== 'siaga') return
 
-    if (!afterWake) {
+    if (cmd.action === 'abaikan') {
+      if (awake) backToListening('mendengar')
+      return // background chatter, stay asleep
+    }
+
+    heard.value = transcript
+
+    if (cmd.action === 'siaga_perintah') {
       // Just the wake word - answer and give them a window to speak.
-      await speak('Ya, silakan.')
+      await speak(cmd.message || 'Ya, silakan.')
       if (!enabled.value) return
-      phase.value = 'mendengar'
-      startRecognition()
+      backToListening('mendengar')
       clearTimeout(commandTimer)
       commandTimer = setTimeout(() => {
         if (phase.value === 'mendengar') void reply('Saya kembali siaga.')
@@ -297,15 +411,43 @@ export const useVoiceStore = defineStore('voice', () => {
       return
     }
 
-    // Wake word and command in one breath: "Oke NearBy, carikan aku makanan…"
-    await runCommand(parseCommand(afterWake))
+    await runCommand(cmd)
   }
 
-  async function runCommand(cmd: ParsedCommand) {
+  function backToListening(next: 'siaga' | 'mendengar') {
+    phase.value = next
+    startRecognition()
+  }
+
+  /**
+   * Read the server's sentence *while* the page and data load, rather than
+   * leaving the user in silence first. Resolves with the work's result once
+   * both are done; a failure in `work` still waits for the sentence to finish.
+   */
+  async function announceWhile<T>(message: string, work: () => Promise<T>): Promise<T> {
+    const talking = message ? speak(message) : Promise.resolve()
+    try {
+      return await work()
+    } finally {
+      await talking
+    }
+  }
+
+  async function runCommand(cmd: VoiceCommand) {
     phase.value = 'memproses'
     stopRecognition()
 
-    switch (cmd.intent) {
+    try {
+      await dispatch(cmd)
+    } catch {
+      // A failed fetch or navigation must not strand us in 'memproses' with
+      // the microphone off.
+      if (enabled.value) await reply('Maaf, terjadi kesalahan. Silakan coba lagi.')
+    }
+  }
+
+  async function dispatch(cmd: VoiceCommand) {
+    switch (cmd.action) {
       case 'cari':
         await runSearch(cmd)
         break
@@ -313,55 +455,60 @@ export const useVoiceStore = defineStore('voice', () => {
         await runOpen(cmd)
         break
       case 'daftar':
-        await runDirectory()
+        await runDirectory(cmd)
         break
       case 'halaman':
-        await runOpenPage(cmd.page)
+        await runOpenPage(cmd)
         break
       case 'favorit':
-        await runFavorites()
+        await runFavorites(cmd)
         break
       case 'beranda':
         await router.push({ name: 'beranda' })
-        await reply('Kembali ke halaman utama.')
+        await reply(cmd.message || 'Kembali ke halaman utama.')
         break
       case 'ulangi':
         await reply(spoken.value || 'Belum ada yang bisa saya ulangi.')
         break
       case 'berhenti':
         cancelSpeech()
-        await reply('Baik, saya berhenti.')
+        await reply(cmd.message || 'Baik, saya berhenti.')
         break
       case 'bantuan':
-        await reply(HELP_TEXT)
+        await reply(cmd.message || HELP_TEXT)
         break
       case 'tidak_dikenal':
         await reply(
-          `Maaf, saya belum mengerti "${cmd.raw}". Ucapkan bantuan untuk mendengar daftar perintah.`,
+          cmd.message ||
+            `Maaf, saya belum mengerti "${cmd.raw}". Ucapkan bantuan untuk mendengar daftar perintah.`,
         )
         break
+      default:
+        // Wake-word answers are handled before we get here.
+        backToListening('siaga')
     }
   }
 
-  async function runSearch(cmd: ParsedCommand) {
+  async function runSearch(cmd: VoiceCommand) {
     const umkm = useUmkmStore()
 
-    // Open the page first, independent of whether the fetch below succeeds -
-    // otherwise a slow or failed load leaves the assistant only talking, with
-    // nothing to show for it, which reads as "it can't open pages" even
-    // though the command was understood just fine.
-    await router.push({ name: 'daftar' })
-
-    await umkm.fetchAll()
-    if (umkm.error) {
+    // "Baik, mencari makanan di balikpapan selatan." plays while the directory
+    // opens and fills in. The page is opened regardless of whether the fetch
+    // succeeds - otherwise a slow or failed load leaves the assistant only
+    // talking, which reads as "it can't open pages".
+    const loaded = await announceWhile(cmd.message, async () => {
+      await router.push({ name: 'daftar' })
+      await umkm.fetchAll()
+      // Drive the real directory filters so the page matches what is spoken.
+      umkm.cat = cmd.category ?? 'Semua'
+      umkm.loc = cmd.location ?? 'Semua'
+      umkm.q = cmd.keyword
+      return !umkm.error
+    })
+    if (!loaded) {
       await reply('Saya sudah membuka daftar UMKM, tapi datanya belum berhasil dimuat. Coba lagi sebentar lagi.')
       return
     }
-
-    // Drive the real directory filters so the page matches what is spoken.
-    umkm.cat = cmd.category ?? 'Semua'
-    umkm.loc = cmd.location ?? 'Semua'
-    umkm.q = cmd.keyword
 
     let list = umkm.filteredDirectory
     let relaxed = false
@@ -399,21 +546,22 @@ export const useVoiceStore = defineStore('voice', () => {
   }
 
   /** "buka daftar UMKM", "buka direktori" - the whole catalog, no filters. */
-  async function runDirectory() {
+  async function runDirectory(cmd: VoiceCommand) {
     const umkm = useUmkmStore()
 
-    // Same reasoning as runSearch: open the page before the fetch settles.
-    await router.push({ name: 'daftar' })
-
-    await umkm.fetchAll()
-    if (umkm.error) {
+    // Same as runSearch: speak while the page opens and the data loads.
+    const loaded = await announceWhile(cmd.message, async () => {
+      await router.push({ name: 'daftar' })
+      await umkm.fetchAll()
+      umkm.cat = 'Semua'
+      umkm.loc = 'Semua'
+      umkm.q = ''
+      return !umkm.error
+    })
+    if (!loaded) {
       await reply('Saya sudah membuka daftar UMKM, tapi datanya belum berhasil dimuat. Coba lagi sebentar lagi.')
       return
     }
-
-    umkm.cat = 'Semua'
-    umkm.loc = 'Semua'
-    umkm.q = ''
 
     const list = umkm.filteredDirectory
     results.value = list
@@ -428,20 +576,22 @@ export const useVoiceStore = defineStore('voice', () => {
   }
 
   /** "buka halaman panduan", "tentang kami", "syarat dan ketentuan" - a named static page. */
-  async function runOpenPage(page: PageName | null) {
+  async function runOpenPage(cmd: VoiceCommand) {
+    const page = cmd.page
     if (!page) {
       await reply(`Maaf, saya belum mengerti halaman yang dimaksud. Ucapkan bantuan untuk mendengar daftar perintah.`)
       return
     }
+    // Checked here, not on the server: only the browser knows who is logged in.
     if (page === 'akun' && useAuthStore().isGuest) {
       await reply('Halaman akun hanya ada setelah Anda masuk ke akun.')
       return
     }
     await router.push({ name: page })
-    await reply(`Membuka halaman ${PAGE_LABELS[page]}.`)
+    await reply(cmd.message || `Membuka halaman ${PAGE_LABELS[page]}.`)
   }
 
-  async function runOpen(cmd: ParsedCommand) {
+  async function runOpen(cmd: VoiceCommand) {
     if (!results.value.length) {
       await reply('Belum ada hasil pencarian. Sebutkan dulu, misalnya, carikan aku makanan di Balikpapan Selatan.')
       return
@@ -454,16 +604,17 @@ export const useVoiceStore = defineStore('voice', () => {
       return
     }
 
-    await router.push({ name: 'detail', params: { id: String(target.id) } })
-
     // The list rows carry no address, hours or menu; fetch the full record so
     // the detail actually adds something over what was already read out.
     const umkm = useUmkmStore()
-    const detail = await umkm.fetchDetail(target.id)
+    const detail = await announceWhile(cmd.message, async () => {
+      await router.push({ name: 'detail', params: { id: String(target.id) } })
+      return umkm.fetchDetail(target.id)
+    })
     await reply(describeDetail(detail ?? target))
   }
 
-  async function runFavorites() {
+  async function runFavorites(cmd: VoiceCommand) {
     const auth = useAuthStore()
     if (auth.isGuest) {
       await reply('Daftar favorit hanya ada setelah Anda masuk ke akun.')
@@ -471,9 +622,11 @@ export const useVoiceStore = defineStore('voice', () => {
     }
 
     const umkm = useUmkmStore()
-    await umkm.fetchAll()
-    await umkm.fetchFavorites()
-    await router.push({ name: 'favorit' })
+    await announceWhile(cmd.message, async () => {
+      await umkm.fetchAll()
+      await umkm.fetchFavorites()
+      await router.push({ name: 'favorit' })
+    })
 
     const list = umkm.favList
     results.value = list
@@ -489,25 +642,54 @@ export const useVoiceStore = defineStore('voice', () => {
 
   // ---- Hidup / mati ----
 
+  /** Resolves true once a session reaches `start`, false if permission is refused. */
+  function waitForMic(): Promise<boolean> {
+    if (micConfirmed) return Promise.resolve(true)
+    return new Promise((resolve) => {
+      const settle = (ok: boolean) => {
+        clearTimeout(timer)
+        micWaiter = null
+        resolve(ok)
+      }
+      // Engines that never fire `start` still get their greeting.
+      const timer = setTimeout(() => settle(true), MIC_READY_TIMEOUT_MS)
+      micWaiter = settle
+    })
+  }
+
   /**
-   * Turn the assistant on. Must be called from a user gesture the first time:
-   * the browser only prompts for microphone permission in response to one.
+   * Turn the assistant on. Must be called synchronously from a user gesture
+   * (tap, click or key press) the first time: that is the only moment the
+   * browser will prompt for the microphone and allow the page to talk. After
+   * that the permission holds for the session and the restart loop reopens
+   * the microphone on its own.
+   *
+   * The greeting waits until the microphone is confirmed open, so hearing it
+   * means the assistant really is listening.
    */
-  async function enable() {
+  async function enable(greeting = ACTIVATION_GREETING) {
     if (!supported) {
       error.value = 'Peramban ini belum mendukung perintah suara. Coba Google Chrome atau Microsoft Edge.'
+      announce(error.value)
       return
     }
     if (enabled.value) return
     error.value = ''
+    failures = 0
     enabled.value = true
     phase.value = 'siaga'
+
+    // Both before the first await - still inside the gesture.
+    unlockSpeech()
+    const micReady = waitForMic()
     startRecognition()
-    await speak('Asisten suara aktif. Ucapkan Oke NearBy, lalu sebutkan perintah Anda.')
-    if (enabled.value) {
-      phase.value = 'siaga'
-      startRecognition()
-    }
+
+    clearInterval(keepAliveTimer)
+    keepAliveTimer = setInterval(keepAlive, KEEPALIVE_MS)
+
+    const ok = await micReady
+    if (!ok || !enabled.value) return
+    await reply(greeting)
   }
 
   function disable() {
@@ -515,6 +697,8 @@ export const useVoiceStore = defineStore('voice', () => {
     wantRecognition = false
     clearTimeout(restartTimer)
     clearTimeout(commandTimer)
+    clearInterval(keepAliveTimer)
+    micWaiter?.(false)
     stopRecognition()
     cancelSpeech()
     recognition = null

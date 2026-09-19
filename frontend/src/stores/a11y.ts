@@ -7,7 +7,13 @@ interface StoredPrefs {
   speechRate?: number
   virtualKeyboard?: boolean
   slowMotion?: boolean
-  voiceAssistant?: boolean
+  /**
+   * Set only when the visitor deliberately switched the voice assistant off.
+   * Replaces the old `voiceAssistant` flag, which was persisted as `false` for
+   * everyone who touched any other setting and so can't tell "never asked"
+   * apart from "said no".
+   */
+  voiceOptOut?: boolean
 }
 
 function readPrefs(): StoredPrefs {
@@ -36,11 +42,12 @@ export const useA11yStore = defineStore('a11y', () => {
   /** On by default - the design ships the calmer-motion setting enabled. */
   const slowMotion = ref(stored.slowMotion ?? true)
   /**
-   * Hands-free voice assistant ("Oke NearBy"). Off by default: it holds the
-   * microphone open, which is not something to switch on for someone who never
-   * asked for it. `VoiceAssistant.vue` watches this and owns the lifecycle.
+   * Hands-free voice assistant ("Oke NearBy"). On by default: a blind visitor
+   * cannot find a switch on screen, so the microphone is armed by the first tap
+   * or key press anywhere on the page instead (see `VoiceAssistant.vue`, which
+   * watches this and owns the lifecycle). Switching it off is remembered.
    */
-  const voiceAssistant = ref(stored.voiceAssistant ?? false)
+  const voiceAssistant = ref(!stored.voiceOptOut)
 
   const speaking = ref(false)
   const speechSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
@@ -141,7 +148,7 @@ export const useA11yStore = defineStore('a11y', () => {
           speechRate: speechRate.value,
           virtualKeyboard: virtualKeyboard.value,
           slowMotion: slowMotion.value,
-          voiceAssistant: voiceAssistant.value,
+          voiceOptOut: !voiceAssistant.value,
         } satisfies StoredPrefs),
       )
     } catch {
