@@ -49,7 +49,7 @@ NearBy Balikpapan adalah website yang dirancang untuk membantu masyarakat menemu
 - 🛠 Dashboard Pemilik UMKM dan Admin
 - 📥 Ekspor/Impor data UMKM lewat Excel
 - 🎬 Video Medsos (cuplikan Instagram & YouTube, dikelola dari dashboard)
-- ♿ Menu Aksesibilitas (asisten suara, bacakan halaman, keyboard virtual, animasi lambat) - lihat [PERINTAH_SUARA.md](PERINTAH_SUARA.md)
+- ♿ Menu Aksesibilitas (asisten suara, bacakan halaman, keyboard virtual) - lihat [PERINTAH_SUARA.md](PERINTAH_SUARA.md)
 - 📱 Responsive Design
 
 ## 📁 Struktur Proyek

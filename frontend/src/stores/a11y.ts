@@ -1,12 +1,12 @@
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { buildTextMap, clearHighlights, highlightSentence, highlightWord } from '@/lib/readAlong'
 
 const STORAGE_KEY = 'nearby_a11y'
 
 interface StoredPrefs {
   speechRate?: number
   virtualKeyboard?: boolean
-  slowMotion?: boolean
   voiceAssistant?: boolean
 }
 
@@ -20,8 +20,8 @@ function readPrefs(): StoredPrefs {
 }
 
 /**
- * Accessibility preferences: screen reading, an on-screen keyboard, a calmer
- * motion setting, and the hands-free voice assistant. Persisted per browser so
+ * Accessibility preferences: screen reading, an on-screen keyboard,
+ * and the hands-free voice assistant. Persisted per browser so
  * a visitor who needs them doesn't have to switch them on again every visit -
  * which matters most for `voiceAssistant`, the one setting a blind user would
  * otherwise have to find on screen after every reload.
@@ -33,8 +33,6 @@ export const useA11yStore = defineStore('a11y', () => {
   /** 0.5x–2.0x, matching the slider in the design (default 1.0x). */
   const speechRate = ref(stored.speechRate ?? 1)
   const virtualKeyboard = ref(stored.virtualKeyboard ?? false)
-  /** On by default - the design ships the calmer-motion setting enabled. */
-  const slowMotion = ref(stored.slowMotion ?? true)
   /**
    * Hands-free voice assistant ("Oke NearBy"). Off by default: it holds the
    * microphone open, which is not something to switch on for someone who never
@@ -52,21 +50,23 @@ export const useA11yStore = defineStore('a11y', () => {
   // ---- Bacakan halaman ----
 
   /**
-   * Visible text of the current page, in reading order. Prefers <main> so the
-   * header, footer and the floating widgets themselves aren't read out.
+   * Visible text of the current page, in reading order, plus a map back to the
+   * DOM for the read-along highlight. Prefers <main> so the header, footer and
+   * the floating widgets themselves aren't read out.
    */
-  function pageText(): string {
-    const scope =
-      document.querySelector('main') ??
-      document.querySelector('[data-a11y-read]') ??
-      document.body
-    return (scope as HTMLElement).innerText.replace(/\s+/g, ' ').trim()
+  function pageScope(): Element {
+    return document.querySelector('main') ?? document.querySelector('[data-a11y-read]') ?? document.body
   }
 
+  /** Bumped on every start/stop so a cancelled reading can't touch a newer one. */
+  let session = 0
+
   function stopSpeaking() {
+    session++
+    speaking.value = false
+    clearHighlights()
     if (!speechSupported) return
     window.speechSynthesis.cancel()
-    speaking.value = false
   }
 
   /** Reads the page aloud, or stops a reading already in progress. */
@@ -77,29 +77,53 @@ export const useA11yStore = defineStore('a11y', () => {
       return
     }
 
-    const text = pageText()
+    const map = buildTextMap(pageScope())
+    const text = map.text
     if (!text) return
 
     // Cancel anything queued from a previous page before starting.
     window.speechSynthesis.cancel()
+    clearHighlights()
+    const mine = ++session
 
     // Long pages get cut off by some engines, so read in sentence-sized
     // chunks; `speaking` flips back off when the last chunk ends.
-    const chunks = text.match(/[^.!?]+[.!?]*\s*/g) ?? [text]
-    const utterances = chunks.map((chunk) => {
-      const u = new SpeechSynthesisUtterance(chunk)
+    const chunks = [...text.matchAll(/[^.!?]+[.!?]*\s*/g)]
+    const utterances = chunks.map((m) => {
+      const raw = m[0]
+      const lead = raw.length - raw.trimStart().length
+      const start = m.index ?? 0
+      const u = new SpeechSynthesisUtterance(raw)
       u.lang = 'id-ID'
       u.rate = speechRate.value
+      const trimmed = raw.trim().length
+
+      // The whole sentence is highlighted as soon as it starts (engines
+      // without word events still get this), and the current word on top of
+      // it wherever the engine reports word boundaries.
+      u.onstart = () => {
+        if (session === mine) highlightSentence(map, start + lead, trimmed)
+      }
+      u.onboundary = (e) => {
+        if (session !== mine || e.name === 'sentence') return
+        let len = e.charLength
+        if (!len) {
+          const rest = raw.slice(e.charIndex).search(/\s/)
+          len = rest === -1 ? raw.length - e.charIndex : rest
+        }
+        highlightWord(map, start + e.charIndex, len)
+      }
       return u
     })
 
+    const finish = () => {
+      if (session !== mine) return
+      speaking.value = false
+      clearHighlights()
+    }
     const last = utterances[utterances.length - 1]
-    last.onend = () => {
-      speaking.value = false
-    }
-    last.onerror = () => {
-      speaking.value = false
-    }
+    last.onend = finish
+    last.onerror = finish
 
     speaking.value = true
     for (const u of utterances) window.speechSynthesis.speak(u)
@@ -110,20 +134,6 @@ export const useA11yStore = defineStore('a11y', () => {
   watch(speechRate, () => {
     persist()
   })
-
-  // ---- Animasi lambat & halus ----
-
-  function applyMotion() {
-    if (typeof document === 'undefined') return
-    if (slowMotion.value) document.documentElement.dataset.slowmo = 'on'
-    else delete document.documentElement.dataset.slowmo
-  }
-
-  watch(slowMotion, () => {
-    applyMotion()
-    persist()
-  })
-  applyMotion()
 
   // ---- Keyboard virtual ----
 
@@ -140,7 +150,6 @@ export const useA11yStore = defineStore('a11y', () => {
         JSON.stringify({
           speechRate: speechRate.value,
           virtualKeyboard: virtualKeyboard.value,
-          slowMotion: slowMotion.value,
           voiceAssistant: voiceAssistant.value,
         } satisfies StoredPrefs),
       )
@@ -158,7 +167,6 @@ export const useA11yStore = defineStore('a11y', () => {
     toggleSpeaking,
     stopSpeaking,
     virtualKeyboard,
-    slowMotion,
     voiceAssistant,
   }
 })

@@ -120,20 +120,6 @@
   }
 }
 
-/* "Animasi lambat & halus" (accessibility panel): one calm transition speed
-   and easing across the whole UI. Only transitions are touched - rescaling
-   the looping keyframe animations (drift, float-up) would speed them up, not
-   calm them down. Skipped entirely when the OS already asks for less motion,
-   since that preference means "less", not "slower". */
-@media (prefers-reduced-motion: no-preference) {
-  html[data-slowmo] *,
-  html[data-slowmo] *::before,
-  html[data-slowmo] *::after {
-    transition-duration: 500ms !important;
-    transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1) !important;
-  }
-}
-
 .page-enter-active,
 .page-leave-active {
   transition: opacity 0.32s ease;
@@ -189,4 +175,23 @@ select:focus {
 ::-webkit-scrollbar-thumb {
   background: #d9d2c4;
   border-radius: 8px;
+}
+
+/* Read-along highlight for "Bacakan isi layar" (see src/lib/readAlong.ts):
+   a soft band on the sentence being read, a strong marker on the current word. */
+::highlight(a11y-read-sentence) {
+  background-color: #fff1b8;
+  color: #13324d;
+}
+::highlight(a11y-read-word) {
+  background-color: #2c5ead;
+  color: #fff;
+}
+html.dark ::highlight(a11y-read-sentence) {
+  background-color: #3a3a1e;
+  color: #f3f0e6;
+}
+html.dark ::highlight(a11y-read-word) {
+  background-color: #ffd54a;
+  color: #0f1a26;
 }

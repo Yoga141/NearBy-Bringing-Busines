@@ -147,16 +147,6 @@ watch(() => route.fullPath, () => a11y.stopSpeaking())
           </div>
         </div>
 
-        <!-- Animasi lambat & halus -->
-        <div class="mt-[14px] flex items-center gap-3 border-t border-border-divider-2 pt-[14px]">
-          <div class="min-w-0">
-            <div class="text-[14px] font-extrabold text-brand-navy">Animasi lambat &amp; halus</div>
-            <div class="mt-0.5 text-[12.5px] leading-relaxed text-text-muted">Transisi 500ms, easing halus</div>
-          </div>
-          <div class="ml-auto">
-            <ToggleSwitch v-model="a11y.slowMotion" tone="teal" />
-          </div>
-        </div>
       </div>
     </div>
   </div>
