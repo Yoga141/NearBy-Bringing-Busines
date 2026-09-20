@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useA11yStore } from '@/stores/a11y'
 import { useVoiceStore } from '@/stores/voice'
+import { useCloseOnScroll } from '@/lib/useCloseOnScroll'
 import ToggleSwitch from '@/components/shared/ToggleSwitch.vue'
 import PlayIcon from '@/components/shared/PlayIcon.vue'
 import StopIcon from '@/components/shared/StopIcon.vue'
@@ -11,6 +12,10 @@ import CloseIcon from '@/components/shared/CloseIcon.vue'
 const a11y = useA11yStore()
 const voice = useVoiceStore()
 const route = useRoute()
+
+const root = ref<HTMLElement | null>(null)
+// Scrolling the page dismisses the panel so it never covers what is being read.
+useCloseOnScroll(computed(() => a11y.panelOpen), root, () => (a11y.panelOpen = false))
 
 const PHASE_LABEL: Record<string, string> = {
   mati: 'Nonaktif',
@@ -27,7 +32,7 @@ watch(() => route.fullPath, () => a11y.stopSpeaking())
 </script>
 
 <template>
-  <div class="fixed top-[86px] right-4 z-[70] flex flex-col items-end gap-3 mobile:right-[22px]">
+  <div ref="root" data-popup class="fixed top-[86px] right-4 z-[70] flex flex-col items-end gap-3 mobile:right-[22px]">
     <button
       type="button"
       title="Aksesibilitas"

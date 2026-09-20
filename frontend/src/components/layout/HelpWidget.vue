@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useCloseOnScroll } from '@/lib/useCloseOnScroll'
 import CloseIcon from '@/components/shared/CloseIcon.vue'
 
 const ui = useUiStore()
 const dashboard = useDashboardStore()
+
+const root = ref<HTMLElement | null>(null)
+// Scrolling the page dismisses the popup so it never covers what is being read.
+useCloseOnScroll(computed(() => ui.helpOpen), root, () => (ui.helpOpen = false))
 
 const askText = ref('')
 const askName = ref('')
@@ -55,7 +60,7 @@ async function submitBug() {
 </script>
 
 <template>
-  <div class="fixed right-4 bottom-4 z-[75] flex flex-col items-end gap-3 mobile:right-[22px] mobile:bottom-[22px]">
+  <div ref="root" data-popup class="fixed right-4 bottom-4 z-[75] flex flex-col items-end gap-3 mobile:right-[22px] mobile:bottom-[22px]">
     <div
       v-if="ui.helpOpen"
       class="w-[340px] max-w-[calc(100vw-44px)] overflow-hidden rounded-[18px] border border-border-card bg-white shadow-[0_22px_55px_rgba(9,24,40,.28)]"

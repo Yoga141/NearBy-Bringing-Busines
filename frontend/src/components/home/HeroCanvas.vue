@@ -99,6 +99,9 @@ onMounted(() => {
   let pointerX = 0
   let pointerY = 0
   onPointerMove = (e: PointerEvent) => {
+    // Over a floating popup (help / accessibility) the scene stays still, so
+    // attention stays on the popup.
+    if (e.target instanceof Element && e.target.closest('[data-popup]')) return
     const rect = parentEl!.getBoundingClientRect()
     pointerX = Math.min(Math.max(((e.clientX - rect.left) / rect.width) * 2 - 1, -1.5), 1.5)
     pointerY = Math.min(Math.max(((e.clientY - rect.top) / rect.height) * 2 - 1, -1.5), 1.5)
