@@ -41,12 +41,13 @@ watch(() => route.fullPath, () => a11y.stopSpeaking())
       class="flex h-12 w-12 items-center justify-center rounded-full border border-border-card bg-white text-brand-blue shadow-[0_12px_30px_rgba(19,50,77,.22)] transition-all hover:-translate-y-0.5 hover:bg-brand-blue-tint"
       @click="a11y.togglePanel"
     >
-      <!-- Universal-access figure: head + outstretched arms and legs. -->
-      <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-        <circle cx="12" cy="4.4" r="1.9" fill="currentColor" stroke="none" />
-        <path d="M4.5 8.4h15" />
-        <path d="M12 8.4v5.2" />
-        <path d="M12 13.6 8.8 21M12 13.6 15.2 21" />
+      <!-- International "universal access" symbol: a person with arms out, inside a ring. -->
+      <svg viewBox="0 0 24 24" class="h-7 w-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10" />
+        <circle cx="12" cy="7.2" r="1.4" fill="currentColor" stroke="none" />
+        <path d="M6.8 10.2 12 11l5.2-.8" />
+        <path d="M12 11v3.4" />
+        <path d="m12 14.4-2.5 4.1M12 14.4l2.5 4.1" />
       </svg>
     </button>
 
