@@ -6,8 +6,9 @@ import { defineStore } from 'pinia'
  *
  * Until the visitor picks one, the site follows the operating system
  * (`prefers-color-scheme`) and keeps following it live - switching the OS to
- * dark at sunset flips the page too. Once they use the toggle, that explicit
- * choice is saved in localStorage and wins on every later visit.
+ * dark at sunset flips the page too. Using the toggle is only a temporary
+ * override, kept in sessionStorage: once the tab/browser is closed (or site data
+ * is cleared) the page follows the browser again.
  *
  * The class is applied to <html> before the app even boots by a small inline
  * script in index.html (same storage key, same rules); this store takes over
@@ -24,7 +25,7 @@ const THEME_COLORS: Record<ThemeChoice, string> = { light: '#faf7f1', dark: '#0f
 
 function readChoice(): ThemeChoice | null {
   try {
-    const value = localStorage.getItem(THEME_STORAGE_KEY)
+    const value = sessionStorage.getItem(THEME_STORAGE_KEY)
     return value === 'light' || value === 'dark' ? value : null
   } catch {
     // Blocked storage (private mode, strict settings): just follow the OS.
@@ -34,8 +35,8 @@ function readChoice(): ThemeChoice | null {
 
 function writeChoice(choice: ThemeChoice | null) {
   try {
-    if (choice) localStorage.setItem(THEME_STORAGE_KEY, choice)
-    else localStorage.removeItem(THEME_STORAGE_KEY)
+    if (choice) sessionStorage.setItem(THEME_STORAGE_KEY, choice)
+    else sessionStorage.removeItem(THEME_STORAGE_KEY)
   } catch {
     // The choice then only lasts for this page view - not worth surfacing.
   }
@@ -71,11 +72,15 @@ export const useThemeStore = defineStore('theme', () => {
   }
 
   function toggle() {
-    setTheme(isDark.value ? 'light' : 'dark')
+    const next: ThemeChoice = isDark.value ? 'light' : 'dark'
+    // Switching back to what the browser/OS already uses drops the override,
+    // so the page goes back to following the system live.
+    if ((next === 'dark') === systemDark.value) followSystem()
+    else setTheme(next)
   }
 
   /** Forget the explicit choice and go back to following the OS. */
-  function followSystem() {
+  function followSystem(): void {
     choice.value = null
     writeChoice(null)
   }

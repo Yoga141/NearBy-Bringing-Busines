@@ -20,7 +20,7 @@
       ;(function () {
         var choice = null
         try {
-          choice = localStorage.getItem('nearby_theme')
+          choice = sessionStorage.getItem('nearby_theme')
         } catch (e) {}
         var dark =
           choice === 'dark' ||
