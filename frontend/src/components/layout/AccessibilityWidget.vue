@@ -32,7 +32,7 @@ watch(() => route.fullPath, () => a11y.stopSpeaking())
 </script>
 
 <template>
-  <div ref="root" data-popup class="fixed top-[86px] right-4 z-[70] flex flex-col items-end gap-3 mobile:right-[22px]">
+  <div ref="root" data-popup class="fixed right-4 bottom-[76px] z-[70] mobile:right-[22px] mobile:bottom-[82px]">
     <button
       type="button"
       title="Aksesibilitas"
@@ -52,7 +52,7 @@ watch(() => route.fullPath, () => a11y.stopSpeaking())
 
     <div
       v-if="a11y.panelOpen"
-      class="w-[340px] max-w-[calc(100vw-44px)] overflow-hidden rounded-[18px] border border-border-card bg-white shadow-[0_22px_55px_rgba(9,24,40,.28)]"
+      class="absolute right-[calc(100%+12px)] bottom-0 max-h-[calc(100vh-120px)] w-[340px] overflow-x-hidden overflow-y-auto overscroll-contain rounded-[18px] border border-border-card bg-white shadow-[0_22px_55px_rgba(9,24,40,.28)] max-mobile:fixed max-mobile:right-4 max-mobile:bottom-[140px] max-mobile:left-4 max-mobile:w-auto"
     >
       <div class="flex items-center justify-between bg-brand-navy px-[18px] py-4 text-white">
         <div>

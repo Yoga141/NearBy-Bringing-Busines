@@ -60,10 +60,10 @@ async function submitBug() {
 </script>
 
 <template>
-  <div ref="root" data-popup class="fixed right-4 bottom-4 z-[75] flex flex-col items-end gap-3 mobile:right-[22px] mobile:bottom-[22px]">
+  <div ref="root" data-popup class="fixed right-4 bottom-4 z-[75] mobile:right-[22px] mobile:bottom-[22px]">
     <div
       v-if="ui.helpOpen"
-      class="w-[340px] max-w-[calc(100vw-44px)] overflow-hidden rounded-[18px] border border-border-card bg-white shadow-[0_22px_55px_rgba(9,24,40,.28)]"
+      class="absolute right-[calc(100%+12px)] bottom-0 max-h-[calc(100vh-120px)] w-[340px] overflow-x-hidden overflow-y-auto overscroll-contain rounded-[18px] border border-border-card bg-white shadow-[0_22px_55px_rgba(9,24,40,.28)] max-mobile:fixed max-mobile:right-4 max-mobile:bottom-[140px] max-mobile:left-4 max-mobile:w-auto"
     >
       <div class="flex items-center justify-between bg-brand-navy px-[18px] py-4 text-white">
         <div>
@@ -150,7 +150,7 @@ async function submitBug() {
       type="button"
       title="Bantuan & FAQ"
       aria-label="Bantuan"
-      class="flex h-12 w-12 items-center justify-center rounded-full border border-border-card bg-white text-xl font-extrabold text-brand-blue shadow-[0_12px_30px_rgba(19,50,77,.22)] transition-all hover:-translate-y-0.5 hover:bg-brand-blue-tint mobile:h-[58px] mobile:w-[58px] mobile:text-2xl"
+      class="flex h-12 w-12 items-center justify-center rounded-full border border-border-card bg-white text-xl font-extrabold text-brand-blue shadow-[0_12px_30px_rgba(19,50,77,.22)] transition-all hover:-translate-y-0.5 hover:bg-brand-blue-tint"
       @click="ui.toggleHelp"
     >
       ?
