@@ -150,7 +150,7 @@ async function submitBug() {
       type="button"
       title="Bantuan & FAQ"
       aria-label="Bantuan"
-      class="flex h-12 w-12 items-center justify-center rounded-full bg-brand-navy text-xl font-extrabold text-white shadow-[0_12px_30px_rgba(19,50,77,.35)] transition-all hover:-translate-y-0.5 hover:bg-brand-blue-deep mobile:h-[58px] mobile:w-[58px] mobile:text-2xl"
+      class="flex h-12 w-12 items-center justify-center rounded-full border border-border-card bg-white text-xl font-extrabold text-brand-blue shadow-[0_12px_30px_rgba(19,50,77,.22)] transition-all hover:-translate-y-0.5 hover:bg-brand-blue-tint mobile:h-[58px] mobile:w-[58px] mobile:text-2xl"
       @click="ui.toggleHelp"
     >
       ?
