@@ -77,7 +77,13 @@ async function readJson(res: Response): Promise<unknown> {
 
 function toApiError(res: Response, payload: unknown): ApiError {
   const body = payload as { message?: string; errors?: Record<string, string[]> } | null
-  return new ApiError(body?.message ?? 'Terjadi kesalahan. Silakan coba lagi.', res.status, body?.errors, payload)
+  // No JSON at all on a 5xx means the API itself didn't answer (backend down,
+  // dev proxy with no `php artisan serve`, PHP fatal) - say so, not "something".
+  const fallback =
+    res.status >= 500
+      ? 'Server sedang tidak merespons. Coba lagi beberapa saat lagi.'
+      : 'Terjadi kesalahan. Silakan coba lagi.'
+  return new ApiError(body?.message ?? fallback, res.status, body?.errors, payload)
 }
 
 export async function apiFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {
