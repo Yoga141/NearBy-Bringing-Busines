@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Media Disk
+    |--------------------------------------------------------------------------
+    |
+    | Where uploaded UMKM photos are written. `public` keeps them under
+    | storage/app/public, which survives deploys on the cPanel host (.cpanel.yml
+    | only copies files over the app, it never wipes storage/). On a host with
+    | an ephemeral filesystem, point this at `s3` and fill in the AWS_* keys.
+    |
+    */
+
+    'media_disk' => env('MEDIA_DISK', 'public'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

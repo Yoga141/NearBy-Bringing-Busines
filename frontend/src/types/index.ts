@@ -24,6 +24,13 @@ export interface UmkmItem {
 
 export type UmkmVerification = 'menunggu' | 'disetujui' | 'ditolak'
 
+/** One photo of a UMKM: an uploaded file served by the API, or an external link from the Excel import. */
+export interface UmkmPhoto {
+  id: number
+  url: string
+  external: boolean
+}
+
 export interface Umkm {
   id: number
   ownerId: number | null
@@ -45,6 +52,12 @@ export interface Umkm {
   verification: UmkmVerification
   hidden: boolean
   views: number
+  /** Cover first. Empty until the owner uploads photos. */
+  photos: UmkmPhoto[]
+  coverUrl: string | null
+  /** Admin lists only. */
+  ownerName?: string | null
+  ownerEmail?: string | null
   /** Only present once the UMKM has been soft-deleted (owner/admin trash views). */
   deletedAt?: string | null
 }

@@ -62,6 +62,14 @@ class UserSeeder extends Seeder
         $owner = env('SEED_OWNER_PASSWORD') ?: 'pemilik12345';
         $user = env('SEED_USER_PASSWORD') ?: 'pengguna12345';
 
+        // A live server must never get accounts with the passwords printed in
+        // the README.
+        if (app()->isProduction() && ! (env('SEED_ADMIN_PASSWORD') && env('SEED_OWNER_PASSWORD') && env('SEED_USER_PASSWORD'))) {
+            throw new \RuntimeException(
+                'APP_ENV=production: isi SEED_ADMIN_PASSWORD, SEED_OWNER_PASSWORD, dan SEED_USER_PASSWORD di .env sebelum menjalankan seeder.'
+            );
+        }
+
         return [
             [
                 'label' => 'Admin', 'name' => 'Admin NearBy', 'email' => 'admin@nearby.id',

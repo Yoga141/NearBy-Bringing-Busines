@@ -25,10 +25,10 @@ export const useUiStore = defineStore('ui', () => {
     helpOpen.value = !helpOpen.value
   }
 
-  // Lightbox (detail page menu-item photo zoom)
-  const lightbox = ref<{ icon: string; caption: string } | null>(null)
-  function openLightbox(icon: string, caption: string) {
-    lightbox.value = { icon, caption }
+  // Lightbox (detail page photo zoom). `url` is null when there is no photo.
+  const lightbox = ref<{ url: string | null; icon: string; caption: string } | null>(null)
+  function openLightbox(url: string | null, caption: string, icon = 'image') {
+    lightbox.value = { url, icon, caption }
   }
   function closeLightbox() {
     lightbox.value = null

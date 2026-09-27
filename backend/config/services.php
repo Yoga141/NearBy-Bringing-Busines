@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+
+    /*
+    | Optional wording layer for the chat assistant (app/Assistant). Without a
+    | key the assistant still answers from the database with its own text.
+    */
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY', ''),
+        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5'),
+        'timeout' => (float) env('ANTHROPIC_TIMEOUT', 20),
+    ],
+
 ];

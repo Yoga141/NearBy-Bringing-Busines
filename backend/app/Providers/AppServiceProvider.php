@@ -67,9 +67,17 @@ class AppServiceProvider extends ServiceProvider
                 ->response($tooMany('Terlalu banyak percobaan masuk dari jaringan ini. Coba lagi nanti.')),
         ]);
 
-        RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)
+        // Generous enough that a class or office sharing one public IP can all
+        // sign up during a demo; tight enough to stop scripted mass sign-ups.
+        RateLimiter::for('register', fn (Request $request) => Limit::perHour(30)
             ->by('register|'.$request->ip())
             ->response($tooMany('Terlalu banyak pendaftaran dari jaringan ini. Coba lagi nanti.')));
+
+        // Chat assistant: each message is a catalogue search (and maybe a paid
+        // API call), so it gets its own budget.
+        RateLimiter::for('assistant', fn (Request $request) => Limit::perMinute(20)
+            ->by('assistant|'.($request->user('sanctum')?->id ?? $request->ip()))
+            ->response($tooMany('Terlalu banyak pertanyaan dalam waktu singkat. Tunggu sebentar lalu coba lagi.')));
 
         // Public forms that write to the database (help widget).
         RateLimiter::for('public-forms', fn (Request $request) => Limit::perMinute(6)

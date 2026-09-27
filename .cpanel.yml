@@ -16,3 +16,6 @@ deployment:
     # setelah file tersalin. Tanpa ini, route yang baru ditambahkan bisa 404.
     - cd /home/nearby/nearby-backend && php artisan route:clear
     - cd /home/nearby/nearby-backend && php artisan config:clear
+    # Buat tabel/kolom baru (mis. umkm_photos, indeks satu-ulasan-per-user).
+    # Tanpa ini kode baru jalan di atas skema lama dan fitur baru 500.
+    - cd /home/nearby/nearby-backend && php artisan migrate --force

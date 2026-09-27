@@ -115,7 +115,7 @@ class RoleAccessTest extends TestCase
             'location' => 'Balikpapan Kota', 'verification' => 'disetujui',
         ]);
 
-        $this->actingAs($user)->postJson("/api/umkm/{$umkm->id}/reviews", ['stars' => 5])->assertCreated();
+        $this->actingAs($user)->postJson("/api/umkm/{$umkm->id}/reviews", ['stars' => 5, 'text' => 'Enak sekali'])->assertCreated();
         $this->actingAs($user)->postJson("/api/umkm/{$umkm->id}/favorite")->assertOk()->assertJsonPath('isFavorite', true);
     }
 }

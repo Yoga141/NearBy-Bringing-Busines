@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import PlaceholderThumb from './PlaceholderThumb.vue'
+import UmkmThumb from './UmkmThumb.vue'
 import CategoryPill from './CategoryPill.vue'
 import FavoriteButton from './FavoriteButton.vue'
 import StarRating from './StarRating.vue'
@@ -21,7 +21,7 @@ withDefaults(defineProps<{ umkm: EnrichedUmkm; size?: 'md' | 'lg' }>(), { size: 
   >
     <RouterLink :to="{ name: 'detail', params: { id: umkm.id } }" class="block">
       <div class="relative" :class="size === 'lg' ? 'h-[160px]' : 'h-[150px]'">
-        <PlaceholderThumb :label="umkm.imgLabel" rounded="rounded-none" />
+        <UmkmThumb :src="umkm.coverUrl" :alt="`Foto ${umkm.name}`" :label="umkm.imgLabel" />
         <div class="absolute top-3 left-3">
           <CategoryPill :category="umkm.cat" size="sm" />
         </div>
@@ -36,7 +36,7 @@ withDefaults(defineProps<{ umkm: EnrichedUmkm; size?: 'md' | 'lg' }>(), { size: 
         <p class="my-2.5 text-[13.5px] leading-normal text-[#5B6470]">{{ umkm.tag }}</p>
         <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 border-t border-[#F2ECDF] pt-3">
           <StarRating :rating="umkm.rating" :reviews="umkm.reviews" />
-          <div class="flex-none rounded-lg bg-[#F4F0E7] px-2.5 py-1 text-[12.5px] font-bold whitespace-nowrap text-brand-navy">
+          <div v-if="umkm.priceLabel" class="flex-none rounded-lg bg-[#F4F0E7] px-2.5 py-1 text-[12.5px] font-bold whitespace-nowrap text-brand-navy">
             {{ umkm.priceLabel }}
           </div>
         </div>

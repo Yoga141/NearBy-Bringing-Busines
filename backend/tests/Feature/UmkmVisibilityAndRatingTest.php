@@ -72,25 +72,69 @@ class UmkmVisibilityAndRatingTest extends TestCase
         $this->getJson('/api/umkm?q='.urlencode('%'))->assertOk()->assertJsonCount(1);
     }
 
-    public function test_reviews_move_the_cached_rating_and_count(): void
+    public function test_the_rating_is_recounted_from_real_reviews(): void
     {
-        $user = User::factory()->create();
-        $umkm = $this->umkm(['rating' => 4.0, 'reviews_count' => 4]);
+        [$ana, $budi] = User::factory()->count(2)->create();
+        $umkm = $this->umkm();
 
-        $id = $this->actingAs($user)->postJson("/api/umkm/{$umkm->id}/reviews", ['stars' => 1, 'text' => 'Kurang'])
+        $id = $this->actingAs($ana)->postJson("/api/umkm/{$umkm->id}/reviews", ['stars' => 1, 'text' => 'Kurang'])
             ->assertCreated()->json('id');
+        $this->actingAs($budi)->postJson("/api/umkm/{$umkm->id}/reviews", ['stars' => 4, 'text' => 'Lumayan'])
+            ->assertCreated();
 
         $umkm->refresh();
-        $this->assertSame(5, $umkm->reviews_count);
-        $this->assertSame(3.4, $umkm->rating); // (4*4 + 1) / 5
+        $this->assertSame(2, $umkm->reviews_count);
+        $this->assertSame(2.5, $umkm->rating);
 
-        $this->actingAs($user)->putJson("/api/reviews/{$id}", ['stars' => 5])->assertOk();
-        $this->assertSame(4.2, $umkm->fresh()->rating); // (17 - 1 + 5) / 5
+        $this->actingAs($ana)->putJson("/api/reviews/{$id}", ['stars' => 5, 'text' => 'Ternyata enak'])->assertOk();
+        $this->assertSame(4.5, $umkm->fresh()->rating);
 
-        $this->actingAs($user)->deleteJson("/api/reviews/{$id}")->assertOk();
+        $this->actingAs($ana)->deleteJson("/api/reviews/{$id}")->assertOk();
         $umkm->refresh();
-        $this->assertSame(4, $umkm->reviews_count);
+        $this->assertSame(1, $umkm->reviews_count);
         $this->assertSame(4.0, $umkm->rating);
+    }
+
+    public function test_rating_and_views_cannot_be_written_through_the_api(): void
+    {
+        $owner = User::factory()->create(['role' => 'owner']);
+        $umkm = $this->umkm(['owner_id' => $owner->id]);
+
+        $this->actingAs($owner)->putJson("/api/umkm/{$umkm->id}", [
+            'rating' => 5, 'reviews_count' => 999, 'views' => 100000,
+        ])->assertOk();
+
+        $umkm->refresh();
+        $this->assertSame(0.0, $umkm->rating);
+        $this->assertSame(0, $umkm->reviews_count);
+        $this->assertSame(0, $umkm->views);
+    }
+
+    public function test_refreshing_the_page_does_not_inflate_views(): void
+    {
+        $umkm = $this->umkm();
+        $visitor = User::factory()->create();
+        $token = $visitor->createToken('t')->plainTextToken;
+
+        for ($i = 0; $i < 5; $i++) {
+            $this->getJson("/api/umkm/{$umkm->id}")->assertOk();
+            $this->withToken($token)->getJson("/api/umkm/{$umkm->id}")->assertOk();
+        }
+
+        // One guest (same IP + browser) and one signed-in visitor.
+        $this->assertSame(2, $umkm->fresh()->views);
+    }
+
+    public function test_an_admin_created_umkm_is_published_without_a_queue_entry(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $this->actingAs($admin)->postJson('/api/umkm', [
+            'name' => 'Toko Admin', 'category' => 'Jasa', 'location' => 'Balikpapan Barat',
+        ])->assertCreated()->assertJsonPath('verification', 'disetujui');
+
+        $this->assertDatabaseMissing('submissions', ['name' => 'Toko Admin']);
+        $this->getJson('/api/umkm')->assertOk()->assertJsonPath('0.name', 'Toko Admin');
     }
 
     public function test_only_owners_and_admins_may_submit_a_umkm(): void

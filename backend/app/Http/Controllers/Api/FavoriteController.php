@@ -12,7 +12,9 @@ class FavoriteController extends Controller
     /** List the user's favorite UMKM. */
     public function index(Request $request)
     {
-        $umkms = $request->user()->favorites()->get();
+        $umkms = $request->user()->favorites()
+            ->where('verification', 'disetujui')->where('hidden', false)
+            ->with('photos')->get();
 
         return UmkmResource::collection($umkms);
     }

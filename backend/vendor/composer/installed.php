@@ -3,13 +3,22 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'b8c6b795ccbea5e95e1f1f7983ab691efaf6bf4e',
+        'reference' => '66471a13c41e08ccd136317d93f2542202865e46',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
         'dev' => false,
     ),
     'versions' => array(
+        'anthropic-ai/sdk' => array(
+            'pretty_version' => 'v0.51.0',
+            'version' => '0.51.0.0',
+            'reference' => '1228c4cbce7c99c05cee9d69b6e4394eedd07c89',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../anthropic-ai/sdk',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'brick/math' => array(
             'pretty_version' => '0.18.0',
             'version' => '0.18.0.0',
@@ -92,27 +101,27 @@
             'dev_requirement' => false,
         ),
         'guzzlehttp/guzzle' => array(
-            'pretty_version' => '7.14.0',
-            'version' => '7.14.0.0',
-            'reference' => 'aef242412e13128b5049864867bb49fc37dd39de',
+            'pretty_version' => '7.15.5',
+            'version' => '7.15.5.0',
+            'reference' => 'ee80339fd9177ba44c49cdb653ff02a4d1106b9a',
             'type' => 'library',
             'install_path' => __DIR__ . '/../guzzlehttp/guzzle',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
         'guzzlehttp/promises' => array(
-            'pretty_version' => '2.5.1',
-            'version' => '2.5.1.0',
-            'reference' => '9ad1e4fc607446a055b95870c7f668e93b5cff29',
+            'pretty_version' => '2.5.3',
+            'version' => '2.5.3.0',
+            'reference' => 'cde49999552d185d64715fe9c1f77a2aadd2f9f1',
             'type' => 'library',
             'install_path' => __DIR__ . '/../guzzlehttp/promises',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
         'guzzlehttp/psr7' => array(
-            'pretty_version' => '2.12.4',
-            'version' => '2.12.4.0',
-            'reference' => '51e27f9e2b332ab3e72f4520d5ff4f3c68c3577c',
+            'pretty_version' => '2.13.1',
+            'version' => '2.13.1.0',
+            'reference' => '95e7828100de18b4e269fb1703be530082d5166d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../guzzlehttp/psr7',
             'aliases' => array(),
@@ -355,7 +364,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'b8c6b795ccbea5e95e1f1f7983ab691efaf6bf4e',
+            'reference' => '66471a13c41e08ccd136317d93f2542202865e46',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -398,9 +407,9 @@
             'dev_requirement' => false,
         ),
         'league/commonmark' => array(
-            'pretty_version' => '2.8.2',
-            'version' => '2.8.2.0',
-            'reference' => '59fb075d2101740c337c7216e3f32b36c204218b',
+            'pretty_version' => '2.10.3',
+            'version' => '2.10.3.0',
+            'reference' => '6efbd9c472b91db0a3350fcd601c8332c2382e1f',
             'type' => 'library',
             'install_path' => __DIR__ . '/../league/commonmark',
             'aliases' => array(),
@@ -485,18 +494,18 @@
             'dev_requirement' => false,
         ),
         'nette/schema' => array(
-            'pretty_version' => 'v1.3.5',
-            'version' => '1.3.5.0',
-            'reference' => 'f0ab1a3cda782dbc5da270d28545236aa80c4002',
+            'pretty_version' => 'v1.3.6',
+            'version' => '1.3.6.0',
+            'reference' => 'c54350438cd6914616f790a49cb424605f421562',
             'type' => 'library',
             'install_path' => __DIR__ . '/../nette/schema',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
         'nette/utils' => array(
-            'pretty_version' => 'v4.1.4',
-            'version' => '4.1.4.0',
-            'reference' => '7da6c396d7ebe142bc857c20479d5e70a5e1aac7',
+            'pretty_version' => 'v4.1.5',
+            'version' => '4.1.5.0',
+            'reference' => 'b043439dbdf954e6c28b5ea7e34b0100f83165e0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../nette/utils',
             'aliases' => array(),
@@ -517,6 +526,27 @@
             'reference' => '712a31b768f5daea284c2169a7d227031001b9a8',
             'type' => 'library',
             'install_path' => __DIR__ . '/../nunomaduro/termwind',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'php-http/async-client-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '*',
+            ),
+        ),
+        'php-http/client-implementation' => array(
+            'dev_requirement' => false,
+            'provided' => array(
+                0 => '*',
+            ),
+        ),
+        'php-http/discovery' => array(
+            'pretty_version' => '1.20.0',
+            'version' => '1.20.0.0',
+            'reference' => '82fe4c73ef3363caed49ff8dd1539ba06044910d',
+            'type' => 'composer-plugin',
+            'install_path' => __DIR__ . '/../php-http/discovery',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -586,7 +616,8 @@
         'psr/http-client-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0',
+                0 => '*',
+                1 => '1.0',
             ),
         ),
         'psr/http-factory' => array(
@@ -601,7 +632,8 @@
         'psr/http-factory-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0',
+                0 => '*',
+                1 => '1.0',
             ),
         ),
         'psr/http-message' => array(
@@ -616,7 +648,8 @@
         'psr/http-message-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '1.0',
+                0 => '*',
+                1 => '1.0',
             ),
         ),
         'psr/log' => array(
@@ -698,6 +731,15 @@
             'replaced' => array(
                 0 => '*',
             ),
+        ),
+        'standard-webhooks/standard-webhooks' => array(
+            'pretty_version' => 'v1.0.2',
+            'version' => '1.0.2.0',
+            'reference' => 'a1773d7ffc577d730e2bf4d4bd740a82a42aa904',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../standard-webhooks/standard-webhooks',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'symfony/clock' => array(
             'pretty_version' => 'v7.4.8',

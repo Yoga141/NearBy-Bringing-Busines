@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\AssistantController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\GuideVideoController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialVideoController;
 use App\Http\Controllers\Api\UmkmController;
 use App\Http\Controllers\Api\UmkmItemPortController;
+use App\Http\Controllers\Api\UmkmPhotoController;
 use App\Http\Controllers\Api\UmkmPortController;
 use Illuminate\Support\Facades\Route;
 
@@ -58,6 +60,21 @@ Route::get('/avatar/{filename}', [ProfilePhotoController::class, 'show'])
 
 /*
 |--------------------------------------------------------------------------
+| UMKM photos (public read - same reason as avatars)
+|--------------------------------------------------------------------------
+*/
+Route::get('/umkm-photos/{filename}', [UmkmPhotoController::class, 'show'])
+    ->where('filename', '[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)');
+
+/*
+|--------------------------------------------------------------------------
+| Chat assistant (public - searches only what the public site shows)
+|--------------------------------------------------------------------------
+*/
+Route::post('/assistant/chat', [AssistantController::class, 'chat'])->middleware('throttle:assistant');
+
+/*
+|--------------------------------------------------------------------------
 | Help widget (public - works for guests too)
 |--------------------------------------------------------------------------
 */
@@ -76,6 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::put('/me', [ProfileController::class, 'update']);
     Route::put('/me/password', [ProfileController::class, 'updatePassword']);
+    Route::delete('/me', [ProfileController::class, 'destroy']);
     Route::get('/me/sessions', [ProfileController::class, 'sessions']);
     Route::delete('/me/sessions/{id}', [ProfileController::class, 'revokeSession']);
     Route::post('/me/photo', [ProfilePhotoController::class, 'store']);
@@ -89,6 +107,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/umkm', [UmkmController::class, 'store']);
         Route::put('/umkm/{umkm}', [UmkmController::class, 'update']);
         Route::delete('/umkm/{umkm}', [UmkmController::class, 'destroy']);
+
+        // UMKM photos (multipart upload, set cover, delete)
+        Route::post('/umkm/{umkm}/photos', [UmkmPhotoController::class, 'store']);
+        Route::post('/umkm/{umkm}/photos/{photo}/cover', [UmkmPhotoController::class, 'cover']);
+        Route::delete('/umkm/{umkm}/photos/{photo}', [UmkmPhotoController::class, 'destroy']);
 
         // Excel export / import (see ExcelPortController). Deliberately NOT
         // under /umkm/*, because the public `GET /umkm/{umkm}` route would
@@ -132,6 +155,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('admin')->middleware('role:admin')->group(function () {
         Route::get('/users', [AdminController::class, 'users']);
         Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus']);
+        Route::delete('/users/{user}', [AdminController::class, 'destroyUser']);
+        Route::post('/users/{user}/reset-password', [AdminController::class, 'resetUserPassword']);
         Route::get('/umkm', [AdminController::class, 'umkms']);
         Route::post('/umkm/{umkm}/toggle-hidden', [AdminController::class, 'toggleHidden']);
         Route::get('/submissions', [AdminController::class, 'submissions']);
@@ -140,6 +165,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports', [AdminController::class, 'reports']);
         Route::get('/trash', [AdminController::class, 'trash']);
         Route::post('/trash/{id}/restore', [AdminController::class, 'restore'])->whereNumber('id');
+        Route::delete('/trash/umkm/{id}', [AdminController::class, 'forceDeleteUmkm'])->whereNumber('id');
+        Route::get('/reviews', [ReviewController::class, 'adminIndex']);
         Route::get('/problem-reports', [AdminController::class, 'problemReports']);
         Route::post('/problem-reports/{problemReport}/status', [AdminController::class, 'updateProblemReportStatus']);
 

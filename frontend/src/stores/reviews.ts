@@ -39,15 +39,30 @@ export const useReviewsStore = defineStore('reviews', () => {
     return list
   }
 
+  /** Replace (or add) one review in the cached list. */
+  function upsert(umkmId: number, review: Review) {
+    const list = reviewsFor(umkmId)
+    const idx = list.findIndex((r) => r.id === review.id)
+    byUmkm.set(umkmId, idx === -1 ? [review, ...list] : list.map((r) => (r.id === review.id ? review : r)))
+  }
+
+  /**
+   * Post the user's review. The API allows one per UMKM: a 409 carries the
+   * review that already exists, which is put in the list so the form can
+   * switch to editing it instead of failing.
+   */
   async function addReview(umkmId: number, payload: { stars: number; text: string }): Promise<boolean> {
     submitting.value = true
     error.value = ''
     try {
       const row = await apiFetch<any>(`/umkm/${umkmId}/reviews`, { method: 'POST', body: JSON.stringify(payload) })
-      const review = fromApi(row)
-      byUmkm.set(umkmId, [review, ...reviewsFor(umkmId)])
+      upsert(umkmId, fromApi(row))
       return true
     } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        const existing = (e.body as { review?: unknown } | undefined)?.review
+        if (existing) upsert(umkmId, fromApi(existing))
+      }
       error.value = e instanceof ApiError ? e.firstError : 'Gagal mengirim ulasan.'
       return false
     } finally {
@@ -57,12 +72,7 @@ export const useReviewsStore = defineStore('reviews', () => {
 
   async function updateReview(umkmId: number, reviewId: string, changes: { stars: number; text: string }) {
     const row = await apiFetch<any>(`/reviews/${reviewId}`, { method: 'PUT', body: JSON.stringify(changes) })
-    const updated = fromApi(row)
-    const list = byUmkm.get(umkmId)
-    if (list) {
-      const idx = list.findIndex((r) => r.id === reviewId)
-      if (idx !== -1) list[idx] = updated
-    }
+    upsert(umkmId, fromApi(row))
   }
 
   async function deleteReview(umkmId: number, reviewId: string) {

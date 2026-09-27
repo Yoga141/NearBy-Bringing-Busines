@@ -46,6 +46,10 @@ export function umkmFromApi(row: any): Umkm {
     verification: row.verification ?? 'disetujui',
     hidden: !!row.hidden,
     views: Number(row.views) || 0,
+    photos: (row.photos ?? []).map((p: any) => ({ id: p.id, url: p.url, external: !!p.external })),
+    coverUrl: row.coverUrl ?? row.photos?.[0]?.url ?? null,
+    ownerName: row.ownerName ?? null,
+    ownerEmail: row.ownerEmail ?? null,
     deletedAt: row.deletedAt ?? null,
   }
 }
@@ -131,7 +135,8 @@ export const useUmkmStore = defineStore('umkm', () => {
       .filter((u) => loc.value === 'Semua' || u.loc === loc.value)
       .filter((u) => {
         if (!query) return true
-        return `${u.name} ${u.tag} ${u.cat}`.toLowerCase().includes(query)
+        const haystack = `${u.name} ${u.tag} ${u.cat} ${u.loc} ${u.address} ${u.items.map((it) => it.name).join(' ')}`
+        return haystack.toLowerCase().includes(query)
       })
       .sort((a, b) => b.rating - a.rating)
   })
@@ -182,7 +187,17 @@ export const useUmkmStore = defineStore('umkm', () => {
       const row = await apiFetch<any>(`/umkm/${id}`)
       const detail = fromApiDetail(row)
       const idx = all.value.findIndex((u) => u.id === id)
-      if (idx !== -1) all.value[idx] = { ...all.value[idx], rating: detail.rating, reviews: detail.reviews, status: detail.status, views: detail.views }
+      if (idx !== -1) {
+        all.value[idx] = {
+          ...all.value[idx],
+          rating: detail.rating,
+          reviews: detail.reviews,
+          status: detail.status,
+          views: detail.views,
+          photos: detail.photos,
+          coverUrl: detail.coverUrl,
+        }
+      }
       return detail
     } catch (e) {
       detailError.value = e instanceof ApiError ? e.message : 'Gagal memuat detail UMKM.'
@@ -222,20 +237,36 @@ export const useUmkmStore = defineStore('umkm', () => {
     }
   }
 
+  /** Optional text fields accept null to clear them. */
   interface UmkmPayload {
     name: string
     category: CategoryName
     location: LocationName
-    price_label?: string
-    tag?: string
-    img_label?: string
-    address?: string
-    hours?: string
-    phone?: string
-    ig?: string
-    list_label?: string
+    price_label?: string | null
+    tag?: string | null
+    img_label?: string | null
+    address?: string | null
+    hours?: string | null
+    phone?: string | null
+    ig?: string | null
+    list_label?: string | null
     status?: string
-    items?: { name: string; price?: string; img?: string; available?: boolean }[]
+    items?: { name: string; price?: string | null; img?: string | null; available?: boolean }[]
+  }
+
+  /** Upload photos (multipart); returns the updated UMKM with its photo list. */
+  async function uploadPhotos(id: number, files: File[]): Promise<Umkm> {
+    const form = new FormData()
+    for (const file of files) form.append('photos[]', file)
+    return umkmFromApi(await apiFetch<any>(`/umkm/${id}/photos`, { method: 'POST', body: form }))
+  }
+
+  async function deletePhoto(id: number, photoId: number): Promise<Umkm> {
+    return umkmFromApi(await apiFetch<any>(`/umkm/${id}/photos/${photoId}`, { method: 'DELETE' }))
+  }
+
+  async function setCoverPhoto(id: number, photoId: number): Promise<Umkm> {
+    return umkmFromApi(await apiFetch<any>(`/umkm/${id}/photos/${photoId}/cover`, { method: 'POST' }))
   }
 
   /** Owner submits a new UMKM (pending verification until an admin approves it). */
@@ -296,5 +327,8 @@ export const useUmkmStore = defineStore('umkm', () => {
     updateUmkm,
     setUmkmStatus,
     deleteUmkm,
+    uploadPhotos,
+    deletePhoto,
+    setCoverPhoto,
   }
 })

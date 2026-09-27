@@ -16,6 +16,12 @@ class UmkmResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'ownerId' => $this->owner_id,
+            'ownerName' => $this->whenLoaded('owner', fn () => $this->owner?->name),
+            'ownerEmail' => $this->when(
+                $this->relationLoaded('owner') && $request->user()?->isAdmin(),
+                fn () => $this->owner?->email,
+            ),
             'name' => $this->name,
             'cat' => $this->category,
             'loc' => $this->location,
@@ -34,6 +40,12 @@ class UmkmResource extends JsonResource
             'hidden' => (bool) $this->hidden,
             'views' => (int) $this->views,
             'items' => UmkmItemResource::collection($this->whenLoaded('items')),
+            'photos' => $this->whenLoaded('photos', fn () => $this->photos->map(fn ($photo) => [
+                'id' => $photo->id,
+                'url' => $photo->public_url,
+                'external' => $photo->url !== null,
+            ])->values()),
+            'coverUrl' => $this->whenLoaded('photos', fn () => $this->photos->first()?->public_url),
             'reviewsList' => ReviewResource::collection($this->whenLoaded('reviews')),
             'isFavorite' => $this->when(isset($this->is_favorite), fn () => (bool) $this->is_favorite),
             'deletedAt' => $this->deleted_at?->diffForHumans(),

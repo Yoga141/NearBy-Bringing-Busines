@@ -8,6 +8,7 @@ use App\Models\Submission;
 use App\Models\Umkm;
 use App\Support\UmkmCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
@@ -38,7 +39,7 @@ class UmkmController extends Controller
             });
         }
 
-        $umkms = $query->with('items')->orderByDesc('rating')->orderBy('id')->get();
+        $umkms = $query->with(['items', 'photos'])->orderByDesc('rating')->orderBy('id')->get();
 
         return UmkmResource::collection($umkms);
     }
@@ -54,15 +55,17 @@ class UmkmController extends Controller
         $isOwnerOrAdmin = $user && ($user->isAdmin() || $umkm->owner_id === $user->id);
         abort_unless($umkm->isVisible() || $isOwnerOrAdmin, 404);
 
-        // Count real visits only - not the owner checking their own page.
-        // Plain query-builder increment: a view is not an edit, so
-        // `updated_at` must not move.
-        if (! $isOwnerOrAdmin) {
+        // Count real visits only: not the owner or an admin checking the page,
+        // and one visit per visitor per UMKM per window - refreshing the page
+        // (or hammering the endpoint) must not inflate the number. The counter
+        // is only ever written here; no endpoint or import can set it.
+        if (! $isOwnerOrAdmin && Cache::add($this->viewKey($request, $umkm, $user), true, now()->addHours(self::VIEW_WINDOW_HOURS))) {
+            // Query-builder increment: a view is not an edit, so `updated_at` stays.
             DB::table('umkms')->where('id', $umkm->id)->increment('views');
             $umkm->views++;
         }
 
-        $umkm->load(['items', 'reviews' => fn ($q) => $q->latest()]);
+        $umkm->load(['items', 'photos', 'reviews' => fn ($q) => $q->latest()]);
 
         if ($user) {
             $umkm->is_favorite = $user->favorites()->where('umkm_id', $umkm->id)->exists();
@@ -71,30 +74,39 @@ class UmkmController extends Controller
         return new UmkmResource($umkm);
     }
 
-    /** Owner submits a new UMKM (pending verification). */
+    /**
+     * Create a UMKM.
+     *
+     * An owner's UMKM waits in the verification queue; one an admin adds is
+     * published straight away (the admin *is* the verifier) and has no owner
+     * account until one is linked.
+     */
     public function store(Request $request)
     {
         $data = $this->validateData($request);
         $user = $request->user();
+        $isAdmin = $user->isAdmin();
 
-        $umkm = DB::transaction(function () use ($data, $user) {
+        $umkm = DB::transaction(function () use ($data, $user, $isAdmin) {
             $umkm = Umkm::create([
                 ...collect($data)->except('items')->all(),
-                'owner_id' => $user->id,
-                'verification' => 'menunggu',
-                'status' => 'aktif',
+                'owner_id' => $isAdmin ? null : $user->id,
+                'verification' => $isAdmin ? 'disetujui' : 'menunggu',
+                'status' => $data['status'] ?? 'aktif',
             ]);
 
             if (! empty($data['items'])) {
                 $this->syncItems($umkm, $data['items']);
             }
 
-            Submission::openFor($umkm, $user);
+            if (! $isAdmin) {
+                Submission::openFor($umkm, $user);
+            }
 
             return $umkm;
         });
 
-        return new UmkmResource($umkm->load('items'));
+        return (new UmkmResource($umkm->load(['items', 'photos'])))->response()->setStatusCode(201);
     }
 
     /** Owner edits their own UMKM. */
@@ -112,7 +124,7 @@ class UmkmController extends Controller
             }
         });
 
-        return new UmkmResource($umkm->load('items'));
+        return new UmkmResource($umkm->load(['items', 'photos']));
     }
 
     /** Soft delete (moves to Trash). */
@@ -122,6 +134,17 @@ class UmkmController extends Controller
         $umkm->delete();
 
         return response()->json(['message' => 'UMKM dipindahkan ke sampah.']);
+    }
+
+    /** Hours during which repeat visits by the same visitor count once. */
+    private const VIEW_WINDOW_HOURS = 6;
+
+    /** Signed-in visitors are keyed by account, guests by IP + browser. */
+    private function viewKey(Request $request, Umkm $umkm, $user): string
+    {
+        $who = $user ? 'u'.$user->id : 'g'.sha1($request->ip().'|'.$request->userAgent());
+
+        return "umkm-view:{$umkm->id}:{$who}";
     }
 
     private function authorizeOwner(Request $request, Umkm $umkm): void
@@ -138,7 +161,7 @@ class UmkmController extends Controller
         $req = $partial ? 'sometimes' : 'required';
 
         return $request->validate([
-            'name' => [$req, 'string', 'max:255'],
+            'name' => [$req, 'string', 'min:2', 'max:255'],
             'category' => [$req, Rule::in(UmkmCatalog::CATEGORIES)],
             'location' => [$req, Rule::in(UmkmCatalog::LOCATIONS)],
             'price_label' => ['nullable', 'string', 'max:255'],
@@ -146,7 +169,7 @@ class UmkmController extends Controller
             'img_label' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'hours' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:40'],
+            'phone' => ['nullable', 'string', 'max:40', 'regex:/^[0-9+()\-\s.]{6,40}$/'],
             'ig' => ['nullable', 'string', 'max:255'],
             'list_label' => ['nullable', 'string', 'max:255'],
             'status' => ['sometimes', Rule::in(UmkmCatalog::STATUSES)],
@@ -157,6 +180,9 @@ class UmkmController extends Controller
             'items.*.available' => ['nullable', 'boolean'],
         ], [
             'name.required' => 'Nama usaha wajib diisi.',
+            'name.min' => 'Nama usaha minimal 2 karakter.',
+            'phone.regex' => 'Nomor telepon hanya boleh berisi angka, spasi, +, -, atau tanda kurung.',
+            'status.in' => 'Status hanya boleh aktif, libur, atau tutup.',
             'category.required' => 'Kategori wajib dipilih.',
             'category.in' => 'Kategori tidak dikenali.',
             'location.required' => 'Wilayah wajib dipilih.',

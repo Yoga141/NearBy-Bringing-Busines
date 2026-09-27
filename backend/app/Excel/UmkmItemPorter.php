@@ -59,6 +59,8 @@ class UmkmItemPorter extends Porter
             '',
             'Tersedia: Ya atau Tidak (kosong dianggap Ya untuk produk baru).',
             'Harga boleh ditulis bebas, misalnya "Rp20.000" atau "20rb".',
+            'Link Gambar: alamat gambar yang sudah online (diawali https://), boleh dikosongkan.',
+            'Nama produk tidak boleh kembar di dalam satu UMKM.',
             '',
             'Kolom Nama Usaha hanya informasi - perubahannya diabaikan saat impor.',
             'Untuk memindahkan produk ke UMKM lain, ubah kolom ID UMKM-nya.',
@@ -93,14 +95,38 @@ class UmkmItemPorter extends Porter
         $itemIds = self::idsIn($raws, 'id');
         $umkmIds = self::idsIn($raws, 'umkm_id');
 
+        $items = $itemIds
+            ? UmkmItem::with('umkm:id,owner_id')->whereIn('id', $itemIds)->get()->keyBy('id')
+            : collect();
+
+        // "umkm|product" of every row as it will be after the import, to catch
+        // the same product listed twice under one UMKM.
+        $keys = [];
+        foreach ($raws as $i => $raw) {
+            $target = ($id = self::intOrNull($raw, 'id')) ? $items->get($id) : null;
+            $parent = self::intOrNull($raw, 'umkm_id') ?? $target?->umkm_id;
+            $name = $raw['name'] ?? $target?->name;
+            if ($parent !== null && is_string($name)) {
+                $keys[$i] = self::dupKey($parent, $name);
+            }
+        }
+
         return [
-            'items' => $itemIds
-                ? UmkmItem::with('umkm:id,owner_id')->whereIn('id', $itemIds)->get()->keyBy('id')
-                : collect(),
+            'items' => $items,
             'umkms' => $umkmIds
                 ? Umkm::whereIn('id', $umkmIds)->get(['id', 'owner_id', 'name'])->keyBy('id')
                 : collect(),
+            'sheetCounts' => array_count_values($keys),
+            'stored' => $umkmIds
+                ? UmkmItem::whereIn('umkm_id', $umkmIds)->get(['id', 'umkm_id', 'name'])
+                    ->mapWithKeys(fn (UmkmItem $item) => [self::dupKey($item->umkm_id, $item->name) => $item->id])
+                : collect(),
         ];
+    }
+
+    private static function dupKey(int $umkmId, string $name): string
+    {
+        return $umkmId.'|'.mb_strtolower(trim(preg_replace('/\s+/u', ' ', $name) ?? $name));
     }
 
     protected function inspect(array $raw, array $context, User $user): array
@@ -134,6 +160,19 @@ class UmkmItemPorter extends Porter
         $validator = Validator::make($raw, $this->rules($isUpdate), $this->messages());
         if ($validator->fails()) {
             array_push($messages, ...$validator->errors()->all());
+        }
+
+        $parentId = $umkmId ?? $target?->umkm_id;
+        $name = $raw['name'] ?? $target?->name;
+        if ($parentId !== null && is_string($name) && ! $validator->errors()->hasAny(['name', 'umkm_id'])) {
+            $key = self::dupKey($parentId, $name);
+            if (($context['sheetCounts'][$key] ?? 0) > 1) {
+                $messages[] = "Produk \"{$name}\" untuk ID UMKM {$parentId} muncul lebih dari sekali di file ini.";
+            }
+            $storedId = $context['stored'][$key] ?? null;
+            if ($storedId !== null && $storedId !== $id) {
+                $messages[] = "Produk \"{$name}\" sudah ada di UMKM {$parentId} (ID produk {$storedId}). Isi kolom ID dengan {$storedId} untuk memperbaruinya.";
+            }
         }
 
         if ($messages) {
@@ -233,7 +272,7 @@ class UmkmItemPorter extends Porter
             'umkm_id' => [$req, 'integer'],
             'name' => [$req, 'string', 'max:255'],
             'price' => ['nullable', 'string', 'max:255'],
-            'img' => ['nullable', 'string', 'max:255'],
+            'img' => ['nullable', 'string', 'max:255', 'url:http,https'],
             'available' => ['nullable', 'boolean'],
         ];
     }
@@ -247,6 +286,7 @@ class UmkmItemPorter extends Porter
             'name.required' => 'Kolom "Nama Produk" wajib diisi.',
             'name.max' => 'Kolom "Nama Produk" maksimal 255 karakter.',
             'available.boolean' => 'Kolom "Tersedia" hanya boleh diisi Ya atau Tidak.',
+            'img.url' => 'Kolom "Link Gambar" harus berupa alamat web yang diawali http:// atau https://.',
         ];
     }
 }

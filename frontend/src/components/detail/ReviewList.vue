@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { starsCount } from '@/data/reviews'
 import { useAuthStore } from '@/stores/auth'
 import { useReviewsStore } from '@/stores/reviews'
+import { ApiError } from '@/lib/api'
 import StarRating from '@/components/shared/StarRating.vue'
 import StarIcon from '@/components/shared/StarIcon.vue'
 import DeleteIcon from '@/components/shared/DeleteIcon.vue'
@@ -11,6 +12,7 @@ import SaveIcon from '@/components/shared/SaveIcon.vue'
 import type { Review } from '@/types'
 
 defineProps<{ reviews: Review[] }>()
+const emit = defineEmits<{ changed: [] }>()
 
 const auth = useAuthStore()
 const reviewsStore = useReviewsStore()
@@ -19,9 +21,15 @@ const editingId = ref<string | null>(null)
 const editStars = ref(5)
 const editText = ref('')
 const busyId = ref<string | null>(null)
+const editError = ref('')
 
 function isMine(rv: Review) {
   return auth.isAuthed && rv.userId !== null && rv.userId === auth.user?.id
+}
+
+/** Admins moderate: they may delete any review, but only edit their own. */
+function canDelete(rv: Review) {
+  return isMine(rv) || auth.isAdmin
 }
 
 function startEdit(rv: Review) {
@@ -35,25 +43,31 @@ function cancelEdit() {
 }
 
 async function saveEdit(rv: Review) {
-  if (!editText.value.trim()) return
+  editError.value = ''
+  if (editText.value.trim().length < 3) {
+    editError.value = 'Komentar minimal 3 karakter.'
+    return
+  }
   busyId.value = rv.id
   try {
     await reviewsStore.updateReview(rv.umkmId, rv.id, { stars: editStars.value, text: editText.value.trim() })
     editingId.value = null
-  } catch {
-    alert('Gagal menyimpan perubahan ulasan. Coba lagi.')
+    emit('changed')
+  } catch (e) {
+    editError.value = e instanceof ApiError ? e.firstError : 'Gagal menyimpan perubahan ulasan. Coba lagi.'
   } finally {
     busyId.value = null
   }
 }
 
 async function removeReview(rv: Review) {
-  if (!confirm('Hapus ulasan ini?')) return
+  if (!confirm(isMine(rv) ? 'Hapus ulasanmu?' : `Hapus ulasan dari ${rv.name}?`)) return
   busyId.value = rv.id
   try {
     await reviewsStore.deleteReview(rv.umkmId, rv.id)
-  } catch {
-    alert('Gagal menghapus ulasan. Coba lagi.')
+    emit('changed')
+  } catch (e) {
+    alert(e instanceof ApiError ? e.firstError : 'Gagal menghapus ulasan. Coba lagi.')
   } finally {
     busyId.value = null
   }
@@ -76,8 +90,9 @@ async function removeReview(rv: Review) {
           <StarIcon v-for="n in 5" :key="n" :filled="n <= starsCount(rv.stars)" size="13px" />
         </div>
         <div class="text-[12.5px] font-semibold text-text-faint-3">{{ rv.date }}</div>
-        <div v-if="isMine(rv) && editingId !== rv.id" class="ml-auto flex gap-3">
+        <div v-if="canDelete(rv) && editingId !== rv.id" class="ml-auto flex gap-3">
           <button
+            v-if="isMine(rv)"
             type="button"
             class="flex items-center gap-1 text-[12px] font-bold text-brand-navy outline-none hover:underline disabled:opacity-50"
             :disabled="busyId === rv.id"
@@ -103,8 +118,10 @@ async function removeReview(rv: Review) {
         <textarea
           v-model="editText"
           rows="3"
+          maxlength="2000"
           class="mt-2.5 w-full rounded-xl border border-[#E7E0D2] p-3 text-[14.5px]"
         />
+        <p v-if="editError" class="mt-1.5 text-[13px] font-semibold text-danger">{{ editError }}</p>
         <div class="mt-2 flex gap-2">
           <button type="button" class="flex items-center gap-1.5 rounded-[10px] bg-brand-blue px-4 py-2 text-[13px] font-bold text-white" @click="saveEdit(rv)">
             <SaveIcon size="13px" /> Simpan
@@ -114,7 +131,10 @@ async function removeReview(rv: Review) {
           </button>
         </div>
       </template>
-      <p v-else class="mt-1.5 text-[14.5px] leading-[1.55] text-text-secondary">{{ rv.text }}</p>
+      <p v-else class="mt-1.5 text-[14.5px] leading-[1.55] whitespace-pre-line text-text-secondary">{{ rv.text }}</p>
+      <div v-if="rv.reply && editingId !== rv.id" class="mt-2 rounded-xl bg-[#F6F2EA] px-3.5 py-2.5 text-[13.5px] text-text-secondary">
+        <b class="text-brand-navy">Balasan pemilik:</b> {{ rv.reply }}
+      </div>
     </div>
   </div>
 </template>

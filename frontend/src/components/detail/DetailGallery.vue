@@ -1,51 +1,55 @@
 <script setup lang="ts">
-import PlaceholderThumb from '@/components/shared/PlaceholderThumb.vue'
+import { computed } from 'vue'
+import UmkmThumb from '@/components/shared/UmkmThumb.vue'
 import ExpandIcon from '@/components/shared/ExpandIcon.vue'
 import { useUiStore } from '@/stores/ui'
+import type { UmkmPhoto } from '@/types'
 
-const props = defineProps<{ imgLabel: string }>()
+const props = defineProps<{ name: string; photos: UmkmPhoto[] }>()
 
 const ui = useUiStore()
 
-function zoom(caption: string) {
-  ui.openLightbox('image', caption)
+const main = computed(() => props.photos[0] ?? null)
+const side = computed(() => props.photos.slice(1, 3))
+const extra = computed(() => Math.max(0, props.photos.length - 3))
+
+function zoom(photo: UmkmPhoto | null, index: number) {
+  ui.openLightbox(photo?.url ?? null, photo ? `${props.name} · foto ${index + 1}` : `${props.name} · belum ada foto`)
 }
 </script>
 
 <template>
-  <div class="mb-[26px] grid grid-rows-[200px_84px] gap-3 tablet:h-[340px] tablet:grid-rows-none tablet:grid-cols-[2fr_1fr]">
+  <div
+    class="mb-[26px] grid gap-3"
+    :class="side.length ? 'grid-rows-[220px_100px] tablet:h-[340px] tablet:grid-rows-none tablet:grid-cols-[2fr_1fr]' : 'h-[220px] tablet:h-[340px]'"
+  >
     <button
       type="button"
-      class="relative block h-full w-full cursor-zoom-in overflow-hidden rounded-[20px] text-left"
-      title="Klik untuk perbesar"
-      @click="zoom(`${imgLabel} · utama`)"
+      class="relative block h-full w-full overflow-hidden rounded-[20px] text-left"
+      :class="main ? 'cursor-zoom-in' : 'cursor-default'"
+      :title="main ? 'Klik untuk perbesar' : 'Pemilik belum mengunggah foto'"
+      @click="main && zoom(main, 0)"
     >
-      <PlaceholderThumb :label="`${imgLabel} · utama`" variant="warm" rounded="rounded-[20px]" />
-      <span class="absolute right-2.5 bottom-2.5 flex h-[26px] w-[26px] items-center justify-center rounded-lg bg-[rgba(15,30,45,.66)] text-white">
+      <UmkmThumb :src="main?.url" :alt="`Foto utama ${name}`" rounded="rounded-[20px]" label="pemilik belum mengunggah foto" />
+      <span v-if="main" class="absolute right-2.5 bottom-2.5 flex h-[26px] w-[26px] items-center justify-center rounded-lg bg-[rgba(15,30,45,.66)] text-white">
         <ExpandIcon size="13px" />
       </span>
     </button>
-    <div class="grid grid-cols-2 gap-3 tablet:grid-cols-1 tablet:grid-rows-2">
+    <div v-if="side.length" class="grid grid-cols-2 gap-3 tablet:grid-cols-1 tablet:grid-rows-2">
       <button
+        v-for="(photo, i) in side"
+        :key="photo.id"
         type="button"
         class="relative block h-full w-full cursor-zoom-in overflow-hidden rounded-[20px] text-left"
         title="Klik untuk perbesar"
-        @click="zoom('Galeri 2')"
+        @click="zoom(photo, i + 1)"
       >
-        <PlaceholderThumb label="galeri 2" variant="teal" rounded="rounded-[20px]" />
-        <span class="absolute right-2 bottom-2 flex h-[22px] w-[22px] items-center justify-center rounded-md bg-[rgba(15,30,45,.66)] text-white">
-          <ExpandIcon size="10px" />
-        </span>
-      </button>
-      <button
-        type="button"
-        class="relative block h-full w-full cursor-zoom-in overflow-hidden rounded-[20px] text-left"
-        title="Klik untuk perbesar"
-        @click="zoom('Galeri 3')"
-      >
-        <PlaceholderThumb label="galeri 3" variant="blue" rounded="rounded-[20px]" />
-        <span class="absolute right-2 bottom-2 flex h-[22px] w-[22px] items-center justify-center rounded-md bg-[rgba(15,30,45,.66)] text-white">
-          <ExpandIcon size="10px" />
+        <UmkmThumb :src="photo.url" :alt="`Foto ${i + 2} ${name}`" rounded="rounded-[20px]" variant="teal" />
+        <span
+          v-if="i === side.length - 1 && extra"
+          class="absolute inset-0 flex items-center justify-center rounded-[20px] bg-[rgba(15,30,45,.55)] text-lg font-extrabold text-white"
+        >
+          +{{ extra }} foto
         </span>
       </button>
     </div>

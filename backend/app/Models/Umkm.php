@@ -10,12 +10,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\DB;
 
+// `rating`, `reviews_count` and `views` are deliberately NOT fillable: they
+// are derived from real reviews and real visits (see refreshRating() and
+// UmkmController::show()), so no request or spreadsheet can set them.
 #[Fillable([
-    'owner_id', 'name', 'category', 'location', 'rating', 'reviews_count',
+    'owner_id', 'name', 'category', 'location',
     'price_label', 'tag', 'img_label', 'address', 'hours', 'phone', 'ig',
-    'list_label', 'status', 'verification', 'views', 'hidden',
+    'list_label', 'status', 'verification', 'hidden',
 ])]
 class Umkm extends Model
 {
@@ -44,37 +46,33 @@ class Umkm extends Model
     }
 
     /**
-     * Fold a review change into the cached `rating` / `reviews_count`.
+     * Recompute the cached `rating` / `reviews_count` from the reviews table.
      *
-     * Incremental rather than recomputed from the `reviews` table on purpose:
-     * the seeded figures (e.g. 4.8 from 213 reviews) are mock data with only a
-     * handful of stored rows behind them, and a recount would throw them away.
-     * The row is locked while it is read and rewritten, so two reviews posted
-     * at the same moment can't overwrite each other's change.
-     *
-     * @param  int  $starsDelta  Stars added (negative when removed).
-     * @param  int  $countDelta  +1 new review, -1 deleted review, 0 edited.
+     * Always a full recount rather than an incremental update, so the figure
+     * shown on cards can never drift from the reviews that actually exist.
+     * Query-builder update: a new rating is not an edit of the UMKM, so
+     * `updated_at` is left alone.
      */
-    public function applyReviewDelta(int $starsDelta, int $countDelta): void
+    public function refreshRating(): void
     {
-        DB::transaction(function () use ($starsDelta, $countDelta) {
-            $row = static::withTrashed()->whereKey($this->getKey())->lockForUpdate()
-                ->first(['id', 'rating', 'reviews_count']);
-            if (! $row) {
-                return;
-            }
+        $stats = Review::where('umkm_id', $this->getKey())
+            ->selectRaw('count(*) as total, avg(stars) as average')
+            ->first();
 
-            $count = max(0, $row->reviews_count + $countDelta);
-            $rating = $count > 0
-                ? min(5, max(0, round(($row->rating * $row->reviews_count + $starsDelta) / $count, 1)))
-                : 0;
+        $count = (int) ($stats->total ?? 0);
+        $rating = $count > 0 ? round((float) $stats->average, 1) : 0;
 
-            // Query-builder update: a rating change is not an edit of the
-            // UMKM, so `updated_at` is left alone.
-            static::withTrashed()->toBase()->where('id', $row->id)
-                ->update(['rating' => $rating, 'reviews_count' => $count]);
+        static::withTrashed()->toBase()->where('id', $this->getKey())
+            ->update(['rating' => $rating, 'reviews_count' => $count]);
 
-            $this->forceFill(['rating' => $rating, 'reviews_count' => $count])->syncOriginal();
+        $this->forceFill(['rating' => $rating, 'reviews_count' => $count])->syncOriginal();
+    }
+
+    /** Uploaded files go with the UMKM when it is deleted for good (rows cascade). */
+    protected static function booted(): void
+    {
+        static::forceDeleting(function (Umkm $umkm) {
+            $umkm->photos()->get()->each->deleteFile();
         });
     }
 
@@ -86,6 +84,12 @@ class Umkm extends Model
     public function items(): HasMany
     {
         return $this->hasMany(UmkmItem::class);
+    }
+
+    /** Photos, cover first. */
+    public function photos(): HasMany
+    {
+        return $this->hasMany(UmkmPhoto::class)->orderBy('sort_order')->orderBy('id');
     }
 
     public function reviews(): HasMany

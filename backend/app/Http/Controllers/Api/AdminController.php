@@ -13,6 +13,7 @@ use App\Models\Submission;
 use App\Models\Umkm;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
@@ -40,10 +41,49 @@ class AdminController extends Controller
         return new UserResource($user);
     }
 
+    /**
+     * Soft-delete an account (Trash; restorable for 30 days from there).
+     * Admin accounts and the admin's own account are off limits.
+     */
+    public function destroyUser(Request $request, User $user)
+    {
+        abort_if($user->isAdmin(), 403, 'Akun admin tidak bisa dihapus dari sini.');
+        abort_if($user->id === $request->user()->id, 403, 'Tidak bisa menghapus akunmu sendiri.');
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'Akun dipindahkan ke sampah.']);
+    }
+
+    /**
+     * Give an account a new temporary password (for a user who forgot theirs).
+     *
+     * There is no mail service to send a reset link, so the admin hands the
+     * password over through the contact the user left in "Lupa password".
+     * It is returned once, never stored in plain text, and every session of
+     * the account is signed out.
+     */
+    public function resetUserPassword(User $user)
+    {
+        abort_if($user->isAdmin(), 403, 'Kata sandi admin tidak bisa direset dari sini.');
+
+        $password = Str::password(12, symbols: false);
+        $user->forceFill(['password' => $password])->save();
+        $user->tokens()->delete();
+
+        return response()->json([
+            'message' => 'Kata sandi sementara dibuat. Sampaikan ke pengguna dan minta mereka menggantinya setelah masuk.',
+            'temporaryPassword' => $password,
+        ]);
+    }
+
     /** All UMKM (including pending verification). */
     public function umkms()
     {
-        return UmkmResource::collection(Umkm::latest()->get());
+        return UmkmResource::collection(
+            Umkm::with(['items', 'photos', 'owner:id,name,email'])->latest()->get()
+        );
     }
 
     /** Show/hide an already-approved UMKM from the public site without rejecting or deleting it. */
@@ -51,7 +91,7 @@ class AdminController extends Controller
     {
         $umkm->update(['hidden' => ! $umkm->hidden]);
 
-        return new UmkmResource($umkm);
+        return new UmkmResource($umkm->load(['items', 'photos', 'owner:id,name,email']));
     }
 
     /** Verification queue. */
@@ -92,12 +132,18 @@ class AdminController extends Controller
     /** Aggregate report stats. */
     public function reports()
     {
+        // Every figure is read from the rows that exist - average rating is
+        // over reviews themselves, not over UMKM with no reviews (rating 0).
         return response()->json([
             'stats' => [
                 'umkmCount' => Umkm::count(),
+                'publishedCount' => Umkm::visible()->count(),
+                'pendingCount' => Umkm::where('verification', 'menunggu')->count(),
                 'userCount' => User::count(),
+                'ownerCount' => User::where('role', 'owner')->count(),
                 'reviewCount' => Review::count(),
-                'avgRating' => round((float) Umkm::avg('rating'), 1),
+                'avgRating' => round((float) Review::avg('stars'), 1),
+                'totalViews' => (int) Umkm::sum('views'),
             ],
             'byCategory' => Umkm::selectRaw('category, count(*) as total')
                 ->groupBy('category')->pluck('total', 'category'),
@@ -137,8 +183,8 @@ class AdminController extends Controller
     public function trash()
     {
         return response()->json([
-            'users' => UserResource::collection(User::onlyTrashed()->get()),
-            'umkms' => UmkmResource::collection(Umkm::onlyTrashed()->get()),
+            'users' => UserResource::collection(User::onlyTrashed()->latest('deleted_at')->get()),
+            'umkms' => UmkmResource::collection(Umkm::onlyTrashed()->with('owner:id,name,email')->latest('deleted_at')->get()),
         ]);
     }
 
@@ -154,6 +200,14 @@ class AdminController extends Controller
         }
 
         return response()->json(['message' => 'Berhasil dipulihkan.']);
+    }
+
+    /** Permanently delete a soft-deleted UMKM (its photos, products and reviews go with it). */
+    public function forceDeleteUmkm(int $id)
+    {
+        Umkm::onlyTrashed()->findOrFail($id)->forceDelete();
+
+        return response()->json(['message' => 'UMKM dihapus permanen.']);
     }
 
     /** Bug/issue reports sent via the help widget. */

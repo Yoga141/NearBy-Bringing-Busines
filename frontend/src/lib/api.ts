@@ -32,12 +32,15 @@ export function setToken(token: string | null) {
 export class ApiError extends Error {
   status: number
   errors?: Record<string, string[]>
+  /** The whole JSON body, for endpoints that return data alongside an error (e.g. a 409 with the existing review). */
+  body?: unknown
 
-  constructor(message: string, status: number, errors?: Record<string, string[]>) {
+  constructor(message: string, status: number, errors?: Record<string, string[]>, body?: unknown) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.errors = errors
+    this.body = body
   }
 
   /** First validation message, falling back to the top-level message. */
@@ -74,7 +77,7 @@ async function readJson(res: Response): Promise<unknown> {
 
 function toApiError(res: Response, payload: unknown): ApiError {
   const body = payload as { message?: string; errors?: Record<string, string[]> } | null
-  return new ApiError(body?.message ?? 'Terjadi kesalahan. Silakan coba lagi.', res.status, body?.errors)
+  return new ApiError(body?.message ?? 'Terjadi kesalahan. Silakan coba lagi.', res.status, body?.errors, payload)
 }
 
 export async function apiFetch<T = unknown>(path: string, options: RequestInit = {}): Promise<T> {

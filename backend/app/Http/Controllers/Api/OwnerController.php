@@ -14,7 +14,7 @@ class OwnerController extends Controller
     /** Dashboard summary: aggregate stats for the owner's businesses. */
     public function summary(Request $request)
     {
-        $umkms = $request->user()->umkms()->withCount('favoritedBy')->get();
+        $umkms = $request->user()->umkms()->with(['items', 'photos'])->withCount('favoritedBy')->get();
 
         $totalViews = $umkms->sum('views');
         $totalReviews = $umkms->sum('reviews_count');
@@ -38,7 +38,7 @@ class OwnerController extends Controller
     /** UMKM owned by the authenticated owner. */
     public function umkms(Request $request)
     {
-        $umkms = $request->user()->umkms()->with('items')->get();
+        $umkms = $request->user()->umkms()->with(['items', 'photos'])->get();
 
         return UmkmResource::collection($umkms);
     }
@@ -69,7 +69,7 @@ class OwnerController extends Controller
         $umkm = Umkm::onlyTrashed()->where('owner_id', $request->user()->id)->findOrFail($id);
         $umkm->restore();
 
-        return new UmkmResource($umkm);
+        return new UmkmResource($umkm->load(['items', 'photos']));
     }
 
     /** Permanently delete one of the owner's own soft-deleted UMKM. */

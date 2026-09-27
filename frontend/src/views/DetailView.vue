@@ -32,15 +32,26 @@ async function load() {
 onMounted(load)
 watch(() => props.id, load)
 
-const desc = computed(() =>
-  sel.value
-    ? `${sel.value.tag} Berlokasi di ${sel.value.loc}, tempat ini menjadi salah satu favorit warga sekitaran karena kualitas dan pelayanannya yang konsisten. Cocok dikunjungi bersama keluarga maupun teman.`
-    : '',
-)
+/** After a review changes, pull the recounted rating from the server. */
+async function refreshRating() {
+  if (!sel.value) return
+  const fresh = await umkm.fetchDetail(sel.value.id)
+  if (fresh) {
+    sel.value = { ...sel.value, rating: fresh.rating, reviews: fresh.reviews }
+    reviewsStore.setReviews(fresh.id, fresh.reviewsList)
+  }
+}
 
-const waLink = computed(() =>
-  sel.value ? `https://wa.me/62${sel.value.phone.replace(/[^0-9]/g, '').replace(/^0/, '')}` : '',
-)
+// Only what the owner actually wrote - no filler sentences.
+const desc = computed(() => sel.value?.tag.trim() || '')
+
+/** wa.me link from an Indonesian number ("0812-…", "+62 812…", "62812…"); empty when there is no number. */
+const waLink = computed(() => {
+  const digits = sel.value?.phone.replace(/[^0-9]/g, '') ?? ''
+  if (digits.length < 8) return ''
+  const intl = digits.startsWith('62') ? digits : digits.startsWith('0') ? `62${digits.slice(1)}` : `62${digits}`
+  return `https://wa.me/${intl}`
+})
 
 const STATUS_META = {
   Aktif: { c: '#2E7D6E', b: '#E3EFED', pub: 'Buka' },
@@ -71,7 +82,7 @@ const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id
     </div>
 
     <template v-else-if="sel">
-      <DetailGallery :img-label="sel.imgLabel" />
+      <DetailGallery :name="sel.name" :photos="sel.photos" />
 
       <div class="grid grid-cols-1 items-start gap-[34px] tablet:grid-cols-[1.6fr_.9fr]">
         <div>
@@ -88,20 +99,27 @@ const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id
           <h1 class="mt-3.5 mb-1.5 text-[28px] font-extrabold tracking-[-.02em] tablet:text-[36px]">{{ sel.name }}</h1>
           <div class="mb-[22px] flex items-center gap-3.5">
             <StarRating :rating="sel.rating" />
-            <div class="font-semibold text-text-faint">{{ sel.reviews }} ulasan</div>
-            <div class="h-[5px] w-[5px] rounded-full bg-[#D6CFC0]" />
-            <div class="rounded-lg bg-[#F4F0E7] px-3 py-1 text-[13px] font-bold text-brand-navy">{{ sel.priceLabel }}</div>
+            <div class="font-semibold text-text-faint">{{ sel.reviews ? `${sel.reviews} ulasan` : 'Belum ada ulasan' }}</div>
+            <template v-if="sel.priceLabel">
+              <div class="h-[5px] w-[5px] rounded-full bg-[#D6CFC0]" />
+              <div class="rounded-lg bg-[#F4F0E7] px-3 py-1 text-[13px] font-bold text-brand-navy">{{ sel.priceLabel }}</div>
+            </template>
           </div>
 
-          <h3 class="mb-2 text-[19px] font-extrabold">Tentang tempat ini</h3>
-          <p class="mb-[26px] text-[15.5px] leading-[1.7] text-text-secondary">{{ desc }}</p>
+          <template v-if="desc">
+            <h3 class="mb-2 text-[19px] font-extrabold">Tentang tempat ini</h3>
+            <p class="mb-[26px] text-[15.5px] leading-[1.7] whitespace-pre-line text-text-secondary">{{ desc }}</p>
+          </template>
 
-          <h3 class="mb-3.5 text-[19px] font-extrabold">{{ sel.listLabel }}</h3>
-          <ItemList :items="sel.items" />
+          <template v-if="sel.items.length">
+            <h3 class="mb-3.5 text-[19px] font-extrabold">{{ sel.listLabel || 'Produk & layanan' }}</h3>
+            <ItemList :items="sel.items" />
+          </template>
 
           <h3 class="mb-3.5 text-[19px] font-extrabold">Ulasan &amp; rating</h3>
-          <ReviewList :reviews="reviews" />
-          <ReviewForm :umkm-id="sel.id" />
+          <p v-if="!reviews.length" class="py-3 text-[14.5px] text-text-muted">Belum ada ulasan. Jadilah yang pertama!</p>
+          <ReviewList :reviews="reviews" @changed="refreshRating" />
+          <ReviewForm :umkm-id="sel.id" :owner-id="sel.ownerId" @changed="refreshRating" />
         </div>
 
         <DetailSidebar :umkm="sel" :wa-link="waLink" />

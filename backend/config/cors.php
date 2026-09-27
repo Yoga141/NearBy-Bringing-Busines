@@ -20,10 +20,11 @@ return [
 
     'allowed_methods' => ['*'],
 
+    // The Vite dev server is only allowed outside production; FRONTEND_URL
+    // may list several origins, comma-separated.
     'allowed_origins' => array_values(array_filter([
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
-        env('FRONTEND_URL'),
+        ...(env('APP_ENV', 'production') === 'production' ? [] : ['http://localhost:5173', 'http://127.0.0.1:5173']),
+        ...array_map('trim', explode(',', (string) env('FRONTEND_URL', ''))),
     ])),
 
     'allowed_origins_patterns' => [],

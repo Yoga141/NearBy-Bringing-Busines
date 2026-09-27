@@ -227,4 +227,44 @@ class UmkmExcelTest extends TestCase
         $rows = $this->readDownload($this->actingAs($owner)->get('/api/umkm-item-excel/download'));
         $this->assertSame('Tidak', $rows[2][6]);
     }
+
+    public function test_duplicates_in_the_sheet_or_against_stored_rows_are_reported(): void
+    {
+        $owner = $this->owner();
+        $existing = $this->umkmFor($owner, 'Warung Lama');
+
+        $res = $this->actingAs($owner)->postJson('/api/umkm-excel/preview', ['rows' => [
+            ['name' => 'Warung Kembar', 'category' => 'Kuliner', 'location' => 'Balikpapan Kota'],
+            ['name' => 'warung  kembar', 'category' => 'Kuliner', 'location' => 'Balikpapan Kota'],
+            ['name' => 'Warung Lama', 'category' => 'Kuliner', 'location' => 'Balikpapan Kota'],
+        ]])->assertOk();
+
+        $this->assertSame(['create' => 0, 'update' => 0, 'error' => 3], $res->json('summary'));
+        $this->assertStringContainsString('muncul lebih dari sekali', $res->json('rows.0.messages.0'));
+        $this->assertStringContainsString("sudah terdaftar (ID {$existing->id})", $res->json('rows.2.messages.0'));
+
+        // Updating the stored row by its ID is not a duplicate of itself.
+        $this->actingAs($owner)->postJson('/api/umkm-excel/preview', ['rows' => [
+            ['id' => $existing->id, 'name' => 'Warung Lama', 'phone' => '0812-3456-7890'],
+        ]])->assertOk()->assertJsonPath('summary', ['create' => 0, 'update' => 1, 'error' => 0]);
+    }
+
+    public function test_invalid_phone_and_photo_link_are_rejected_and_a_valid_link_becomes_a_photo(): void
+    {
+        $owner = $this->owner();
+
+        $bad = $this->actingAs($owner)->postJson('/api/umkm-excel/preview', ['rows' => [
+            ['name' => 'Toko A', 'category' => 'Jasa', 'location' => 'Balikpapan Barat', 'phone' => 'telepon saya', 'photo_url' => 'bukan-link'],
+        ]])->assertOk();
+        $messages = $bad->json('rows.0.messages');
+        $this->assertContains('Kolom "Telepon" hanya boleh berisi angka, spasi, +, -, atau tanda kurung.', $messages);
+        $this->assertContains('Kolom "Link Foto" harus berupa alamat web yang diawali http:// atau https://.', $messages);
+
+        $this->actingAs($owner)->postJson('/api/umkm-excel/commit', ['rows' => [
+            ['name' => 'Toko B', 'category' => 'Jasa', 'location' => 'Balikpapan Barat', 'photo_url' => 'https://contoh.test/foto.jpg'],
+        ]])->assertOk();
+
+        $umkm = Umkm::where('name', 'Toko B')->firstOrFail();
+        $this->assertDatabaseHas('umkm_photos', ['umkm_id' => $umkm->id, 'url' => 'https://contoh.test/foto.jpg']);
+    }
 }

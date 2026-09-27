@@ -77,6 +77,37 @@ class ProfileController extends Controller
     }
 
     /**
+     * Delete the signed-in account, after re-entering the password.
+     *
+     * A soft delete: the row moves to the admin's Trash (restorable from
+     * there), every token is revoked so no device stays signed in, and the
+     * account can no longer log in. UMKM the user owns are left in place for
+     * the admin to reassign or remove.
+     */
+    public function destroy(Request $request)
+    {
+        $user = $request->user();
+        abort_if($user->isAdmin(), 403, 'Akun admin tidak bisa dihapus dari halaman akun.');
+
+        $data = $request->validate([
+            'password' => ['required', 'string'],
+        ], [
+            'password.required' => 'Masukkan kata sandi untuk mengonfirmasi.',
+        ]);
+
+        if (! Hash::check($data['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['Kata sandi salah.'],
+            ]);
+        }
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(['message' => 'Akun berhasil dihapus.']);
+    }
+
+    /**
      * Devices currently signed in - one row per Sanctum token.
      *
      * The device label comes from the User-Agent recorded as the token's name

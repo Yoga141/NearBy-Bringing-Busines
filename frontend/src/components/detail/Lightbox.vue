@@ -28,8 +28,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     >
       <CloseIcon size="18px" />
     </button>
-    <div class="flex w-full max-w-[560px] flex-col items-center gap-4" @click.stop>
+    <div class="flex w-full max-w-[900px] flex-col items-center gap-4" @click.stop>
+      <img
+        v-if="ui.lightbox.url"
+        :src="ui.lightbox.url"
+        :alt="ui.lightbox.caption"
+        class="max-h-[75vh] w-auto max-w-full rounded-2xl object-contain"
+      />
       <div
+        v-else
         class="flex h-[min(60vh,420px)] w-full flex-col items-center justify-center gap-2 rounded-2xl bg-[#1c2e3d] text-[#F3EEE4]"
       >
         <component :is="PLACEHOLDER_ICONS[ui.lightbox.icon]" size="48px" />
