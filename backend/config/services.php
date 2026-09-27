@@ -40,6 +40,12 @@ return [
     | Optional wording layer for the chat assistant (app/Assistant). Without a
     | key the assistant still answers from the database with its own text.
     */
+    // The chat assistant is switched off for users until it is ready; while
+    // off, POST /api/assistant/chat answers 404 (see AssistantController).
+    'assistant' => [
+        'enabled' => (bool) env('ASSISTANT_ENABLED', false),
+    ],
+
     'anthropic' => [
         'key' => env('ANTHROPIC_API_KEY', ''),
         'model' => env('ANTHROPIC_MODEL', 'claude-opus-5'),

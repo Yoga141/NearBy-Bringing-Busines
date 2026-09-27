@@ -19,7 +19,7 @@ class AssistantTest extends TestCase
     {
         parent::setUp();
         // Deterministic answers: no wording layer in tests.
-        config(['services.anthropic.key' => '']);
+        config(['services.anthropic.key' => '', 'services.assistant.enabled' => true]);
 
         $rows = [
             ['Kepiting Mahal', 'Kuliner', 'Balikpapan Timur', 'Rp80–150rb', 'Jl. Mulawarman'],
@@ -113,6 +113,14 @@ class AssistantTest extends TestCase
     {
         $this->assertStringContainsString('Asisten NearBy', $this->ask('halo')->json('reply'));
         $this->postJson('/api/assistant/chat', ['message' => ''])->assertUnprocessable();
+    }
+
+    public function test_the_endpoint_is_closed_while_the_feature_is_off(): void
+    {
+        config(['services.assistant.enabled' => false]);
+
+        $this->postJson('/api/assistant/chat', ['message' => 'Carikan makanan'])
+            ->assertNotFound()->assertJsonPath('message', 'Fitur asisten sedang dinonaktifkan.');
     }
 
     public function test_price_labels_are_read_as_rupiah(): void

@@ -51,8 +51,8 @@ NearBy Balikpapan adalah website yang dirancang untuk membantu masyarakat menemu
 - 🎬 Video Medsos (cuplikan Instagram & YouTube, dikelola dari dashboard)
 - 🖼️ Foto UMKM (unggah, jadikan sampul, hapus) dari dashboard pemilik/admin
 - 💬 Ulasan: satu akun satu ulasan per UMKM, bisa diedit; rating dihitung dari ulasan nyata
-- 🤖 Asisten NearBy (chat & suara): mencari UMKM langsung dari database dan memahami lanjutan percakapan ("yang murah", "yang dekat kampus", "detail nomor 1")
-- ♿ Menu Aksesibilitas (asisten suara, bacakan halaman, keyboard virtual, animasi lambat) - lihat [PERINTAH_SUARA.md](PERINTAH_SUARA.md)
+- 🤖 Asisten NearBy (chat & suara): mencari UMKM langsung dari database dan memahami lanjutan percakapan ("yang murah", "yang dekat kampus", "detail nomor 1"). **Sementara dinonaktifkan**: nyalakan lagi dengan `FEATURES.assistant = true` di `frontend/src/config/features.ts` dan `ASSISTANT_ENABLED=true` di `backend/.env`
+- ♿ Menu Aksesibilitas (asisten suara, bacakan halaman, keyboard virtual, animasi lambat) - lihat [PERINTAH_SUARA.md](PERINTAH_SUARA.md). **Sementara dinonaktifkan** (`frontend/src/config/features.ts`)
 - 📱 Responsive Design
 
 ## 📁 Struktur Proyek
@@ -158,6 +158,8 @@ npm run build
 2. Salin `backend/.env.production.example` menjadi `~/nearby-backend/.env`, isi `APP_URL`, `DB_*`, lalu `php artisan key:generate`.
 3. Pastikan `~/nearby-backend/storage` dan `bootstrap/cache` bisa ditulis PHP (foto UMKM, avatar, dan video panduan disimpan di `storage/app/public` dan tidak terhapus saat deploy).
 4. Opsional: isi `ANTHROPIC_API_KEY` supaya jawaban asisten dirangkai oleh Claude. Tanpa key, asisten tetap mencari dari database dan menjawab dengan teksnya sendiri.
+
+Akun admin utama (`admin@gmail.com`) dibuat oleh migration `2026_09_28_000000_ensure_primary_admin_account` saat `migrate --force` pada deploy (hanya hash bcrypt yang disimpan di repo). Segera ganti kata sandinya setelah login pertama lewat **Akun → Keamanan**.
 
 Sebelum deploy, selalu `cd frontend && npm run build` lalu commit `frontend/dist`, karena server tidak menjalankan build. Jangan deploy `vendor/` yang berisi paket dev (`composer install --no-dev`).
 

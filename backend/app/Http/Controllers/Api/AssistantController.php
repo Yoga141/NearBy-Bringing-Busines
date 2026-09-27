@@ -25,6 +25,8 @@ class AssistantController extends Controller
 
     public function chat(Request $request): JsonResponse
     {
+        abort_unless(config('services.assistant.enabled'), 404, 'Fitur asisten sedang dinonaktifkan.');
+
         $data = $request->validate([
             'message' => ['required', 'string', 'max:500'],
             'context' => ['nullable', 'array'],

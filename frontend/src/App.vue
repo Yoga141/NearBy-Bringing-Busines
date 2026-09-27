@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUiStore } from '@/stores/ui'
-import { useA11yStore } from '@/stores/a11y'
 import { useThemeStore } from '@/stores/theme'
+import { FEATURES } from '@/config/features'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import HelpWidget from '@/components/layout/HelpWidget.vue'
-import AssistantChat from '@/components/layout/AssistantChat.vue'
-import AccessibilityWidget from '@/components/layout/AccessibilityWidget.vue'
-import VirtualKeyboard from '@/components/layout/VirtualKeyboard.vue'
-import VoiceAssistant from '@/components/layout/VoiceAssistant.vue'
 import SettingsModal from '@/components/account/SettingsModal.vue'
+
+// Switched-off features (see config/features.ts) are loaded lazily, so while
+// their flag is off their code is never even downloaded - and their stores,
+// microphone listeners and API calls never start.
+const AssistantChat = defineAsyncComponent(() => import('@/components/layout/AssistantChat.vue'))
+const AccessibilityLayer = defineAsyncComponent(() => import('@/components/layout/AccessibilityLayer.vue'))
 
 const route = useRoute()
 const ui = useUiStore()
-const a11y = useA11yStore()
 // Instantiated here so the theme follows OS changes on every route, including
 // the ones (login, dashboard) that don't render the header with the toggle.
 useThemeStore()
@@ -34,14 +35,8 @@ const showChrome = computed(() => route.meta.chrome !== false)
     </div>
     <AppFooter v-if="showChrome" />
     <HelpWidget v-if="showChrome" />
-    <AssistantChat v-if="showChrome" />
+    <AssistantChat v-if="FEATURES.assistant && showChrome" />
     <SettingsModal v-if="ui.settingsOpen" />
-    <!-- Always mounted, chrome or not: the login and dashboard screens are
-         exactly where the on-screen keyboard and read-aloud are needed most. -->
-    <AccessibilityWidget />
-    <VirtualKeyboard v-if="a11y.virtualKeyboard" />
-    <!-- Renders nothing visible: the voice assistant is ear-only, and it must
-         keep listening across every route, chrome or not. -->
-    <VoiceAssistant />
+    <AccessibilityLayer v-if="FEATURES.accessibility" />
   </div>
 </template>
