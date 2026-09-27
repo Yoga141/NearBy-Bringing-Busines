@@ -4,6 +4,7 @@ import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
 import { starsCount } from '@/data/reviews'
 import StarIcon from '@/components/shared/StarIcon.vue'
+import UmkmThumb from '@/components/shared/UmkmThumb.vue'
 import WavingHandIcon from '@/components/shared/WavingHandIcon.vue'
 import PlusIcon from '@/components/shared/PlusIcon.vue'
 import { STAT_ICONS } from '@/lib/statIcons'
@@ -88,7 +89,9 @@ function manage(id: number) {
       <div v-if="!dashboard.myUmkm.length" class="text-[13.5px] text-text-faint">Kamu belum mendaftarkan UMKM.</div>
       <div class="flex flex-col gap-3">
         <div v-for="u in dashboard.myUmkm" :key="u.id" class="flex flex-wrap items-center gap-[15px] rounded-2xl border border-border-divider p-3.5">
-          <div class="h-[58px] w-[58px] flex-none rounded-xl" style="background: repeating-linear-gradient(135deg, #ece6da 0 9px, #f4efe6 9px 18px)" />
+          <div class="h-[58px] w-[58px] flex-none overflow-hidden rounded-xl">
+            <UmkmThumb :src="u.coverUrl" :alt="`Foto ${u.name}`" rounded="rounded-xl" label=" " />
+          </div>
           <div class="flex-1">
             <div class="text-[15.5px] font-extrabold">{{ u.name }}</div>
             <div class="text-[13px] font-semibold text-text-faint">{{ u.cat }} · {{ u.loc }}</div>

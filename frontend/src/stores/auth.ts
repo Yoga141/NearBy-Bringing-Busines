@@ -209,25 +209,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * Restore a session locally without calling the API. Used only by the
-   * account-deletion "undo" banner: deleteMyAccount()/restoreMyAccount() in
-   * the account store are a local-only prototype (not backed by a real
-   * delete-account endpoint yet), so this mirrors that by staying local too.
-   */
-  function resumeLocalSession(name: string, role: Role) {
-    user.value = {
-      id: user.value?.id ?? 0,
-      name,
-      email: profileEmail.value,
-      phone: profilePhone.value || null,
-      role,
-      status: 'aktif',
-      avatarUrl: user.value?.avatarUrl ?? null,
-    }
-    profileName.value = name
-  }
-
   /** Clear local session state immediately, then best-effort revoke the token. */
   function logout() {
     const activeToken = getToken()
@@ -293,6 +274,5 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     restoreSession,
-    resumeLocalSession,
   }
 })

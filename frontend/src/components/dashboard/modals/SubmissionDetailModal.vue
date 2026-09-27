@@ -47,9 +47,12 @@ const docs = computed(() =>
         </div>
 
         <div class="mb-[11px] text-sm font-extrabold">Foto yang diunggah</div>
-        <div class="mb-5 grid grid-cols-3 gap-2.5">
+        <p v-if="!photos.length" class="mb-5 text-[13px] text-text-faint">Pemilik belum mengunggah foto.</p>
+        <div v-else class="mb-5 grid grid-cols-3 gap-2.5">
           <div v-for="f in photos" :key="f.name">
+            <img v-if="f.url" :src="f.url" :alt="f.name" class="aspect-square w-full rounded-xl object-cover" />
             <div
+              v-else
               class="flex aspect-square items-center justify-center rounded-xl text-xl"
               :class="f.ok ? 'border border-[#DCE7DF]' : 'border-[1.5px] border-dashed border-[#E3B7AC]'"
               :style="
@@ -64,8 +67,8 @@ const docs = computed(() =>
           </div>
         </div>
 
-        <div class="mb-[11px] text-sm font-extrabold">Dokumen</div>
-        <div class="flex flex-col gap-2.5">
+        <div v-if="docs.length" class="mb-[11px] text-sm font-extrabold">Dokumen</div>
+        <div v-if="docs.length" class="flex flex-col gap-2.5">
           <div v-for="f in docs" :key="f.name" class="flex items-center gap-3 rounded-xl border border-border-card px-3.5 py-[11px]">
             <div class="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-[9px]" :style="{ background: f.iconBg, color: f.iconColor }">
               <DocumentIcon v-if="f.ok" size="17px" /><CircleOutlineIcon v-else size="15px" />

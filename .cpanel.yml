@@ -1,6 +1,10 @@
 deployment:
   tasks:
     - cp -R frontend/dist/* /home/nearby/public_html/
+    # Fallback SPA: tanpa ini refresh di /umkm/5 atau /dashboard = 404 Apache.
+    # Ditambahkan sekali (dicek lewat penanda) supaya aturan lain yang sudah ada
+    # di .htaccess server tidak tertimpa.
+    - grep -q "NearBy SPA fallback" /home/nearby/public_html/.htaccess 2>/dev/null || cat frontend/deploy/spa.htaccess >> /home/nearby/public_html/.htaccess
     - cp -R backend/* /home/nearby/nearby-backend/
     - cp -R backend/public/* /home/nearby/public_html/api/
     # index.php bawaan Laravel mencari vendor & bootstrap lewat __DIR__.'/../',

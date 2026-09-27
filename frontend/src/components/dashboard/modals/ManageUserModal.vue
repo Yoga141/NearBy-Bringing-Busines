@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
 import CloseIcon from '@/components/shared/CloseIcon.vue'
@@ -6,10 +7,17 @@ import CloseIcon from '@/components/shared/CloseIcon.vue'
 const ui = useUiStore()
 const dashboard = useDashboardStore()
 
-function reset() {
-  const email = ui.modalItem?.email
+const isAdminAccount = computed(() => ui.modalItem?.role === 'Administrator')
+
+function resetPassword() {
+  const item = ui.modalItem
   ui.closeModal()
-  if (email) dashboard.userReset(email)
+  if (item) dashboard.userResetPassword(item.id, item.name)
+}
+function remove() {
+  const item = ui.modalItem
+  ui.closeModal()
+  if (item) dashboard.userDelete(item.id, item.name)
 }
 function toggleActive() {
   const item = ui.modalItem
@@ -41,9 +49,11 @@ function toggleActive() {
             {{ ui.modalItem?.role }}
           </span>
         </div>
-        <div class="flex flex-col gap-2.5">
-          <button type="button" class="rounded-xl border border-[#E7E0D2] bg-white px-[15px] py-[13px] text-left text-sm font-bold text-brand-navy" @click="reset">
-            Kirim tautan reset password
+        <p v-if="isAdminAccount" class="text-[13px] text-text-muted">Akun administrator tidak bisa diubah dari sini.</p>
+        <div v-else class="flex flex-col gap-2.5">
+          <button type="button" class="rounded-xl border border-[#E7E0D2] bg-white px-[15px] py-[13px] text-left text-sm font-bold text-brand-navy" @click="resetPassword">
+            Buat kata sandi sementara
+            <span class="block text-[12px] font-semibold text-text-faint">Untuk pengguna yang lupa kata sandi (lihat tab Pertanyaan).</span>
           </button>
           <button
             type="button"
@@ -51,6 +61,13 @@ function toggleActive() {
             @click="toggleActive"
           >
             {{ ui.modalItem?.status === 'Nonaktif' ? 'Aktifkan akun' : 'Nonaktifkan akun' }}
+          </button>
+          <button
+            type="button"
+            class="rounded-xl border border-danger-border bg-white px-[15px] py-[13px] text-left text-sm font-bold text-danger"
+            @click="remove"
+          >
+            Hapus akun (pindahkan ke sampah)
           </button>
         </div>
       </div>

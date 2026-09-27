@@ -6,7 +6,6 @@ import { useDashboardStore } from '@/stores/dashboard'
 import { STAT_ICONS } from '@/lib/statIcons'
 import CheckIcon from '@/components/shared/CheckIcon.vue'
 import CloseIcon from '@/components/shared/CloseIcon.vue'
-import RefreshIcon from '@/components/shared/RefreshIcon.vue'
 import DocumentIcon from '@/components/shared/DocumentIcon.vue'
 
 const auth = useAuthStore()
@@ -84,9 +83,6 @@ const stats = computed(() => [
       <div class="flex flex-wrap gap-2.5 border-t border-border-divider-2 pt-3.5">
         <button type="button" class="flex items-center gap-1.5 rounded-[11px] bg-teal px-5 py-2.5 font-bold text-white" @click="dashboard.approveSubmission(p.id, p.name)">
           <CheckIcon size="14px" /> Setujui &amp; tampilkan
-        </button>
-        <button type="button" class="flex items-center gap-1.5 rounded-[11px] border border-[#E7C97F] bg-white px-[18px] py-2.5 font-bold text-[#B07A1E]" @click="dashboard.requestFix(p.name)">
-          <RefreshIcon size="14px" /> Minta perbaikan data
         </button>
         <button type="button" class="flex items-center gap-1.5 rounded-[11px] border border-danger-border bg-white px-[18px] py-2.5 font-bold text-danger" @click="dashboard.rejectSubmission(p.id, p.name)">
           <CloseIcon size="14px" /> Tolak

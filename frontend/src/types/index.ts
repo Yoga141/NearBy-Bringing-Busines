@@ -108,6 +108,8 @@ export interface SubmissionFile {
   kind: 'image' | 'doc'
   ok: boolean
   meta: string
+  /** Present for photos taken from the UMKM itself. */
+  url?: string
 }
 
 export interface OwnerTrashEntry {

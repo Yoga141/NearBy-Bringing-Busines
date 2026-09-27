@@ -5,7 +5,6 @@ import UserAvatar from '@/components/shared/UserAvatar.vue'
 import { useUiStore } from '@/stores/ui'
 import ProfileTab from './tabs/ProfileTab.vue'
 import SecurityTab from './tabs/SecurityTab.vue'
-import PermissionsTab from './tabs/PermissionsTab.vue'
 import HistoryTab from './tabs/HistoryTab.vue'
 import DeleteAccountTab from './tabs/DeleteAccountTab.vue'
 import CloseIcon from '@/components/shared/CloseIcon.vue'
@@ -16,7 +15,6 @@ const ui = useUiStore()
 const NAV_DEFS = [
   { key: 'profil', label: 'Edit Profil', desc: 'Perbarui nama, email, dan nomor teleponmu.' },
   { key: 'keamanan', label: 'Keamanan', desc: 'Verifikasi dua langkah, perangkat, dan ganti kata sandi.' },
-  { key: 'izin', label: 'Izin & Privasi', desc: 'Atur izin notifikasi, lokasi, dan penggunaan data.' },
   { key: 'history', label: 'History', desc: 'Riwayat komentar & kunjungan UMKM-mu.' },
   { key: 'hapus', label: 'Hapus Akun', desc: 'Nonaktifkan akunmu - bisa dipulihkan dalam 30 hari.' },
 ]
@@ -80,7 +78,6 @@ const current = computed(() => NAV_DEFS.find((d) => d.key === ui.settingsTab) ??
 
         <ProfileTab v-if="ui.settingsTab === 'profil'" />
         <SecurityTab v-else-if="ui.settingsTab === 'keamanan'" />
-        <PermissionsTab v-else-if="ui.settingsTab === 'izin'" />
         <HistoryTab v-else-if="ui.settingsTab === 'history'" />
         <DeleteAccountTab v-else-if="ui.settingsTab === 'hapus'" />
       </div>

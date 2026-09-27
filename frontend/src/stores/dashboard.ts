@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, ApiError } from '@/lib/api'
 import { enrichUmkm, umkmFromApi, type EnrichedUmkm } from './umkm'
 import { CAT } from '@/data/categories'
 import type {
@@ -173,6 +173,42 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }),
   )
 
+  function failed(e: unknown, fallback: string) {
+    alert(e instanceof ApiError ? e.firstError : fallback)
+  }
+
+  /** Soft-delete (moves to the trash, restorable). */
+  async function adminDeleteUmkm(id: number, name: string) {
+    if (!confirm(`Pindahkan UMKM "${name}" ke sampah? UMKM tidak tampil lagi di website sampai dipulihkan.`)) return
+    try {
+      await apiFetch(`/umkm/${id}`, { method: 'DELETE' })
+      await Promise.all([fetchAdminUmkm(), fetchAdminTrash()])
+    } catch (e) {
+      failed(e, 'Gagal menghapus UMKM.')
+    }
+  }
+
+  const adminTrashUmkmRaw = ref<EnrichedUmkm[]>([])
+
+  async function adminRestoreUmkm(id: number) {
+    try {
+      await apiFetch(`/admin/trash/${id}/restore?type=umkm`, { method: 'POST' })
+      await Promise.all([fetchAdminUmkm(), fetchAdminTrash()])
+    } catch (e) {
+      failed(e, 'Gagal memulihkan UMKM.')
+    }
+  }
+
+  async function adminPurgeUmkm(id: number, name: string) {
+    if (!confirm(`Hapus permanen "${name}"? Foto, produk, dan ulasannya ikut terhapus dan tidak bisa dipulihkan.`)) return
+    try {
+      await apiFetch(`/admin/trash/umkm/${id}`, { method: 'DELETE' })
+      adminTrashUmkmRaw.value = adminTrashUmkmRaw.value.filter((u) => u.id !== id)
+    } catch (e) {
+      failed(e, 'Gagal menghapus permanen.')
+    }
+  }
+
   async function adminToggleHidden(id: number, name: string) {
     const row = await apiFetch<any>(`/admin/umkm/${id}/toggle-hidden`, { method: 'POST' })
     const updated = enrichUmkm(umkmFromApi(row))
@@ -222,12 +258,14 @@ export const useDashboardStore = defineStore('dashboard', () => {
   }
 
   async function fetchAdminUsers() {
-    const [activeRes, trashRes] = await Promise.all([
-      apiFetch<any[]>('/admin/users'),
-      apiFetch<{ users: any[] }>('/admin/trash'),
-    ])
-    adminUsersRaw.value = activeRes.map(fromApiUser)
-    adminTrashUsersRaw.value = trashRes.users.map(fromApiUser)
+    adminUsersRaw.value = (await apiFetch<any[]>('/admin/users')).map(fromApiUser)
+  }
+
+  /** Soft-deleted accounts and UMKM, in one request. */
+  async function fetchAdminTrash() {
+    const trash = await apiFetch<{ users: any[]; umkms: any[] }>('/admin/trash')
+    adminTrashUsersRaw.value = trash.users.map(fromApiUser)
+    adminTrashUmkmRaw.value = trash.umkms.map((row) => enrichUmkm(umkmFromApi(row)))
   }
 
   const users = computed(() => {
@@ -240,14 +278,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
       statusBg: USER_STATUS_META[u.status].b,
     }))
     const deletedRows = adminTrashUsersRaw.value.map((u) => {
-      const days = u.deletedAt ? Math.max(0, 30 - Math.floor((Date.now() - new Date(u.deletedAt).getTime()) / 86400000)) : 30
       const rm = ROLE_META[u.role] ?? ROLE_META.Pengguna
       return {
         ...u,
         deleted: true,
         roleColor: rm.c,
         roleBg: rm.b,
-        status: `Dihapus · ${days} hr lagi` as unknown as AdminUserRow['status'],
+        status: 'Dihapus' as unknown as AdminUserRow['status'],
         statusColor: '#C0472F',
         statusBg: '#FBEEEA',
       }
@@ -256,25 +293,80 @@ export const useDashboardStore = defineStore('dashboard', () => {
   })
 
   async function userRestore(id: number) {
-    await apiFetch(`/admin/trash/${id}/restore?type=user`, { method: 'POST' })
-    adminTrashUsersRaw.value = adminTrashUsersRaw.value.filter((u) => u.id !== id)
-    await fetchAdminUsers()
+    try {
+      await apiFetch(`/admin/trash/${id}/restore?type=user`, { method: 'POST' })
+      await Promise.all([fetchAdminUsers(), fetchAdminTrash()])
+    } catch (e) {
+      failed(e, 'Gagal memulihkan akun.')
+    }
   }
-  function userReset(email: string) {
-    // No email/reset-token flow is wired up yet - this is an honest placeholder, not a real send.
-    alert(`Belum ada layanan email terhubung - tautan reset untuk ${email} belum benar-benar terkirim.`)
+
+  /**
+   * Temporary password for a user who asked for help via "Lupa password".
+   * Shown once in a prompt so the admin can copy it and pass it on.
+   */
+  async function userResetPassword(id: number, name: string) {
+    if (!confirm(`Buat kata sandi sementara untuk "${name}"? Kata sandi lama langsung tidak berlaku dan semua perangkatnya keluar.`)) return
+    try {
+      const res = await apiFetch<{ message: string; temporaryPassword: string }>(`/admin/users/${id}/reset-password`, { method: 'POST' })
+      window.prompt(`${res.message} Salin kata sandi sementara untuk ${name}:`, res.temporaryPassword)
+    } catch (e) {
+      failed(e, 'Gagal mereset kata sandi.')
+    }
   }
+
+  async function userDelete(id: number, name: string) {
+    if (!confirm(`Hapus akun "${name}"? Akun dipindahkan ke sampah dan tidak bisa masuk sampai dipulihkan.`)) return
+    try {
+      await apiFetch(`/admin/users/${id}`, { method: 'DELETE' })
+      await Promise.all([fetchAdminUsers(), fetchAdminTrash()])
+    } catch (e) {
+      failed(e, 'Gagal menghapus akun.')
+    }
+  }
+
   async function userToggleActive(id: number, name: string) {
-    const row = await apiFetch<any>(`/admin/users/${id}/toggle-status`, { method: 'POST' })
-    const updated = fromApiUser(row)
-    const idx = adminUsersRaw.value.findIndex((u) => u.id === id)
-    if (idx !== -1) adminUsersRaw.value[idx] = updated
-    alert(`Akun "${name}" ${updated.status === 'Nonaktif' ? 'dinonaktifkan.' : 'diaktifkan kembali.'}`)
+    try {
+      const row = await apiFetch<any>(`/admin/users/${id}/toggle-status`, { method: 'POST' })
+      const updated = fromApiUser(row)
+      const idx = adminUsersRaw.value.findIndex((u) => u.id === id)
+      if (idx !== -1) adminUsersRaw.value[idx] = updated
+      alert(`Akun "${name}" ${updated.status === 'Nonaktif' ? 'dinonaktifkan.' : 'diaktifkan kembali.'}`)
+    } catch (e) {
+      failed(e, 'Gagal mengubah status akun.')
+    }
+  }
+
+  // ---- Admin: Ulasan (moderasi) ----
+  const adminReviewsRaw = ref<Review[]>([])
+
+  async function fetchAdminReviews() {
+    adminReviewsRaw.value = (await apiFetch<any[]>('/admin/reviews')).map(fromApiReview)
+  }
+
+  async function adminDeleteReview(id: string, author: string) {
+    if (!confirm(`Hapus ulasan dari ${author}? Rating UMKM akan dihitung ulang.`)) return
+    try {
+      await apiFetch(`/reviews/${id}`, { method: 'DELETE' })
+      adminReviewsRaw.value = adminReviewsRaw.value.filter((r) => r.id !== id)
+      await Promise.all([fetchAdminUmkm(), fetchAdminReports()])
+    } catch (e) {
+      failed(e, 'Gagal menghapus ulasan.')
+    }
   }
 
   // ---- Admin: Laporan ----
   const adminReports = ref<{
-    stats: { umkmCount: number; userCount: number; reviewCount: number; avgRating: number }
+    stats: {
+      umkmCount: number
+      publishedCount: number
+      pendingCount: number
+      userCount: number
+      ownerCount: number
+      reviewCount: number
+      avgRating: number
+      totalViews: number
+    }
     byCategory: Record<string, number>
     byLocation: Record<string, number>
     growth: { label: string; val: number }[]
@@ -287,10 +379,17 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const reportStats = computed<StatCard[]>(() => {
     const s = adminReports.value?.stats
     return [
-      { icon: 'grid', value: String(s?.umkmCount ?? 0), label: 'UMKM terdaftar', accent: '#2C5EAD', soft: '#E6EDF8' },
-      { icon: 'target', value: String(s?.userCount ?? 0), label: 'Total pengguna', accent: '#1591DC', soft: '#E1F1FB' },
+      {
+        icon: 'grid',
+        value: String(s?.umkmCount ?? 0),
+        label: `UMKM terdaftar (${s?.publishedCount ?? 0} tampil, ${s?.pendingCount ?? 0} menunggu)`,
+        accent: '#2C5EAD',
+        soft: '#E6EDF8',
+      },
+      { icon: 'target', value: String(s?.userCount ?? 0), label: `Total pengguna (${s?.ownerCount ?? 0} pemilik)`, accent: '#1591DC', soft: '#E1F1FB' },
       { icon: 'edit', value: String(s?.reviewCount ?? 0), label: 'Total ulasan', accent: '#3E8E82', soft: '#E3EFED' },
-      { icon: 'star', value: String(s?.avgRating ?? 0), label: 'Rata-rata rating', accent: '#C98A2E', soft: '#F7EDDC' },
+      { icon: 'star', value: s?.reviewCount ? String(s.avgRating) : '-', label: 'Rata-rata bintang ulasan', accent: '#C98A2E', soft: '#F7EDDC' },
+      { icon: 'eye', value: (s?.totalViews ?? 0).toLocaleString('id-ID'), label: 'Total kunjungan halaman UMKM', accent: '#5B6672', soft: '#EEF0F2' },
     ]
   })
 
@@ -367,10 +466,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     await apiFetch(`/admin/submissions/${id}/reject`, { method: 'POST' })
     pendingSubmissionsRaw.value = pendingSubmissionsRaw.value.filter((s) => s.id !== id)
     alert(`Pengajuan "${name}" ditolak.`)
-  }
-  function requestFix(name: string) {
-    // There's no owner-facing resubmission/notification flow yet - this stays a local nudge for now.
-    alert(`Permintaan perbaikan data dikirim ke pemilik "${name}".`)
   }
 
   // ---- Admin: Laporan Masalah ----
@@ -471,6 +566,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
       await Promise.all([
         fetchAdminUmkm(),
         fetchAdminUsers(),
+        fetchAdminTrash(),
+        fetchAdminReviews(),
         fetchAdminReports(),
         fetchSubmissions(),
         fetchProblemReports(),
@@ -500,10 +597,18 @@ export const useDashboardStore = defineStore('dashboard', () => {
     adminLoading,
     fetchAdminDashboard,
     allUmkmAdmin,
+    allUmkmAdminRaw: adminUmkmRaw,
     adminToggleHidden,
+    adminDeleteUmkm,
+    adminTrashUmkmRaw,
+    adminRestoreUmkm,
+    adminPurgeUmkm,
+    adminReviewsRaw,
+    adminDeleteReview,
     users,
     userRestore,
-    userReset,
+    userResetPassword,
+    userDelete,
     userToggleActive,
     reportStats,
     growthBars,
@@ -521,6 +626,5 @@ export const useDashboardStore = defineStore('dashboard', () => {
     pendingSubmissions,
     approveSubmission,
     rejectSubmission,
-    requestFix,
   }
 })

@@ -26,6 +26,7 @@ const adminMenu = computed(() => [
   { key: 'verif', label: 'Verifikasi UMKM' },
   { key: 'all', label: 'Semua UMKM' },
   { key: 'users', label: 'Pengguna' },
+  { key: 'ulasan', label: 'Ulasan' },
   { key: 'report', label: 'Laporan' },
   { key: 'video', label: 'Video Medsos' },
   { key: 'panduan', label: 'Video Panduan' },

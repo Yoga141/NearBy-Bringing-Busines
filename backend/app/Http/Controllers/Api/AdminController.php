@@ -98,7 +98,7 @@ class AdminController extends Controller
     public function submissions()
     {
         return SubmissionResource::collection(
-            Submission::with('owner')->where('status', 'menunggu')->latest()->get()
+            Submission::with(['owner', 'umkm.photos', 'umkm.items'])->where('status', 'menunggu')->latest()->get()
         );
     }
 
@@ -114,7 +114,7 @@ class AdminController extends Controller
             $submission->owner->update(['status' => 'aktif']);
         }
 
-        return new SubmissionResource($submission->fresh('owner'));
+        return new SubmissionResource($submission->fresh(['owner', 'umkm.photos', 'umkm.items']));
     }
 
     /** Reject a submission. */
@@ -126,7 +126,7 @@ class AdminController extends Controller
             $submission->umkm->update(['verification' => 'ditolak']);
         }
 
-        return new SubmissionResource($submission->fresh('owner'));
+        return new SubmissionResource($submission->fresh(['owner', 'umkm.photos', 'umkm.items']));
     }
 
     /** Aggregate report stats. */

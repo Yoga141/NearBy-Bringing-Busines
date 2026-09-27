@@ -1,10 +1,11 @@
 import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import router from '@/router'
-import { useUmkmStore, type EnrichedUmkm } from './umkm'
+import { enrichUmkm, umkmFromApi, useUmkmStore, type EnrichedUmkm } from './umkm'
 import { useAuthStore } from './auth'
 import { useA11yStore } from './a11y'
-import type { PageName } from '@/lib/voiceIntent'
+import { useAssistantStore } from './assistant'
+import { stripWakeWord, type PageName } from '@/lib/voiceIntent'
 import { interpret, type VoiceCommand } from '@/lib/voiceNlp'
 
 /**
@@ -411,7 +412,7 @@ export const useVoiceStore = defineStore('voice', () => {
       return
     }
 
-    await runCommand(cmd)
+    await runCommand(cmd, transcript)
   }
 
   function backToListening(next: 'siaga' | 'mendengar') {
@@ -433,12 +434,12 @@ export const useVoiceStore = defineStore('voice', () => {
     }
   }
 
-  async function runCommand(cmd: VoiceCommand) {
+  async function runCommand(cmd: VoiceCommand, transcript: string) {
     phase.value = 'memproses'
     stopRecognition()
 
     try {
-      await dispatch(cmd)
+      await dispatch(cmd, transcript)
     } catch {
       // A failed fetch or navigation must not strand us in 'memproses' with
       // the microphone off.
@@ -446,10 +447,10 @@ export const useVoiceStore = defineStore('voice', () => {
     }
   }
 
-  async function dispatch(cmd: VoiceCommand) {
+  async function dispatch(cmd: VoiceCommand, transcript: string) {
     switch (cmd.action) {
       case 'cari':
-        await runSearch(cmd)
+        await runSearch(cmd, transcript)
         break
       case 'buka':
         await runOpen(cmd)
@@ -478,6 +479,12 @@ export const useVoiceStore = defineStore('voice', () => {
         await reply(cmd.message || HELP_TEXT)
         break
       case 'tidak_dikenal':
+        // "yang murah", "yang dekat kampus" after a search: a refinement the
+        // command parser has no rule for, but the assistant understands.
+        if (hasSearchContext()) {
+          await runSearch(cmd, transcript)
+          break
+        }
         await reply(
           cmd.message ||
             `Maaf, saya belum mengerti "${cmd.raw}". Ucapkan bantuan untuk mendengar daftar perintah.`,
@@ -489,59 +496,39 @@ export const useVoiceStore = defineStore('voice', () => {
     }
   }
 
-  async function runSearch(cmd: VoiceCommand) {
+  function hasSearchContext() {
+    const c = useAssistantStore().context
+    return !!(c.category || c.location || c.keyword || c.near)
+  }
+
+  /**
+   * Searches go through the same assistant as the chat (`POST /api/assistant/chat`),
+   * so the result list is read from the database and follow-ups keep their
+   * context. The directory filters are driven from the answer, so a sighted
+   * helper sees the same UMKM on screen.
+   */
+  async function runSearch(cmd: VoiceCommand, transcript: string) {
     const umkm = useUmkmStore()
+    const assistant = useAssistantStore()
 
-    // "Baik, mencari makanan di balikpapan selatan." plays while the directory
-    // opens and fills in. The page is opened regardless of whether the fetch
-    // succeeds - otherwise a slow or failed load leaves the assistant only
-    // talking, which reads as "it can't open pages".
-    const loaded = await announceWhile(cmd.message, async () => {
+    const res = await announceWhile(cmd.message, async () => {
       await router.push({ name: 'daftar' })
-      await umkm.fetchAll()
-      // Drive the real directory filters so the page matches what is spoken.
-      umkm.cat = cmd.category ?? 'Semua'
-      umkm.loc = cmd.location ?? 'Semua'
-      umkm.q = cmd.keyword
-      return !umkm.error
+      const [answer] = await Promise.all([assistant.ask(stripWakeWord(transcript) ?? transcript), umkm.fetchAll()])
+      return answer
     })
-    if (!loaded) {
-      await reply('Saya sudah membuka daftar UMKM, tapi datanya belum berhasil dimuat. Coba lagi sebentar lagi.')
+    if (!res) {
+      await reply('Maaf, pencarian belum berhasil. Periksa koneksi internet lalu coba lagi.')
       return
     }
 
-    let list = umkm.filteredDirectory
-    let relaxed = false
-    // A misheard word in the free-text part shouldn't sink an otherwise good
-    // search - fall back to the category and kecamatan alone and say so.
-    if (!list.length && cmd.keyword && (cmd.category || cmd.location)) {
-      umkm.q = ''
-      list = umkm.filteredDirectory
-      relaxed = list.length > 0
-    }
+    const c = res.context as { category?: string | null; location?: string | null }
+    umkm.cat = c.category ?? 'Semua'
+    umkm.loc = c.location ?? 'Semua'
+    umkm.q = ''
 
-    results.value = list
-
-    const what = cmd.category ? cmd.category.toLowerCase() : 'UMKM'
-    const where = cmd.location ?? 'Balikpapan'
-
-    if (!list.length) {
-      await reply(`Maaf, saya tidak menemukan ${what} di ${where}. Coba sebutkan kategori atau wilayah lain.`)
-      return
-    }
-
-    const spokenList = list.slice(0, SPOKEN_RESULTS)
-    const intro = relaxed
-      ? `Saya tidak menemukan yang persis seperti itu, tapi ada ${list.length} ${what} di ${where}.`
-      : `Saya menemukan ${list.length} ${what} di ${where}.`
-    const tail =
-      list.length > spokenList.length
-        ? ` Itu ${spokenList.length} teratas dari ${list.length}.`
-        : ''
-
+    results.value = res.results.map((row) => enrichUmkm(umkmFromApi(row)))
     await reply(
-      `${intro} ${spokenList.map((u, i) => describeOne(u, i + 1)).join(' ')}${tail}` +
-        ' Sebutkan buka nomor satu untuk mendengar detailnya.',
+      res.reply + (results.value.length ? ' Sebutkan buka nomor satu untuk mendengar detailnya.' : ''),
     )
   }
 

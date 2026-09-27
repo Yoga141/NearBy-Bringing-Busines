@@ -3,6 +3,7 @@ import { useUiStore } from '@/stores/ui'
 import { useDashboardStore } from '@/stores/dashboard'
 import ExcelCard from '@/components/dashboard/shared/ExcelCard.vue'
 import StarIcon from '@/components/shared/StarIcon.vue'
+import UmkmThumb from '@/components/shared/UmkmThumb.vue'
 import PlusIcon from '@/components/shared/PlusIcon.vue'
 
 const ui = useUiStore()
@@ -42,12 +43,20 @@ function manage(id: number) {
   <div v-else class="flex flex-col gap-3.5">
     <div v-for="u in dashboard.myUmkm" :key="u.id" class="rounded-[18px] border border-border-card bg-white p-5 shadow-[0_4px_16px_rgba(19,50,77,.04)]">
       <div class="flex items-start gap-4">
-        <div class="h-[72px] w-[72px] flex-none rounded-[14px]" style="background: repeating-linear-gradient(135deg, #ece6da 0 9px, #f4efe6 9px 18px)" />
+        <div class="h-[72px] w-[72px] flex-none overflow-hidden rounded-[14px]">
+          <UmkmThumb :src="u.coverUrl" :alt="`Foto ${u.name}`" rounded="rounded-[14px]" label=" " />
+        </div>
         <div class="min-w-0 flex-1">
           <div class="flex flex-wrap items-center gap-2.5">
             <div class="text-lg font-extrabold">{{ u.name }}</div>
             <span class="rounded-full px-[11px] py-1 text-[11.5px] font-bold" :style="{ background: u.catSoft, color: u.catAccent }">{{ u.cat }}</span>
             <span class="rounded-full px-[11px] py-1 text-[11.5px] font-bold" :style="{ background: u.statusBg, color: u.statusColor }">{{ u.status }}</span>
+            <span
+              class="rounded-full px-[11px] py-1 text-[11.5px] font-bold"
+              :style="u.verification === 'disetujui' ? { background: '#E3EFED', color: '#2E7D6E' } : u.verification === 'ditolak' ? { background: '#F8E6E0', color: '#C0472F' } : { background: '#F7EDDC', color: '#B07A1E' }"
+            >
+              {{ u.verification === 'disetujui' ? (u.hidden ? 'Disembunyikan admin' : 'Tampil di website') : u.verification === 'ditolak' ? 'Ditolak admin' : 'Menunggu verifikasi' }}
+            </span>
           </div>
           <div class="mt-1.5 text-[13.5px] font-semibold text-text-faint">{{ u.loc }}</div>
           <div class="mt-3.5 flex gap-6">

@@ -7,11 +7,11 @@ import { useThemeStore } from '@/stores/theme'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import HelpWidget from '@/components/layout/HelpWidget.vue'
+import AssistantChat from '@/components/layout/AssistantChat.vue'
 import AccessibilityWidget from '@/components/layout/AccessibilityWidget.vue'
 import VirtualKeyboard from '@/components/layout/VirtualKeyboard.vue'
 import VoiceAssistant from '@/components/layout/VoiceAssistant.vue'
 import SettingsModal from '@/components/account/SettingsModal.vue'
-import RestoreBanner from '@/components/account/RestoreBanner.vue'
 
 const route = useRoute()
 const ui = useUiStore()
@@ -24,7 +24,6 @@ const showChrome = computed(() => route.meta.chrome !== false)
 
 <template>
   <div class="min-h-screen bg-cream">
-    <RestoreBanner />
     <AppHeader v-if="showChrome" />
     <div class="relative">
       <RouterView v-slot="{ Component, route }">
@@ -35,6 +34,7 @@ const showChrome = computed(() => route.meta.chrome !== false)
     </div>
     <AppFooter v-if="showChrome" />
     <HelpWidget v-if="showChrome" />
+    <AssistantChat v-if="showChrome" />
     <SettingsModal v-if="ui.settingsOpen" />
     <!-- Always mounted, chrome or not: the login and dashboard screens are
          exactly where the on-screen keyboard and read-aloud are needed most. -->

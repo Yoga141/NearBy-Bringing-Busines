@@ -1,16 +1,7 @@
-import { computed, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { ApiError, apiFetch } from '@/lib/api'
-import type { AccountSession, Review, Role } from '@/types'
-
-export interface DeletedAccount {
-  name: string
-  email: string
-  role: string
-  rawRole: Role
-  initial: string
-  deletedAt: number
-}
+import type { AccountSession, Review } from '@/types'
 
 function fromApiReview(row: any): Review {
   return {
@@ -29,21 +20,8 @@ function fromApiReview(row: any): Review {
 }
 
 export const useAccountStore = defineStore('account', () => {
-  const perms = reactive({
-    emailNotif: true,
-    pushNotif: false,
-    location: true,
-    promo: false,
-    dataShare: true,
-  })
+  // Two-factor sign-in is not implemented; the Security tab shows it disabled.
   const security = reactive({ twofa: false })
-
-  function togglePerm(key: keyof typeof perms) {
-    perms[key] = !perms[key]
-  }
-  function toggleSecurity(key: keyof typeof security) {
-    security[key] = !security[key]
-  }
 
   // ---- Ganti kata sandi ----
 
@@ -153,39 +131,26 @@ export const useAccountStore = defineStore('account', () => {
     if (idx !== -1) commentHistory.value[idx] = { ...current, ...updated }
   }
 
-  const deletedAccounts = ref<DeletedAccount[]>([
-    {
-      name: 'Andini Putri',
-      email: 'andini.p@mail.com',
-      role: 'Pengguna',
-      rawRole: 'user',
-      initial: 'A',
-      deletedAt: Date.now() - 5 * 86400000,
-    },
-  ])
-  const myDeleted = ref<DeletedAccount | null>(null)
+  // ---- Hapus akun ----
+  const deleting = ref(false)
+  const deleteError = ref('')
 
-  const myDeletedDaysLeft = computed(() =>
-    myDeleted.value ? Math.max(0, 30 - Math.floor((Date.now() - myDeleted.value.deletedAt) / 86400000)) : 30,
-  )
-
-  function deleteMyAccount(name: string, email: string, role: Role, roleLabel: string, initial: string) {
-    const acc: DeletedAccount = { name, email, role: roleLabel, rawRole: role, initial, deletedAt: Date.now() }
-    deletedAccounts.value.push(acc)
-    myDeleted.value = acc
-  }
-
-  /** Returns the {name, role} to restore into the auth session, or null if nothing to restore. */
-  function restoreMyAccount(): { name: string; role: Role } | null {
-    const m = myDeleted.value
-    if (!m) return null
-    deletedAccounts.value = deletedAccounts.value.filter((x) => x !== m)
-    myDeleted.value = null
-    return { name: m.name, role: m.rawRole }
+  /** Soft-delete the signed-in account on the server (password required). */
+  async function deleteMyAccount(password: string): Promise<boolean> {
+    deleteError.value = ''
+    deleting.value = true
+    try {
+      await apiFetch('/me', { method: 'DELETE', body: JSON.stringify({ password }) })
+      return true
+    } catch (e) {
+      deleteError.value = e instanceof ApiError ? e.firstError : 'Tidak dapat terhubung ke server. Coba lagi.'
+      return false
+    } finally {
+      deleting.value = false
+    }
   }
 
   return {
-    perms,
     security,
     passwordSaving,
     passwordError,
@@ -196,17 +161,13 @@ export const useAccountStore = defineStore('account', () => {
     sessionsError,
     fetchSessions,
     revokeSession,
-    togglePerm,
-    toggleSecurity,
     commentHistory,
     commentHistoryLoading,
     fetchCommentHistory,
     deleteComment,
     updateComment,
-    deletedAccounts,
-    myDeleted,
-    myDeletedDaysLeft,
+    deleting,
+    deleteError,
     deleteMyAccount,
-    restoreMyAccount,
   }
 })

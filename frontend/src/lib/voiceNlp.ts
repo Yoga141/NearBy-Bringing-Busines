@@ -34,7 +34,12 @@ export interface VoiceCommand {
   source: 'python' | 'lokal'
 }
 
-const ENDPOINT: string = import.meta.env.VITE_VOICE_NLP_URL || '/api/voice-nlp'
+/**
+ * Only set when the Python service is actually deployed (see .env.development
+ * for local use). The cPanel host runs PHP only, so a production build without
+ * it goes straight to the in-browser rules instead of a request that 404s.
+ */
+const ENDPOINT: string = import.meta.env.VITE_VOICE_NLP_URL || ''
 /** Past this the user has been waiting in silence long enough - answer locally. */
 const TIMEOUT_MS = 4_000
 
@@ -108,6 +113,8 @@ function interpretLocally(text: string, requireWake: boolean): VoiceCommand {
  * ("siaga"): anything without "Oke NearBy" comes back as `abaikan`.
  */
 export async function interpret(text: string, requireWake: boolean): Promise<VoiceCommand> {
+  if (!ENDPOINT) return interpretLocally(text, requireWake)
+
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
