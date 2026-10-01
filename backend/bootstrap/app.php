@@ -19,28 +19,33 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Bypass CSRF untuk route API dan Auth
+        $middleware->validateCsrfTokens(
+            except: [
+                'api/*',
+                'login',
+                'register',
+                'logout',
+            ]
+        );
+
+        // Jika kode di atas masih memicu error PHP syntax, gunakan opsi ini:
+        // $middleware->validateCsrfTokens(['api/*', 'login', 'register', 'logout']);
+
         // `role:admin`, `role:owner,admin` ... - see EnsureUserHasRole.
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
         ]);
 
-        // Check the role before route-model binding looks the record up, so a
-        // refused request gets 403 without a database query - and without a
-        // 404-vs-403 difference revealing which ids exist. Authentication still
-        // runs first (it sits higher in the same priority list).
+        // Check the role before route-model binding looks the record up...
         $middleware->prependToPriorityList(
             before: SubstituteBindings::class,
             prepend: EnsureUserHasRole::class,
         );
 
-        // This app is an SPA + token API and has no server-rendered "login"
-        // route. Without this, an unauthenticated API call that doesn't send
-        // `Accept: application/json` makes Authenticate::redirectTo() resolve
-        // route('login') eagerly and blow up with a 500 ("Route [login] not
-        // defined") before the JSON exception renderer below ever runs.
-        // Returning null leaves the 401 to be rendered as JSON.
+        // This app is an SPA + token API and has no server-rendered "login" route...
         $middleware->redirectGuestsTo(
-            fn (Request $request) => $request->is('api/*') ? null : '/login',
+            fn (Request $request) =>$request->is('api/*') ? null : '/login',
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
