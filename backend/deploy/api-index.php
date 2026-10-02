@@ -60,4 +60,10 @@ $app = require_once $appBase.'/bootstrap/app.php';
 // `backend/public`, jadi `public_path()` diarahkan ke sini.
 $app->usePublicPath(__DIR__);
 
+// Mencegah Symfony menghapus awalan '/api' dari URI. 
+// Karena file ini berada di folder /api/, SCRIPT_NAME aslinya adalah /api/index.php.
+// Symfony Request akan mengira /api adalah base path dan menghapusnya dari request,
+// sehingga URI /api/register berubah menjadi /register (menyebabkan 404 NotFound).
+$_SERVER['SCRIPT_NAME'] = '/index.php';
+
 $app->handleRequest(Request::capture());

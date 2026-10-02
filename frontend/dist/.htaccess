@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Handle Authorization Header for LiteSpeed/Apache
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+    RewriteCond %{HTTP:Authorization} ^(.*)
+    RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
+    # Aturan khusus untuk meneruskan request ke symlink /api
+    # ke entrypoint Laravel secara langsung
+    RewriteCond %{REQUEST_URI} ^/api/ [NC]
+    RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+
+    # SPA (Single Page Application) routing
+    # Biarkan file dan folder yang ada diakses secara langsung
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    # Redirect selain /api ke index.html
+    RewriteCond %{REQUEST_URI} !^/api/ [NC]
+    RewriteRule ^ index.html [QSA,L]
+</IfModule>

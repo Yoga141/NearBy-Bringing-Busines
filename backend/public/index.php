@@ -17,4 +17,12 @@ require __DIR__.'/../vendor/autoload.php';
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
+// Mencegah Symfony menghapus awalan '/api' dari URI jika diakses via symlink /api.
+// Jika file ini dipanggil dari folder /api/, SCRIPT_NAME akan bernilai /api/index.php.
+// Symfony Request akan mengira /api adalah base path dan menghapusnya dari request,
+// sehingga URI /api/register berubah menjadi /register (menyebabkan 404 NotFound).
+if (isset($_SERVER['SCRIPT_NAME']) && str_starts_with($_SERVER['SCRIPT_NAME'], '/api/')) {
+    $_SERVER['SCRIPT_NAME'] = '/index.php';
+}
+
 $app->handleRequest(Request::capture());
