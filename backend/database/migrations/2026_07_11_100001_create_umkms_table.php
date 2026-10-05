@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('owner_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name');
-            $table->enum('category', ['Kuliner', 'Penginapan', 'Fashion', 'Oleh-Oleh', 'Jasa']);
+            $table->string('category');
             $table->enum('location', [
                 'Balikpapan Kota',
                 'Balikpapan Utara',

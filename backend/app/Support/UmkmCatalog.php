@@ -12,7 +12,10 @@ namespace App\Support;
  */
 final class UmkmCatalog
 {
-    public const CATEGORIES = ['Kuliner', 'Penginapan', 'Fashion', 'Oleh-Oleh', 'Jasa'];
+    public const CATEGORIES = [
+        'Kuliner', 'Penginapan', 'Fashion', 'Oleh-Oleh', 'Jasa',
+        'Minuman', 'Toko Sayur & Buah',
+    ];
 
     public const LOCATIONS = [
         'Balikpapan Kota', 'Balikpapan Utara', 'Balikpapan Selatan',

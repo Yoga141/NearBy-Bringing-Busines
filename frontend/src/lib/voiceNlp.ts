@@ -47,7 +47,9 @@ const ACTIONS: readonly VoiceAction[] = [
   'cari', 'buka', 'daftar', 'halaman', 'favorit', 'ulangi', 'berhenti', 'bantuan',
   'beranda', 'tidak_dikenal', 'siaga_perintah', 'abaikan',
 ]
-const CATEGORIES: readonly CategoryName[] = ['Kuliner', 'Penginapan', 'Fashion', 'Oleh-Oleh', 'Jasa']
+const CATEGORIES: readonly CategoryName[] = [
+  'Kuliner', 'Penginapan', 'Fashion', 'Oleh-Oleh', 'Jasa', 'Minuman', 'Toko Sayur & Buah',
+]
 const LOCATIONS: readonly LocationName[] = [
   'Balikpapan Kota', 'Balikpapan Utara', 'Balikpapan Selatan',
   'Balikpapan Timur', 'Balikpapan Barat', 'Balikpapan Tengah',

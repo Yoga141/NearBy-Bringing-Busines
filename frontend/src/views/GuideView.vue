@@ -41,7 +41,7 @@ const steps = [
     n: 2,
     bg: '#2C5EAD',
     title: 'Lengkapi profil usaha',
-    body: 'Di dashboard, buka <strong>UMKM Saya → Tambah UMKM</strong>. Isi nama usaha, kategori (Kuliner, Penginapan, Fashion, Oleh-Oleh, atau Jasa), wilayah, alamat lengkap, jam buka, nomor telepon/WhatsApp, dan deskripsi singkat.',
+    body: 'Di dashboard, buka <strong>UMKM Saya → Tambah UMKM</strong>. Isi nama usaha, kategori (Kuliner, Minuman, Toko Sayur & Buah, Penginapan, Fashion, Oleh-Oleh, atau Jasa), wilayah, alamat lengkap, jam buka, nomor telepon/WhatsApp, dan deskripsi singkat.',
     tipBg: '#E3EFED',
     tipColor: '#2E7D6E',
     tipIcon: LightbulbIcon,

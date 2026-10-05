@@ -11,6 +11,8 @@ export const CAT: Record<CategoryName, CategoryStyle> = {
   Fashion: { accent: '#2C5EAD', soft: '#E6EDF8', initial: 'F', icon: iconFashion },
   'Oleh-Oleh': { accent: '#1591DC', soft: '#E1F1FB', initial: 'O', icon: iconOlehOleh },
   Jasa: { accent: '#5B6672', soft: '#EEF0F2', initial: 'J', icon: iconJasa },
+  Minuman: { accent: '#438A5E', soft: '#E6F2E9', initial: 'M', icon: iconKuliner },
+  'Toko Sayur & Buah': { accent: '#6B8E23', soft: '#EEF4DF', initial: 'S', icon: iconOlehOleh },
 }
 
 export const CATEGORY_NAMES: CategoryName[] = [
@@ -19,6 +21,8 @@ export const CATEGORY_NAMES: CategoryName[] = [
   'Fashion',
   'Oleh-Oleh',
   'Jasa',
+  'Minuman',
+  'Toko Sayur & Buah',
 ]
 
 /** Filter chip order used on the Daftar UMKM page (includes "Semua"). */

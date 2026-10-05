@@ -101,8 +101,6 @@ const CATEGORY_KEYWORDS: Record<CategoryName, string[]> = {
     'nasi',
     'ayam',
     'seafood',
-    'minuman',
-    'minum',
     'jajanan',
     'kue',
     'roti',
@@ -172,6 +170,8 @@ const CATEGORY_KEYWORDS: Record<CategoryName, string[]> = {
     'fotokopi',
     'foto kopi',
   ],
+  Minuman: ['minuman', 'minum', 'jus', 'teh', 'kopi', 'es'],
+  'Toko Sayur & Buah': ['sayur', 'buah', 'sembako', 'toko sayur', 'toko buah'],
 }
 
 /**

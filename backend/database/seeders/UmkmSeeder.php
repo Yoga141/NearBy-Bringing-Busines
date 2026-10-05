@@ -4,203 +4,185 @@ namespace Database\Seeders;
 
 use App\Models\Umkm;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class UmkmSeeder extends Seeder
 {
+    /** @var array<int, string> Exact IDs and names from the retired demo seeder. */
+    private const LEGACY_DEMO_UMKMS = [
+        1 => 'Warung Kepiting Kenari',
+        2 => 'Kopi Saluang',
+        3 => 'Penginapan Teluk Asri',
+        4 => 'Amplang Bahari',
+        5 => 'Batik Beruang Madu',
+        6 => 'Servis Motor Pak Gultom',
+        7 => 'Nasi Kuning Sambal Raja',
+        8 => 'Kriya Rotan Manggar',
+        9 => 'Wisma Somber Stay',
+        10 => 'Laundry Kilat Sepinggan',
+    ];
+
     /**
-     * Verbatim seed data extracted from the frontend `src/data/umkm.ts`.
-     *
-     * Owners are looked up by email (see UserSeeder), never assumed by id:
-     * UMKM 1 & 4 belong to the first demo owner, 2 & 7 to the second - two
-     * owners make it easy to check that one cannot see or edit the other's
-     * data. The rest have no owner.
-     *
-     * Safe to run repeatedly: rows are upserted by id, and products are only
-     * added to a UMKM that has none yet.
-     *
-     * No ratings, reviews or visit counts are seeded: those figures only ever
-     * come from real reviews and real visits.
+     * Seed only the six business rows in the supplied survey spreadsheet.
+     * Retire the exact previous demo catalogue without deleting its reviews.
+     * The workbook's Kota row and external photo link are included.
      */
     public function run(): void
     {
-        $owners = User::whereIn('email', [UserSeeder::OWNER_EMAIL, UserSeeder::SECOND_OWNER_EMAIL])
+        $this->removeLegacyDemoData();
+
+        $ownerIds = User::whereIn('email', array_values(UserSeeder::DISTRICT_OWNER_EMAILS))
             ->pluck('id', 'email');
-        $ownerOf = [
-            1 => $owners[UserSeeder::OWNER_EMAIL] ?? null,
-            4 => $owners[UserSeeder::OWNER_EMAIL] ?? null,
-            2 => $owners[UserSeeder::SECOND_OWNER_EMAIL] ?? null,
-            7 => $owners[UserSeeder::SECOND_OWNER_EMAIL] ?? null,
-        ];
 
         foreach ($this->data() as $row) {
-            $items = $row['items'];
-            unset($row['items']);
-            $row['owner_id'] = $ownerOf[$row['id']] ?? null;
+            $ownerEmail = UserSeeder::DISTRICT_OWNER_EMAILS[$row['location']] ?? null;
+            if ($ownerEmail === null || ! $ownerIds->has($ownerEmail)) {
+                throw new RuntimeException(
+                    "Akun pemilik untuk {$row['location']} belum dibuat. Jalankan UserSeeder sebelum UmkmSeeder."
+                );
+            }
 
-            $umkm = Umkm::withTrashed()->updateOrCreate(['id' => $row['id']], $row);
+            $photoUrl = $row['photo_url'];
+            unset($row['photo_url']);
 
-            if (! $umkm->items()->exists()) {
-                $umkm->items()->createMany($items);
+            $umkm = Umkm::withTrashed()->firstOrNew([
+                'name' => $row['name'],
+                'location' => $row['location'],
+            ]);
+            $umkm->fill([
+                ...$row,
+                'owner_id' => $ownerIds[$ownerEmail],
+                'img_label' => null,
+                'list_label' => null,
+                'verification' => 'disetujui',
+                'hidden' => false,
+            ]);
+            $umkm->forceFill(['deleted_at' => null])->save();
+
+            if ($photoUrl !== null) {
+                $umkm->photos()->firstOrCreate(
+                    ['url' => $photoUrl],
+                    ['disk' => null, 'path' => null, 'sort_order' => 0],
+                );
             }
         }
     }
 
+    private function removeLegacyDemoData(): void
+    {
+        $legacy = Umkm::withTrashed()
+            ->where(function (Builder $query): void {
+                foreach (self::LEGACY_DEMO_UMKMS as $id => $name) {
+                    $query->orWhere(fn (Builder $match) => $match
+                        ->whereKey($id)
+                        ->where('name', $name));
+                }
+            })
+            ->get();
+
+        if ($legacy->isEmpty()) {
+            return;
+        }
+
+        $ids = $legacy->modelKeys();
+
+        DB::transaction(function () use ($ids): void {
+            DB::table('umkm_items')->whereIn('umkm_id', $ids)->delete();
+            Umkm::withTrashed()->whereKey($ids)->update([
+                'deleted_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+    }
+
     /**
-     * @return array<int, array<string, mixed>>
+     * Rows 2-7 from the "UMKM" sheet of impor-umkm.xlsx.
+     *
+     * @return list<array{name: string, category: string, location: string, address: string, hours: string, phone: string, ig: ?string, price_label: string, tag: string, status: string, photo_url: ?string}>
      */
     private function data(): array
     {
         return [
             [
-                'id' => 1, 'name' => 'Warung Kepiting Kenari',
-                'category' => 'Kuliner', 'location' => 'Balikpapan Timur',
-                'price_label' => 'Rp25–75rb',
-                'tag' => 'Seafood kepiting soka & lada hitam legendaris, resep turun-temurun.',
-                'img_label' => 'foto kepiting', 'address' => 'Jl. Manunggal No. 12, Balikpapan Timur',
-                'hours' => '10.00 – 22.00 WITA', 'phone' => '0812-5544-1122', 'ig' => '@kepiting.kenari',
-                'list_label' => 'Menu andalan', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Kepiting Saus Padang', 'price' => 'Rp68rb'],
-                    ['name' => 'Kepiting Lada Hitam', 'price' => 'Rp72rb'],
-                    ['name' => 'Udang Galah Bakar', 'price' => 'Rp55rb'],
-                    ['name' => 'Cumi Goreng Tepung', 'price' => 'Rp38rb'],
-                ],
+                'name' => 'Warung Contoh Rasa',
+                'category' => 'Kuliner',
+                'location' => 'Balikpapan Kota',
+                'address' => 'Jl. Contoh No. 1',
+                'hours' => '08.00 - 21.00 WITA',
+                'phone' => '0812-0000-0000',
+                'ig' => '@contoh.rasa',
+                'price_label' => 'Rp15-50rb',
+                'tag' => 'Masakan rumahan khas Balikpapan.',
+                'status' => 'aktif',
+                'photo_url' => 'https://contoh.com/foto-warung.jpg',
             ],
             [
-                'id' => 2, 'name' => 'Kopi Saluang',
-                'category' => 'Kuliner', 'location' => 'Balikpapan Tengah',
-                'price_label' => 'Rp15–40rb',
-                'tag' => 'Kedai kopi robusta lokal dengan suasana hangat khas Kalimantan.',
-                'img_label' => 'foto kedai kopi', 'address' => 'Jl. Jenderal Sudirman No. 88, Balikpapan Tengah',
-                'hours' => '08.00 – 23.00 WITA', 'phone' => '0813-4477-9900', 'ig' => '@kopi.saluang',
-                'list_label' => 'Menu andalan', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Kopi Susu Saluang', 'price' => 'Rp22rb'],
-                    ['name' => 'Robusta Tubruk', 'price' => 'Rp15rb'],
-                    ['name' => 'Aren Latte', 'price' => 'Rp26rb'],
-                    ['name' => 'Roti Bakar Srikaya', 'price' => 'Rp18rb'],
-                ],
+                'name' => 'Warung Ibu Rusmi',
+                'category' => 'Kuliner',
+                'location' => 'Balikpapan Utara',
+                'address' => 'RT 34',
+                'hours' => '09.00 - 20.00 WITA',
+                'phone' => '0851-3261-0934',
+                'ig' => null,
+                'price_label' => 'RP.1-5rb',
+                'tag' => 'Salome di Kilo 15',
+                'status' => 'aktif',
+                'photo_url' => null,
             ],
             [
-                'id' => 3, 'name' => 'Penginapan Teluk Asri',
-                'category' => 'Penginapan', 'location' => 'Balikpapan Selatan',
-                'price_label' => 'Rp180–350rb',
-                'tag' => 'Homestay nyaman tepi teluk, cocok untuk keluarga dan pekerja.',
-                'img_label' => 'foto kamar', 'address' => 'Jl. Sepinggan Baru No. 5, Balikpapan Selatan',
-                'hours' => 'Check-in 14.00 · Check-out 12.00', 'phone' => '0821-5566-3344', 'ig' => '@teluk.asri.stay',
-                'list_label' => 'Tipe kamar', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Standar Twin', 'price' => 'Rp180rb'],
-                    ['name' => 'Deluxe AC', 'price' => 'Rp250rb'],
-                    ['name' => 'Family Room', 'price' => 'Rp350rb'],
-                    ['name' => 'Extra Bed', 'price' => 'Rp60rb'],
-                ],
+                'name' => 'Maximal',
+                'category' => 'Jasa',
+                'location' => 'Balikpapan Utara',
+                'address' => 'Jl. Sein Wain Kilo 15',
+                'hours' => '09.00 - 21.00 WITA',
+                'phone' => '0851-3261-0934',
+                'ig' => null,
+                'price_label' => 'Relative',
+                'tag' => 'Tempat Service HP & Laptop',
+                'status' => 'aktif',
+                'photo_url' => null,
             ],
             [
-                'id' => 4, 'name' => 'Amplang Bahari',
-                'category' => 'Oleh-Oleh', 'location' => 'Balikpapan Utara',
-                'price_label' => 'Rp20–60rb',
-                'tag' => 'Amplang ikan tenggiri renyah, oleh-oleh khas Balikpapan paling dicari.',
-                'img_label' => 'foto amplang', 'address' => 'Jl. Mulawarman No. 40, Balikpapan Utara',
-                'hours' => '08.00 – 20.00 WITA', 'phone' => '0852-4488-2211', 'ig' => '@amplang.bahari',
-                'list_label' => 'Produk', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Amplang Tenggiri 250gr', 'price' => 'Rp35rb'],
-                    ['name' => 'Amplang Pedas 250gr', 'price' => 'Rp38rb'],
-                    ['name' => 'Kerupuk Kuku Macan', 'price' => 'Rp25rb'],
-                    ['name' => 'Paket Oleh-oleh', 'price' => 'Rp60rb'],
-                ],
+                'name' => 'Teh Kita',
+                'category' => 'Minuman',
+                'location' => 'Balikpapan Utara',
+                'address' => 'Jl. Sungai Wain,Kilo 15, RT 33',
+                'hours' => '09.00 - 21.00 WITA',
+                'phone' => '0882-1661-3626',
+                'ig' => null,
+                'price_label' => 'Rp.5-13rb',
+                'tag' => 'Menjual minuman the, kopi, dan minuman susu',
+                'status' => 'aktif',
+                'photo_url' => null,
             ],
             [
-                'id' => 5, 'name' => 'Batik Beruang Madu',
-                'category' => 'Fashion', 'location' => 'Balikpapan Kota',
-                'price_label' => 'Rp95–450rb',
-                'tag' => 'Batik tulis & cap motif beruang madu, ikon khas Kota Balikpapan.',
-                'img_label' => 'foto batik', 'address' => 'Jl. Ahmad Yani No. 21, Balikpapan Tengah',
-                'hours' => '09.00 – 21.00 WITA', 'phone' => '0819-3322-7788', 'ig' => '@batik.beruangmadu',
-                'list_label' => 'Koleksi', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Kemeja Batik Cap', 'price' => 'Rp150rb'],
-                    ['name' => 'Kain Batik Tulis', 'price' => 'Rp450rb'],
-                    ['name' => 'Dress Motif Madu', 'price' => 'Rp220rb'],
-                    ['name' => 'Selendang', 'price' => 'Rp95rb'],
-                ],
+                'name' => 'Warung Ancah',
+                'category' => 'Kuliner',
+                'location' => 'Balikpapan Utara',
+                'address' => 'Jl.Sungai Wain, Kilo 15, RT 35',
+                'hours' => '10.00 - 18.00 WITA',
+                'phone' => '0858-4946-0776',
+                'ig' => null,
+                'price_label' => 'Rp.5-20rb',
+                'tag' => 'Warkop murah meriah di kilo 15',
+                'status' => 'aktif',
+                'photo_url' => null,
             ],
             [
-                'id' => 6, 'name' => 'Servis Motor Pak Gultom',
-                'category' => 'Jasa', 'location' => 'Balikpapan Barat',
-                'price_label' => 'Mulai Rp30rb',
-                'tag' => 'Bengkel motor tepercaya, servis cepat & suku cadang lengkap.',
-                'img_label' => 'foto bengkel', 'address' => 'Jl. Marsma Iswahyudi No. 9, Balikpapan Barat',
-                'hours' => '08.00 – 18.00 WITA', 'phone' => '0811-2299-6655', 'ig' => '@gultom.motor',
-                'list_label' => 'Layanan', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Servis Ringan', 'price' => 'Rp45rb'],
-                    ['name' => 'Ganti Oli', 'price' => 'Rp30rb'],
-                    ['name' => 'Tune Up', 'price' => 'Rp90rb'],
-                    ['name' => 'Servis Rem', 'price' => 'Rp55rb'],
-                ],
-            ],
-            [
-                'id' => 7, 'name' => 'Nasi Kuning Sambal Raja',
-                'category' => 'Kuliner', 'location' => 'Balikpapan Utara',
-                'price_label' => 'Rp12–25rb',
-                'tag' => 'Nasi kuning legendaris pagi hari dengan sambal khas yang menggugah.',
-                'img_label' => 'foto nasi kuning', 'address' => 'Jl. Pupuk Raya No. 3, Balikpapan Utara',
-                'hours' => '05.00 – 11.00 WITA', 'phone' => '0857-9900-1234', 'ig' => '@sambalraja.bpn',
-                'list_label' => 'Menu andalan', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Nasi Kuning Komplit', 'price' => 'Rp20rb'],
-                    ['name' => 'Nasi Kuning Ayam', 'price' => 'Rp25rb'],
-                    ['name' => 'Nasi Kuning Telur', 'price' => 'Rp12rb'],
-                    ['name' => 'Teh Manis Hangat', 'price' => 'Rp5rb'],
-                ],
-            ],
-            [
-                'id' => 8, 'name' => 'Kriya Rotan Manggar',
-                'category' => 'Oleh-Oleh', 'location' => 'Balikpapan Timur',
-                'price_label' => 'Rp45–300rb',
-                'tag' => 'Kerajinan rotan handmade - tas, keranjang, dan dekorasi rumah.',
-                'img_label' => 'foto kerajinan', 'address' => 'Jl. Mulawarman, Manggar, Balikpapan Timur',
-                'hours' => '09.00 – 17.00 WITA', 'phone' => '0813-7788-4455', 'ig' => '@kriya.manggar',
-                'list_label' => 'Produk', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Tas Rotan', 'price' => 'Rp180rb'],
-                    ['name' => 'Keranjang Anyam', 'price' => 'Rp75rb'],
-                    ['name' => 'Tudung Saji', 'price' => 'Rp45rb'],
-                    ['name' => 'Kursi Rotan', 'price' => 'Rp300rb'],
-                ],
-            ],
-            [
-                'id' => 9, 'name' => 'Wisma Somber Stay',
-                'category' => 'Penginapan', 'location' => 'Balikpapan Utara',
-                'price_label' => 'Rp150–280rb',
-                'tag' => 'Penginapan bersih dekat pelabuhan Somber, praktis untuk transit.',
-                'img_label' => 'foto wisma', 'address' => 'Jl. Sultan Hasanuddin No. 17, Balikpapan Utara',
-                'hours' => 'Check-in 13.00 · Check-out 12.00', 'phone' => '0822-3344-5566', 'ig' => '@somber.stay',
-                'list_label' => 'Tipe kamar', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Ekonomi Fan', 'price' => 'Rp150rb'],
-                    ['name' => 'Standar AC', 'price' => 'Rp220rb'],
-                    ['name' => 'Deluxe', 'price' => 'Rp280rb'],
-                    ['name' => 'Extra Bed', 'price' => 'Rp50rb'],
-                ],
-            ],
-            [
-                'id' => 10, 'name' => 'Laundry Kilat Sepinggan',
-                'category' => 'Jasa', 'location' => 'Balikpapan Selatan',
-                'price_label' => 'Rp7rb/kg',
-                'tag' => 'Laundry express selesai 3 jam, wangi & rapi, antar-jemput tersedia.',
-                'img_label' => 'foto laundry', 'address' => 'Jl. Marsma R. Iswahyudi No. 55, Balikpapan Selatan',
-                'hours' => '07.00 – 21.00 WITA', 'phone' => '0812-6677-8899', 'ig' => '@laundrykilat.spg',
-                'list_label' => 'Layanan', 'verification' => 'disetujui',
-                'items' => [
-                    ['name' => 'Cuci Kering Lipat', 'price' => 'Rp7rb/kg'],
-                    ['name' => 'Cuci Setrika', 'price' => 'Rp10rb/kg'],
-                    ['name' => 'Express 3 Jam', 'price' => 'Rp15rb/kg'],
-                    ['name' => 'Bed Cover', 'price' => 'Rp25rb'],
-                ],
+                'name' => 'Warung Ibu Kaya',
+                'category' => 'Toko Sayur & Buah',
+                'location' => 'Balikpapan Utara',
+                'address' => 'Jl. Sein Wain Kilo 15',
+                'hours' => '08.00 - 21.00 WITA',
+                'phone' => '0896-9147-0689',
+                'ig' => null,
+                'price_label' => 'Relative',
+                'tag' => 'Penjual Sayur dan Sembako di kilo 15 dekat itk',
+                'status' => 'aktif',
+                'photo_url' => null,
             ],
         ];
     }

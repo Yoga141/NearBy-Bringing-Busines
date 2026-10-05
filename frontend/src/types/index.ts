@@ -1,4 +1,11 @@
-export type CategoryName = 'Kuliner' | 'Penginapan' | 'Fashion' | 'Oleh-Oleh' | 'Jasa'
+export type CategoryName =
+  | 'Kuliner'
+  | 'Penginapan'
+  | 'Fashion'
+  | 'Oleh-Oleh'
+  | 'Jasa'
+  | 'Minuman'
+  | 'Toko Sayur & Buah'
 
 export type LocationName =
   | 'Balikpapan Kota'

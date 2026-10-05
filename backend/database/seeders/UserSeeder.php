@@ -6,14 +6,14 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
- * Demo accounts for trying every role right away.
+ * One admin, one regular user and one owner account for each survey district.
  *
  *   php artisan db:seed --class=UserSeeder     (accounts only)
  *   php artisan migrate:fresh --seed            (everything)
  *
  * Safe to run repeatedly: accounts are matched by email and brought back to
- * the documented state (password, role, active status) instead of failing on
- * the unique email. A soft-deleted demo account is restored.
+ * the configured state instead of failing on the unique email. A soft-deleted
+ * account is restored.
  *
  * Passwords can be overridden from .env (SEED_*_PASSWORD) so a shared or
  * production environment never ends up with the public defaults below. env()
@@ -22,10 +22,15 @@ use Illuminate\Database\Seeder;
  */
 class UserSeeder extends Seeder
 {
-    /** Emails other seeders use to look the demo owners up (never by id). */
-    public const OWNER_EMAIL = 'pemilik@nearby.id';
-
-    public const SECOND_OWNER_EMAIL = 'pemilik2@nearby.id';
+    /** @var array<string, string> Kecamatan to owner account for imported rows. */
+    public const DISTRICT_OWNER_EMAILS = [
+        'Balikpapan Kota' => 'pemilik.kota@nearby.id',
+        'Balikpapan Utara' => 'pemilik.utara@nearby.id',
+        'Balikpapan Barat' => 'pemilik.barat@nearby.id',
+        'Balikpapan Timur' => 'pemilik.timur@nearby.id',
+        'Balikpapan Tengah' => 'pemilik.tengah@nearby.id',
+        'Balikpapan Selatan' => 'pemilik.selatan@nearby.id',
+    ];
 
     public function run(): void
     {
@@ -47,7 +52,7 @@ class UserSeeder extends Seeder
         }
 
         $this->command?->newLine();
-        $this->command?->info('Akun demo siap dipakai untuk login:');
+        $this->command?->info('Akun awal siap dipakai untuk login:');
         $this->command?->table(['Peran', 'Email', 'Password', 'Keterangan'], $rows);
     }
 
@@ -58,9 +63,9 @@ class UserSeeder extends Seeder
     {
         // `?:` instead of env()'s default: a key that is present but blank
         // (`SEED_ADMIN_PASSWORD=`) returns "" and would seed an empty password.
-        $admin = env('SEED_ADMIN_PASSWORD') ?: 'admin12345';
-        $owner = env('SEED_OWNER_PASSWORD') ?: 'pemilik12345';
-        $user = env('SEED_USER_PASSWORD') ?: 'pengguna12345';
+        $admin = env('SEED_ADMIN_PASSWORD');
+        $owner = env('SEED_OWNER_PASSWORD');
+        $user = env('SEED_USER_PASSWORD');
 
         // A live server must never get accounts with the passwords printed in
         // the README.
@@ -70,27 +75,32 @@ class UserSeeder extends Seeder
             );
         }
 
-        return [
+        $accounts = [
             [
-                'label' => 'Admin', 'name' => 'Admin NearBy', 'email' => 'admin@nearby.id',
-                'phone' => '0812-0000-0001', 'role' => 'admin', 'password' => $admin,
+                'label' => 'Admin', 'name' => 'Admin NearBy', 'email' => 'admin@gmail.com',
+                'phone' => null, 'role' => 'admin', 'password' => $admin,
                 'note' => 'Dashboard admin: verifikasi, pengguna, laporan',
             ],
             [
-                'label' => 'Pemilik', 'name' => 'Dewi Anjani', 'email' => self::OWNER_EMAIL,
-                'phone' => '0812-0000-0002', 'role' => 'owner', 'password' => $owner,
-                'note' => 'Pemilik "Warung Kepiting Kenari" & "Amplang Bahari"',
-            ],
-            [
-                'label' => 'Pemilik', 'name' => 'Budi Santoso', 'email' => self::SECOND_OWNER_EMAIL,
-                'phone' => '0812-0000-0003', 'role' => 'owner', 'password' => $owner,
-                'note' => 'Pemilik "Kopi Saluang" & "Nasi Kuning Sambal Raja"',
-            ],
-            [
-                'label' => 'Pengguna', 'name' => 'Jeki', 'email' => 'pengguna@nearby.id',
-                'phone' => '0812-0000-0004', 'role' => 'user', 'password' => $user,
+                'label' => 'Pengguna', 'name' => 'Pengguna NearBy', 'email' => 'pengguna@nearby.id',
+                'phone' => null, 'role' => 'user', 'password' => $user,
                 'note' => 'Pengunjung biasa: ulasan & favorit',
             ],
         ];
+
+        foreach (self::DISTRICT_OWNER_EMAILS as $district => $email) {
+            $suffix = str($district)->after('Balikpapan ')->lower()->value();
+            $accounts[] = [
+                'label' => 'Pemilik UMKM',
+                'name' => 'Pemilik UMKM Balikpapan '.$suffix,
+                'email' => $email,
+                'phone' => null,
+                'role' => 'owner',
+                'password' => $owner,
+                'note' => 'Pengelola UMKM Kecamatan Balikpapan '.$suffix,
+            ];
+        }
+
+        return $accounts;
     }
 }

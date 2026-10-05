@@ -119,18 +119,27 @@ composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate
-php artisan db:seed   # opsional: akun demo + katalog UMKM contoh (tanpa ulasan/rating palsu, aman diulang)
+php artisan db:seed   # akun awal + hanya enam data UMKM dari impor-umkm.xlsx
 php artisan serve
 ```
 
-Akun demo setelah `db:seed`:
+Data awal setelah `db:seed`:
 
 | Peran    | Email                | Password        |
 |----------|----------------------|-----------------|
-| Admin    | `admin@nearby.id`    | `admin12345`    |
-| Pemilik  | `pemilik@nearby.id`  | `pemilik12345`  |
-| Pemilik  | `pemilik2@nearby.id` | `pemilik12345`  |
+| Admin         | `admin@gmail.com`          | `1234`          |
+| Pemilik Kota  | `pemilik.kota@nearby.id`   | `pemilik12345`  |
+| Pemilik Utara | `pemilik.utara@nearby.id`  | `pemilik12345`  |
+| Pemilik Barat | `pemilik.barat@nearby.id`  | `pemilik12345`  |
+| Pemilik Timur | `pemilik.timur@nearby.id`  | `pemilik12345`  |
+| Pemilik Tengah| `pemilik.tengah@nearby.id` | `pemilik12345`  |
+| Pemilik Selatan| `pemilik.selatan@nearby.id`| `pemilik12345`  |
 | Pengguna | `pengguna@nearby.id` | `pengguna12345` |
+
+Seeder UMKM hanya memasukkan enam baris dari `impor-umkm.xlsx`, tanpa katalog
+atau menu dummy. Saat dijalankan, 10 UMKM dummy lama yang dikenali dipindahkan
+ke arsip dan menu dummy-nya dihapus; ulasan dan data lain tetap dipertahankan.
+Baris Excel dan data database lainnya tidak dihapus.
 
 Backend API akan berjalan di `http://localhost:8000` secara default. Sesuaikan koneksi database di `backend/.env` bila ingin memakai MySQL alih-alih SQLite bawaan.
 

@@ -20,18 +20,6 @@ php artisan serve            # http://127.0.0.1:8000
 `php artisan db:seed` aman dijalankan berulang (idempoten). Untuk hanya
 membuat/mereset akun demo: `php artisan db:seed --class=UserSeeder`.
 
-## Akun demo
-
-Dibuat oleh `database/seeders/UserSeeder.php`. Password bisa diganti lewat
-`SEED_ADMIN_PASSWORD`, `SEED_OWNER_PASSWORD`, `SEED_USER_PASSWORD` di `.env`
-(**wajib** diganti sebelum seeding server yang bisa diakses publik).
-
-| Peran    | Email                | Password        | Keterangan                                   |
-|----------|----------------------|-----------------|----------------------------------------------|
-| admin    | `admin@nearby.id`    | `admin12345`    | Dashboard admin                              |
-| pemilik  | `pemilik@nearby.id`  | `pemilik12345`  | Dewi Anjani - UMKM #1 & #4                   |
-| pemilik  | `pemilik2@nearby.id` | `pemilik12345`  | Budi Santoso - UMKM #2 & #7                  |
-| pengguna | `pengguna@nearby.id` | `pengguna12345` | Pengunjung biasa                             |
 
 ## Struktur kode
 

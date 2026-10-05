@@ -134,13 +134,18 @@ class AuthTest extends TestCase
             ->assertJsonPath('message', 'Terlalu banyak percobaan masuk. Tunggu 1 menit lalu coba lagi.');
     }
 
-    public function test_the_seeded_demo_accounts_can_log_in(): void
+    public function test_the_seeded_accounts_can_log_in(): void
     {
         $this->seed();
 
         foreach ([
-            ['admin@nearby.id', 'admin12345', 'admin'],
-            ['pemilik@nearby.id', 'pemilik12345', 'owner'],
+            ['admin@gmail.com', '1234', 'admin'],
+            ['pemilik.kota@nearby.id', 'pemilik12345', 'owner'],
+            ['pemilik.utara@nearby.id', 'pemilik12345', 'owner'],
+            ['pemilik.barat@nearby.id', 'pemilik12345', 'owner'],
+            ['pemilik.timur@nearby.id', 'pemilik12345', 'owner'],
+            ['pemilik.tengah@nearby.id', 'pemilik12345', 'owner'],
+            ['pemilik.selatan@nearby.id', 'pemilik12345', 'owner'],
             ['pengguna@nearby.id', 'pengguna12345', 'user'],
         ] as [$email, $password, $role]) {
             $this->postJson('/api/login', ['email' => $email, 'password' => $password])
