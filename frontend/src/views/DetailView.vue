@@ -85,7 +85,7 @@ const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id
       <DetailGallery :name="sel.name" :photos="sel.photos" />
 
       <div class="grid grid-cols-1 items-start gap-[34px] tablet:grid-cols-[1.6fr_.9fr]">
-        <div>
+        <div class="min-w-0">
           <div class="flex flex-wrap items-center gap-2.5">
             <CategoryPill :category="sel.cat" />
             <span
@@ -96,8 +96,8 @@ const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id
             </span>
             <span class="text-[13.5px] font-semibold text-text-faint">{{ sel.loc }}</span>
           </div>
-          <h1 class="mt-3.5 mb-1.5 text-[28px] font-extrabold tracking-[-.02em] tablet:text-[36px]">{{ sel.name }}</h1>
-          <div class="mb-[22px] flex items-center gap-3.5">
+          <h1 class="mt-3.5 mb-1.5 text-[28px] font-extrabold tracking-[-.02em] wrap-break-word tablet:text-[36px]">{{ sel.name }}</h1>
+          <div class="mb-[22px] flex flex-wrap items-center gap-x-3.5 gap-y-2">
             <StarRating :rating="sel.rating" />
             <div class="font-semibold text-text-faint">{{ sel.reviews ? `${sel.reviews} ulasan` : 'Belum ada ulasan' }}</div>
             <template v-if="sel.priceLabel">
@@ -108,7 +108,7 @@ const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id
 
           <template v-if="desc">
             <h3 class="mb-2 text-[19px] font-extrabold">Tentang tempat ini</h3>
-            <p class="mb-[26px] text-[15.5px] leading-[1.7] whitespace-pre-line text-text-secondary">{{ desc }}</p>
+            <p class="mb-[26px] text-[15.5px] leading-[1.7] whitespace-pre-line wrap-break-word text-text-secondary">{{ desc }}</p>
           </template>
 
           <template v-if="sel.items.length">

@@ -25,7 +25,7 @@ function zoom(item: UmkmItem) {
       :key="it.name"
       class="flex items-center gap-[13px] rounded-xl border border-border-card bg-white px-3.5 py-2.5"
     >
-      <div class="relative h-[60px] w-[60px] flex-none cursor-zoom-in" title="Klik untuk perbesar" @click="zoom(it)">
+      <div class="relative h-[60px] w-[60px] flex-none cursor-zoom-in overflow-hidden rounded-[10px]" title="Klik untuk perbesar" @click="zoom(it)">
         <UmkmThumb v-if="it.img" :src="it.img" :alt="it.name" rounded="rounded-[10px]" />
         <PlaceholderThumb v-else :icon="PlateIcon" rounded="rounded-[10px]" />
         <span class="absolute right-[3px] bottom-[3px] flex h-[17px] w-[17px] items-center justify-center rounded-[6px] bg-[rgba(15,30,45,.66)] text-white">
@@ -33,7 +33,7 @@ function zoom(item: UmkmItem) {
         </span>
       </div>
       <div class="flex min-w-0 flex-1 flex-col gap-[3px]">
-        <div class="text-[14.5px] font-bold">{{ it.name }}</div>
+        <div class="text-[14.5px] font-bold wrap-break-word">{{ it.name }}</div>
         <div v-if="it.price" class="text-[14px] font-extrabold whitespace-nowrap text-teal">{{ it.price }}</div>
       </div>
       <span

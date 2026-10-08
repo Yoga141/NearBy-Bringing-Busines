@@ -315,7 +315,7 @@ async function saveUmkm() {
           <span class="text-[12px] text-text-faint">JPG/PNG/WebP, maks. 4 MB</span>
         </div>
         <div class="mb-1.5 flex flex-wrap gap-2.5">
-          <div v-for="(p, i) in photos" :key="p.id" class="relative h-[86px] w-[86px]">
+          <div v-for="(p, i) in photos" :key="p.id" class="relative h-[86px] w-[86px] flex-none">
             <img :src="p.url" alt="" class="h-full w-full rounded-xl object-cover" />
             <span v-if="i === 0" class="absolute bottom-1 left-1 rounded-md bg-brand-navy/80 px-1.5 py-0.5 text-[10px] font-bold text-white">Sampul</span>
             <button
@@ -337,9 +337,9 @@ async function saveUmkm() {
               <CloseIcon size="12px" />
             </button>
           </div>
-          <div v-for="(p, i) in pending" :key="p.preview" class="relative h-[86px] w-[86px]">
+          <div v-for="(p, i) in pending" :key="p.preview" class="relative h-[86px] w-[86px] flex-none">
             <img :src="p.preview" alt="" class="h-full w-full rounded-xl object-cover opacity-80" />
-            <span class="absolute bottom-1 left-1 rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-bold text-brand-navy">Diunggah saat simpan</span>
+            <span class="absolute right-1 bottom-1 left-1 rounded-md bg-white/90 px-1 py-0.5 text-center text-[9.5px] leading-tight font-bold text-brand-navy">Diunggah saat simpan</span>
             <button
               type="button"
               aria-label="Batalkan foto"

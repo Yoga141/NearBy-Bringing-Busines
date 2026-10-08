@@ -20,20 +20,20 @@ withDefaults(defineProps<{ umkm: EnrichedUmkm; size?: 'md' | 'lg' }>(), { size: 
     class="relative overflow-hidden rounded-[18px] border border-border-card bg-white shadow-[0_4px_18px_rgba(19,50,77,.05)] transition-all duration-150 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(19,50,77,.12)]"
   >
     <RouterLink :to="{ name: 'detail', params: { id: umkm.id } }" class="block">
-      <div class="relative" :class="size === 'lg' ? 'h-[160px]' : 'h-[150px]'">
+      <div class="relative overflow-hidden" :class="size === 'lg' ? 'h-[160px]' : 'h-[150px]'">
         <UmkmThumb :src="umkm.coverUrl" :alt="`Foto ${umkm.name}`" :label="umkm.imgLabel" />
         <div class="absolute top-3 left-3">
           <CategoryPill :category="umkm.cat" size="sm" />
         </div>
       </div>
       <div :class="size === 'lg' ? 'p-[17px]' : 'p-4'">
-        <div class="font-extrabold tracking-tight" :class="size === 'lg' ? 'text-[17px]' : 'text-[16.5px]'">
+        <div class="font-extrabold tracking-tight wrap-break-word" :class="size === 'lg' ? 'text-[17px]' : 'text-[16.5px]'">
           {{ umkm.name }}
         </div>
         <div class="mt-1 flex items-center gap-1.5 text-[13px] font-semibold text-text-faint">
           {{ umkm.loc }}
         </div>
-        <p class="my-2.5 text-[13.5px] leading-normal text-[#5B6470]">{{ umkm.tag }}</p>
+        <p class="my-2.5 line-clamp-3 text-[13.5px] leading-normal wrap-break-word text-[#5B6470]">{{ umkm.tag }}</p>
         <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 border-t border-[#F2ECDF] pt-3">
           <StarRating :rating="umkm.rating" :reviews="umkm.reviews" />
           <div v-if="umkm.priceLabel" class="flex-none rounded-lg bg-[#F4F0E7] px-2.5 py-1 text-[12.5px] font-bold whitespace-nowrap text-brand-navy">

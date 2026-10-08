@@ -27,7 +27,7 @@ const docs = computed(() =>
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[90] flex items-center justify-center bg-[rgba(15,30,45,.5)] p-6" @click="ui.closeModal">
+  <div class="fixed inset-0 z-[90] flex items-center justify-center bg-[rgba(15,30,45,.5)] p-4 mobile:p-6" @click="ui.closeModal">
     <div class="flex max-h-[88vh] w-full max-w-[560px] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_30px_70px_rgba(9,24,40,.4)]" @click.stop>
       <div class="flex flex-none items-center justify-between border-b border-border-divider px-6 py-[19px]">
         <div>
@@ -48,8 +48,8 @@ const docs = computed(() =>
 
         <div class="mb-[11px] text-sm font-extrabold">Foto yang diunggah</div>
         <p v-if="!photos.length" class="mb-5 text-[13px] text-text-faint">Pemilik belum mengunggah foto.</p>
-        <div v-else class="mb-5 grid grid-cols-3 gap-2.5">
-          <div v-for="f in photos" :key="f.name">
+        <div v-else class="mb-5 grid grid-cols-2 gap-2.5 mobile:grid-cols-3">
+          <div v-for="f in photos" :key="f.name" class="min-w-0">
             <img v-if="f.url" :src="f.url" :alt="f.name" class="aspect-square w-full rounded-xl object-cover" />
             <div
               v-else
@@ -63,7 +63,7 @@ const docs = computed(() =>
             >
               <ImageIcon v-if="f.ok" size="18px" /><CloseIcon v-else size="16px" />
             </div>
-            <div class="mt-1.5 text-center text-[11.5px] font-semibold text-[#6B6350]">{{ f.name }}</div>
+            <div class="mt-1.5 truncate text-center text-[11.5px] font-semibold text-[#6B6350]" :title="f.name">{{ f.name }}</div>
           </div>
         </div>
 
@@ -74,7 +74,7 @@ const docs = computed(() =>
               <DocumentIcon v-if="f.ok" size="17px" /><CircleOutlineIcon v-else size="15px" />
             </div>
             <div class="min-w-0 flex-1">
-              <div class="text-sm font-bold">{{ f.name }}</div>
+              <div class="truncate text-sm font-bold" :title="f.name">{{ f.name }}</div>
               <div class="text-xs font-semibold text-text-faint">{{ f.meta }}</div>
             </div>
             <span class="rounded-full px-[11px] py-[5px] text-[11.5px] font-bold whitespace-nowrap" :style="{ background: f.statusBg, color: f.statusColor }">

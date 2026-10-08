@@ -20,12 +20,21 @@ function zoom(photo: UmkmPhoto | null, index: number) {
 
 <template>
   <div
-    class="mb-[26px] grid gap-3"
-    :class="side.length ? 'grid-rows-[220px_100px] tablet:h-[340px] tablet:grid-rows-none tablet:grid-cols-[2fr_1fr]' : 'h-[220px] tablet:h-[340px]'"
+    class="mb-[26px] grid gap-3 overflow-hidden"
+    :class="
+      side.length
+        ? 'grid-rows-[220px_100px] tablet:h-[340px] tablet:grid-cols-[2fr_1fr] tablet:grid-rows-1'
+        : 'h-[220px] grid-rows-1 tablet:h-[340px]'
+    "
   >
+    <!--
+      Every row track is explicit (fixed px or minmax(0,1fr) via grid-rows-1/2).
+      An implicit "auto" row would size itself to the photo's natural height, so a
+      large upload would blow the gallery up and spill over the content below.
+    -->
     <button
       type="button"
-      class="relative block h-full w-full overflow-hidden rounded-[20px] text-left"
+      class="relative block h-full min-h-0 w-full min-w-0 overflow-hidden rounded-[20px] text-left"
       :class="main ? 'cursor-zoom-in' : 'cursor-default'"
       :title="main ? 'Klik untuk perbesar' : 'Pemilik belum mengunggah foto'"
       @click="main && zoom(main, 0)"
@@ -35,12 +44,12 @@ function zoom(photo: UmkmPhoto | null, index: number) {
         <ExpandIcon size="13px" />
       </span>
     </button>
-    <div v-if="side.length" class="grid grid-cols-2 gap-3 tablet:grid-cols-1 tablet:grid-rows-2">
+    <div v-if="side.length" class="grid min-h-0 min-w-0 grid-cols-2 grid-rows-1 gap-3 tablet:grid-cols-1 tablet:grid-rows-2">
       <button
         v-for="(photo, i) in side"
         :key="photo.id"
         type="button"
-        class="relative block h-full w-full cursor-zoom-in overflow-hidden rounded-[20px] text-left"
+        class="relative block h-full min-h-0 w-full min-w-0 cursor-zoom-in overflow-hidden rounded-[20px] text-left"
         title="Klik untuk perbesar"
         @click="zoom(photo, i + 1)"
       >

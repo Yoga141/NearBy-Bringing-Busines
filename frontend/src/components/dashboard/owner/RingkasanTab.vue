@@ -92,8 +92,8 @@ function manage(id: number) {
           <div class="h-[58px] w-[58px] flex-none overflow-hidden rounded-xl">
             <UmkmThumb :src="u.coverUrl" :alt="`Foto ${u.name}`" rounded="rounded-xl" label=" " />
           </div>
-          <div class="flex-1">
-            <div class="text-[15.5px] font-extrabold">{{ u.name }}</div>
+          <div class="min-w-0 flex-1">
+            <div class="text-[15.5px] font-extrabold wrap-break-word">{{ u.name }}</div>
             <div class="text-[13px] font-semibold text-text-faint">{{ u.cat }} · {{ u.loc }}</div>
           </div>
           <div class="text-center">

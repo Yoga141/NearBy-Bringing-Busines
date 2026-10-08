@@ -17,12 +17,12 @@ const igHandle = computed(() => props.umkm.ig.trim().replace(/^@/, '').replace(/
 </script>
 
 <template>
-  <aside class="sticky top-[90px] rounded-[18px] border border-border-card bg-white p-[22px] shadow-[0_8px_26px_rgba(19,50,77,.06)]">
+  <aside class="min-w-0 rounded tablet:sticky tablet:top-[90px]-[18px] border border-border-card bg-white p-[22px] shadow-[0_8px_26px_rgba(19,50,77,.06)]">
     <div class="mb-1 font-extrabold">Informasi kontak</div>
 
     <div class="border-b border-[#F2ECDF] py-[11px]">
       <div class="text-xs font-bold text-text-faint uppercase">Alamat</div>
-      <div class="text-[14px] text-brand-navy">{{ umkm.address || 'Belum diisi pemilik' }}</div>
+      <div class="text-[14px] wrap-break-word text-brand-navy">{{ umkm.address || 'Belum diisi pemilik' }}</div>
       <a
         v-if="mapsLink"
         :href="mapsLink"
@@ -48,7 +48,7 @@ const igHandle = computed(() => props.umkm.ig.trim().replace(/^@/, '').replace(/
         :href="`https://instagram.com/${igHandle}`"
         target="_blank"
         rel="noopener"
-        class="text-[14px] font-semibold text-brand-blue"
+        class="text-[14px] font-semibold break-all text-brand-blue"
       >
         @{{ igHandle }}
       </a>

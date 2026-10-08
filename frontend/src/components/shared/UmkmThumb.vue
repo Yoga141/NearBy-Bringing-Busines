@@ -34,7 +34,7 @@ watch(
     :alt="alt"
     loading="lazy"
     decoding="async"
-    class="h-full w-full object-cover"
+    class="block h-full max-h-full w-full max-w-full object-cover object-center"
     :class="rounded"
     @error="failed = true"
   />
