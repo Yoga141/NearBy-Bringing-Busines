@@ -1,12 +1,15 @@
 ---
-# Deploy cPanel: HANYA menyalin hasil build frontend (frontend/dist) ke public_html.
+# Deploy cPanel: menyalin hasil build frontend (frontend/dist) ke public_html
+# dan kode backend (tanpa vendor/) ke /home/nearby/nearby-backend.
 #
 # Sengaja tidak ada `npm install` / `npm run build` di sini: build dijalankan di
 # komputer lokal, lalu folder frontend/dist ikut di-commit. Menjalankan build di
 # server membuat deploy cPanel stuck/timeout.
 #
-# Backend (Laravel) tidak lagi di-deploy lewat file ini. Menyalin seluruh
-# backend/ (termasuk ribuan file vendor/) ikut membuat deploy timeout.
+# Backend (Laravel) di-deploy TANPA folder vendor/: menyalin ribuan file
+# vendor/ setiap deploy membuat cPanel timeout. vendor/ di server dipasang
+# sekali (dan setiap composer.lock berubah) lewat `composer install --no-dev`
+# di /home/nearby/nearby-backend, atau diunggah manual.
 deployment:
   tasks:
     - export DEPLOYPATH=/home/nearby/public_html/
@@ -18,3 +21,25 @@ deployment:
     # Hanya ditambahkan kalau aturannya belum ada, supaya aturan lain di
     # .htaccess server (mis. handler PHP dari cPanel) tidak tertimpa.
     - grep -q "RewriteRule ^ index.html" ${DEPLOYPATH}.htaccess 2>/dev/null || cat frontend/dist/.htaccess >> ${DEPLOYPATH}.htaccess
+
+    # ---- Backend ----
+    - export BACKENDPATH=/home/nearby/nearby-backend/
+    - mkdir -p $BACKENDPATH
+    # Salin isi backend/ satu per satu kecuali vendor/. Berkas diawali titik
+    # (mis. .env.example) dilewati, jadi .env di server tidak tersentuh.
+    - for item in backend/*; do [ "$item" = "backend/vendor" ] || /bin/cp -R "$item" $BACKENDPATH; done
+    - mkdir -p ${DEPLOYPATH}api
+    - /bin/cp -R backend/public/* ${DEPLOYPATH}api/
+    # index.php bawaan Laravel mencari vendor & bootstrap lewat __DIR__.'/../',
+    # yang setelah disalin ke public_html/api/ menunjuk ke folder kosong dan
+    # bikin seluruh API balas 500. Timpa dengan entrypoint ber-path absolut.
+    # Harus sesudah task copy di atas, karena task itu menimpanya lagi.
+    - /bin/cp backend/deploy/api-index.php ${DEPLOYPATH}api/index.php
+    # `public/*` melewatkan .htaccess. Disalin hanya kalau belum ada, supaya
+    # aturan rewrite yang sudah disesuaikan langsung di server tidak tertimpa.
+    - test -f ${DEPLOYPATH}api/.htaccess || /bin/cp backend/public/.htaccess ${DEPLOYPATH}api/.htaccess
+    # Buang cache route & config lama supaya endpoint baru langsung dikenali,
+    # lalu jalankan migrasi supaya tabel/kolom baru ikut dibuat.
+    - cd $BACKENDPATH && php artisan route:clear
+    - cd $BACKENDPATH && php artisan config:clear
+    - cd $BACKENDPATH && php artisan migrate --force
