@@ -1,25 +1,20 @@
+---
+# Deploy cPanel: HANYA menyalin hasil build frontend (frontend/dist) ke public_html.
+#
+# Sengaja tidak ada `npm install` / `npm run build` di sini: build dijalankan di
+# komputer lokal, lalu folder frontend/dist ikut di-commit. Menjalankan build di
+# server membuat deploy cPanel stuck/timeout.
+#
+# Backend (Laravel) tidak lagi di-deploy lewat file ini. Menyalin seluruh
+# backend/ (termasuk ribuan file vendor/) ikut membuat deploy timeout.
 deployment:
   tasks:
-    - cp -R frontend/dist/* /home/nearby/public_html/
-    # Fallback SPA: tanpa ini refresh di /umkm/5 atau /dashboard = 404 Apache.
-    # Ditambahkan sekali (dicek lewat penanda) supaya aturan lain yang sudah ada
-    # di .htaccess server tidak tertimpa.
-    - grep -q "NearBy SPA fallback" /home/nearby/public_html/.htaccess 2>/dev/null || cat frontend/deploy/spa.htaccess >> /home/nearby/public_html/.htaccess
-    - cp -R backend/* /home/nearby/nearby-backend/
-    - cp -R backend/public/* /home/nearby/public_html/api/
-    # index.php bawaan Laravel mencari vendor & bootstrap lewat __DIR__.'/../',
-    # yang setelah disalin ke public_html/api/ menunjuk ke folder kosong dan
-    # bikin seluruh API balas 500. Timpa dengan entrypoint ber-path absolut.
-    # Harus sesudah task copy di atas, karena task itu menimpanya lagi.
-    - cp backend/deploy/api-index.php /home/nearby/public_html/api/index.php
-    # `cp -R public/*` melewatkan berkas diawali titik, sehingga .htaccess tidak
-    # pernah ikut ter-deploy. Disalin hanya kalau belum ada, supaya aturan
-    # rewrite yang mungkin sudah disesuaikan langsung di server tidak tertimpa.
-    - test -f /home/nearby/public_html/api/.htaccess || cp backend/public/.htaccess /home/nearby/public_html/api/.htaccess
-    # Buang cache route & config lama, supaya endpoint baru langsung dikenali
-    # setelah file tersalin. Tanpa ini, route yang baru ditambahkan bisa 404.
-    - cd /home/nearby/nearby-backend && php artisan route:clear
-    - cd /home/nearby/nearby-backend && php artisan config:clear
-    # Buat tabel/kolom baru (mis. umkm_photos, indeks satu-ulasan-per-user).
-    # Tanpa ini kode baru jalan di atas skema lama dan fitur baru 500.
-    - cd /home/nearby/nearby-backend && php artisan migrate --force
+    - export DEPLOYPATH=/home/nearby/public_html/
+    # Salin semua isi dist (index.html, assets/, logo.png). Folder api/ di
+    # public_html tidak disentuh.
+    - /bin/cp -R frontend/dist/* $DEPLOYPATH
+    # `dist/*` melewatkan berkas diawali titik, jadi .htaccess (fallback SPA,
+    # supaya refresh di /umkm/5 atau /dashboard tidak 404) dipasang terpisah.
+    # Hanya ditambahkan kalau aturannya belum ada, supaya aturan lain di
+    # .htaccess server (mis. handler PHP dari cPanel) tidak tertimpa.
+    - grep -q "RewriteRule ^ index.html" ${DEPLOYPATH}.htaccess 2>/dev/null || cat frontend/dist/.htaccess >> ${DEPLOYPATH}.htaccess
