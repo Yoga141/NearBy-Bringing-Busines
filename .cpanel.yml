@@ -10,6 +10,10 @@
 # vendor/ setiap deploy membuat cPanel timeout. vendor/ di server dipasang
 # sekali (dan setiap composer.lock berubah) lewat `composer install --no-dev`
 # di /home/nearby/nearby-backend, atau diunggah manual.
+#
+# Tidak ada `composer install`, `npm install`, maupun `php artisan migrate` di
+# sini supaya deploy tidak stuck. Migrasi dijalankan manual di server
+# (Terminal cPanel): cd /home/nearby/nearby-backend && php artisan migrate --force
 deployment:
   tasks:
     - export DEPLOYPATH=/home/nearby/public_html/
@@ -38,8 +42,7 @@ deployment:
     # `public/*` melewatkan .htaccess. Disalin hanya kalau belum ada, supaya
     # aturan rewrite yang sudah disesuaikan langsung di server tidak tertimpa.
     - test -f ${DEPLOYPATH}api/.htaccess || /bin/cp backend/public/.htaccess ${DEPLOYPATH}api/.htaccess
-    # Buang cache route & config lama supaya endpoint baru langsung dikenali,
-    # lalu jalankan migrasi supaya tabel/kolom baru ikut dibuat.
+    # Buang cache route & config lama supaya endpoint baru langsung dikenali.
+    # Cuma menghapus berkas cache, cepat dan tidak menyentuh database.
     - cd $BACKENDPATH && php artisan route:clear
     - cd $BACKENDPATH && php artisan config:clear
-    - cd $BACKENDPATH && php artisan migrate --force
