@@ -29,6 +29,7 @@ const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 interface DraftMenuItem {
   name: string
   price: string
+  img: string
   avail: boolean
 }
 
@@ -50,7 +51,7 @@ const draft = reactive({
   listLabel: '',
   status: 'Aktif' as UmkmStatus,
   desc: '',
-  menu: [{ name: '', price: '', avail: true }] as DraftMenuItem[],
+  menu: [{ name: '', price: '', img: '', avail: true }] as DraftMenuItem[],
 })
 
 // ---- Foto ----
@@ -88,9 +89,10 @@ watch(
       draft.listLabel = item.listLabel || ''
       draft.status = (['Aktif', 'Libur', 'Tutup'] as UmkmStatus[]).includes(item.status) ? item.status : 'Aktif'
       draft.desc = item.tag || ''
-      draft.menu = (item.items ?? []).map((it: { name: string; price: string; avail?: boolean }) => ({
+      draft.menu = (item.items ?? []).map((it: { name: string; price: string; img?: string; avail?: boolean }) => ({
         name: it.name,
         price: it.price,
+        img: it.img ?? '',
         avail: it.avail !== false,
       }))
       photos.value = [...(item.photos ?? [])]
@@ -107,7 +109,7 @@ watch(
       draft.listLabel = ''
       draft.status = 'Aktif'
       draft.desc = ''
-      draft.menu = [{ name: '', price: '', avail: true }]
+      draft.menu = [{ name: '', price: '', img: '', avail: true }]
       photos.value = []
     }
   },
@@ -115,7 +117,7 @@ watch(
 )
 
 function addMenuRow() {
-  draft.menu.push({ name: '', price: '', avail: true })
+  draft.menu.push({ name: '', price: '', img: '', avail: true })
 }
 function removeMenuRow(i: number) {
   draft.menu.splice(i, 1)
@@ -237,7 +239,7 @@ async function saveUmkm() {
     tag: draft.desc.trim() || null,
     items: draft.menu
       .filter((m) => m.name.trim())
-      .map((m) => ({ name: m.name.trim(), price: m.price.trim() || null, available: m.avail })),
+      .map((m) => ({ name: m.name.trim(), price: m.price.trim() || null, img: m.img.trim() || null, available: m.avail })),
   }
 
   const wasNew = isNew.value
@@ -413,21 +415,45 @@ async function saveUmkm() {
             <PlusIcon size="12px" /> Tambah
           </button>
         </div>
-        <div class="flex flex-col gap-2">
-          <div v-for="(m, i) in draft.menu" :key="i" class="flex items-center gap-2">
-            <input v-model="m.name" placeholder="Nama menu / produk" class="min-w-0 flex-1 rounded-[10px] border border-border-input bg-white px-3 py-2.5" />
-            <input v-model="m.price" placeholder="Harga" class="w-24 flex-none rounded-[10px] border border-border-input bg-white px-3 py-2.5" />
-            <button
-              type="button"
-              class="flex-none rounded-[9px] px-3 py-2.5 text-xs font-bold whitespace-nowrap"
-              :style="m.avail ? { background: '#E3EFED', color: '#2E7D6E' } : { background: '#F6E4DF', color: '#C0472F' }"
-              @click="toggleMenuAvail(i)"
-            >
-              {{ m.avail ? 'Tersedia' : 'Habis' }}
-            </button>
-            <button type="button" aria-label="Hapus baris" class="flex-none rounded-[9px] border border-danger-border px-2.5 py-2.5 font-bold text-danger" @click="removeMenuRow(i)">
-              <CloseIcon size="13px" />
-            </button>
+        <div class="flex flex-col gap-3">
+          <div v-for="(m, i) in draft.menu" :key="i" class="rounded-xl border border-border-divider p-3">
+            <div class="flex items-center gap-2">
+              <input v-model="m.name" placeholder="Nama menu / produk" class="min-w-0 flex-1 rounded-[10px] border border-border-input bg-white px-3 py-2.5" />
+              <input v-model="m.price" placeholder="Harga" class="w-24 flex-none rounded-[10px] border border-border-input bg-white px-3 py-2.5" />
+              <button
+                type="button"
+                class="flex-none rounded-[9px] px-3 py-2.5 text-xs font-bold whitespace-nowrap"
+                :style="m.avail ? { background: '#E3EFED', color: '#2E7D6E' } : { background: '#F6E4DF', color: '#C0472F' }"
+                @click="toggleMenuAvail(i)"
+              >
+                {{ m.avail ? 'Tersedia' : 'Habis' }}
+              </button>
+              <button type="button" aria-label="Hapus baris" class="flex-none rounded-[9px] border border-danger-border px-2.5 py-2.5 font-bold text-danger" @click="removeMenuRow(i)">
+                <CloseIcon size="13px" />
+              </button>
+            </div>
+
+            <div v-if="isAdmin" class="mt-3">
+              <label :for="`menu-img-${i}`" class="mb-1.5 block text-xs font-bold">URL Foto Produk</label>
+              <input
+                :id="`menu-img-${i}`"
+                v-model="m.img"
+                type="url"
+                maxlength="255"
+                placeholder="https://contoh.com/foto-menu.jpg"
+                class="w-full rounded-[10px] border border-border-input bg-white px-3 py-2.5 text-sm"
+              />
+              <div v-if="m.img.trim()" class="mt-2">
+                <img
+                  :src="m.img"
+                  :alt="`Foto ${m.name || 'produk'}`"
+                  class="h-24 w-24 rounded-xl border border-border-divider object-cover"
+                  @error="($event.target as HTMLImageElement).style.display = 'none'"
+                  @load="($event.target as HTMLImageElement).style.display = 'block'"
+                />
+              </div>
+              <p class="mt-1 text-xs text-text-faint">Tempel URL gambar yang dapat diakses publik.</p>
+            </div>
           </div>
         </div>
         <div v-if="draft.menu.length === 0" class="pt-1.5 text-[12.5px] text-text-faint">
