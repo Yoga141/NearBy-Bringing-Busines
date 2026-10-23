@@ -116,11 +116,11 @@ class UmkmController extends Controller
 
         $data = $this->validateData($request, partial: true);
 
-        DB::transaction(function () use ($umkm, $data) {
+        DB::transaction(function () use ($umkm, $data, $request) {
             $umkm->update(collect($data)->except('items')->all());
 
             if (array_key_exists('items', $data)) {
-                $this->syncItems($umkm, $data['items']);
+                $this->syncItems($umkm, $data['items'], preserveExistingImages: ! $request->user()->isAdmin());
             }
         });
 
@@ -176,7 +176,7 @@ class UmkmController extends Controller
             'items' => ['sometimes', 'array', 'max:200'],
             'items.*.name' => ['required_with:items', 'string', 'max:255'],
             'items.*.price' => ['nullable', 'string', 'max:255'],
-            'items.*.img' => ['nullable', 'string', 'max:255'],
+            'items.*.img' => $request->user()?->isAdmin() ? ['nullable', 'string', 'max:255'] : ['prohibited'],
             'items.*.available' => ['nullable', 'boolean'],
         ], [
             'name.required' => 'Nama usaha wajib diisi.',
@@ -196,20 +196,32 @@ class UmkmController extends Controller
      *
      * @param  array<int, array<string, mixed>>  $items
      */
-    private function syncItems(Umkm $umkm, array $items): void
+    private function syncItems(Umkm $umkm, array $items, bool $preserveExistingImages = false): void
     {
+        // Non-admin edits must not be able to alter product photos. Preserve existing
+        // images by exact product name while item rows are rebuilt.
+        $existingImages = [];
+        if ($preserveExistingImages) {
+            foreach ($umkm->items()->get(['name', 'img']) as $existingItem) {
+                $existingImages[mb_strtolower(trim($existingItem->name))] = $existingItem->img;
+            }
+        }
+
         $umkm->items()->delete();
 
         $now = now();
-        $rows = array_map(fn (array $item) => [
-            'umkm_id' => $umkm->id,
-            'name' => $item['name'],
-            'price' => $item['price'] ?? null,
-            'img' => $item['img'] ?? null,
-            'available' => (bool) ($item['available'] ?? true),
-            'created_at' => $now,
-            'updated_at' => $now,
-        ], array_values($items));
+        $rows = array_map(function (array $item) use ($umkm, $now, $preserveExistingImages, $existingImages) {
+            $key = mb_strtolower(trim($item['name']));
+            return [
+                'umkm_id' => $umkm->id,
+                'name' => $item['name'],
+                'price' => $item['price'] ?? null,
+                'img' => $preserveExistingImages ? ($existingImages[$key] ?? null) : ($item['img'] ?? null),
+                'available' => (bool) ($item['available'] ?? true),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }, array_values($items));
 
         if ($rows) {
             $umkm->items()->insert($rows);

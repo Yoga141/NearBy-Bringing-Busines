@@ -23,6 +23,7 @@ export interface CategoryStyle {
 }
 
 export interface UmkmItem {
+  id?: number
   name: string
   price: string
   img?: string

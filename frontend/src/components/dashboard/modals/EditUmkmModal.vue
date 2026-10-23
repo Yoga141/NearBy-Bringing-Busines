@@ -29,8 +29,10 @@ const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 interface DraftMenuItem {
   name: string
   price: string
-  img: string
   avail: boolean
+  img: string
+  photoFile?: File
+  photoPreview?: string
 }
 
 const STATUS_TO_API: Record<UmkmStatus, string> = { Aktif: 'aktif', Libur: 'libur', Tutup: 'tutup' }
@@ -51,7 +53,7 @@ const draft = reactive({
   listLabel: '',
   status: 'Aktif' as UmkmStatus,
   desc: '',
-  menu: [{ name: '', price: '', img: '', avail: true }] as DraftMenuItem[],
+  menu: [{ name: '', price: '', avail: true, img: '' }] as DraftMenuItem[],
 })
 
 // ---- Foto ----
@@ -68,7 +70,10 @@ function clearPending() {
   pending.value.forEach((p) => URL.revokeObjectURL(p.preview))
   pending.value = []
 }
-onBeforeUnmount(clearPending)
+onBeforeUnmount(() => {
+  clearPending()
+  clearAllMenuPhotoPreviews()
+})
 
 watch(
   () => ui.modalItem,
@@ -76,6 +81,7 @@ watch(
     error.value = ''
     photoError.value = ''
     clearPending()
+    clearAllMenuPhotoPreviews()
     if (item && !item.isNew) {
       editingId.value = item.id ?? null
       draft.name = item.name ?? ''
@@ -92,8 +98,8 @@ watch(
       draft.menu = (item.items ?? []).map((it: { name: string; price: string; img?: string; avail?: boolean }) => ({
         name: it.name,
         price: it.price,
-        img: it.img ?? '',
         avail: it.avail !== false,
+        img: it.img ?? '',
       }))
       photos.value = [...(item.photos ?? [])]
     } else {
@@ -109,18 +115,50 @@ watch(
       draft.listLabel = ''
       draft.status = 'Aktif'
       draft.desc = ''
-      draft.menu = [{ name: '', price: '', img: '', avail: true }]
+      draft.menu = [{ name: '', price: '', avail: true, img: '' }]
       photos.value = []
     }
   },
   { immediate: true },
 )
 
+function clearMenuPhotoPreview(item: DraftMenuItem) {
+  if (item.photoFile && item.photoPreview) URL.revokeObjectURL(item.photoPreview)
+  item.photoFile = undefined
+  item.photoPreview = undefined
+}
+
+function clearAllMenuPhotoPreviews() {
+  draft.menu.forEach(clearMenuPhotoPreview)
+}
+
 function addMenuRow() {
-  draft.menu.push({ name: '', price: '', img: '', avail: true })
+  draft.menu.push({ name: '', price: '', avail: true, img: '' })
 }
 function removeMenuRow(i: number) {
+  clearMenuPhotoPreview(draft.menu[i])
   draft.menu.splice(i, 1)
+}
+
+function onPickProductPhoto(e: Event, item: DraftMenuItem) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    error.value = 'Foto produk harus berformat JPG, PNG, atau WebP.'
+    return
+  }
+  if (file.size > 4 * 1024 * 1024) {
+    error.value = 'Ukuran foto produk maksimal 4 MB.'
+    return
+  }
+
+  clearMenuPhotoPreview(item)
+  item.photoFile = file
+  item.photoPreview = URL.createObjectURL(file)
+  error.value = ''
 }
 function toggleMenuAvail(i: number) {
   draft.menu[i].avail = !draft.menu[i].avail
@@ -239,23 +277,43 @@ async function saveUmkm() {
     tag: draft.desc.trim() || null,
     items: draft.menu
       .filter((m) => m.name.trim())
-      .map((m) => ({ name: m.name.trim(), price: m.price.trim() || null, img: m.img.trim() || null, available: m.avail })),
+      .map((m) => ({ name: m.name.trim(), price: m.price.trim() || null, ...(isAdmin.value ? { img: m.img || null } : {}), available: m.avail })),
   }
 
   const wasNew = isNew.value
   let photoFailure = ''
   try {
+    let saved: Awaited<ReturnType<typeof umkmStore.createUmkm>> | null = null
     if (wasNew) {
-      const created = await umkmStore.createUmkm(payload)
+      saved = await umkmStore.createUmkm(payload)
       if (pending.value.length) {
         try {
-          await umkmStore.uploadPhotos(created.id, pending.value.map((p) => p.file))
+          await umkmStore.uploadPhotos(saved.id, pending.value.map((p) => p.file))
         } catch (err) {
-          photoFailure = messageOf(err, 'Foto gagal diunggah.')
+          photoFailure = messageOf(err, 'Foto usaha gagal diunggah.')
         }
       }
     } else if (editingId.value) {
-      await umkmStore.updateUmkm(editingId.value, payload)
+      saved = await umkmStore.updateUmkm(editingId.value, payload)
+    }
+
+    // Product photos are uploaded only after the menu rows have IDs from the API.
+    if (isAdmin.value && saved) {
+      const namedRows = draft.menu.filter((m) => m.name.trim())
+      for (let index = 0; index < namedRows.length; index++) {
+        const row = namedRows[index]
+        const savedItem = saved.items[index]
+        if (!row.photoFile) continue
+        if (!savedItem?.id) {
+          photoFailure = 'Foto produk tidak dapat dipasangkan dengan data produk yang tersimpan.'
+          continue
+        }
+        try {
+          row.img = await umkmStore.uploadProductPhoto(saved.id, savedItem.id, row.photoFile)
+        } catch (err) {
+          photoFailure = messageOf(err, 'Foto produk gagal diunggah.')
+        }
+      }
     }
   } catch (e) {
     error.value = messageOf(e, 'Gagal menyimpan UMKM. Periksa kembali data yang diisi.')
@@ -415,7 +473,7 @@ async function saveUmkm() {
             <PlusIcon size="12px" /> Tambah
           </button>
         </div>
-        <div class="flex flex-col gap-3">
+        <div class="flex flex-col gap-2">
           <div v-for="(m, i) in draft.menu" :key="i" class="rounded-xl border border-border-divider p-3">
             <div class="flex items-center gap-2">
               <input v-model="m.name" placeholder="Nama menu / produk" class="min-w-0 flex-1 rounded-[10px] border border-border-input bg-white px-3 py-2.5" />
@@ -432,27 +490,21 @@ async function saveUmkm() {
                 <CloseIcon size="13px" />
               </button>
             </div>
-
-            <div v-if="isAdmin" class="mt-3">
-              <label :for="`menu-img-${i}`" class="mb-1.5 block text-xs font-bold">URL Foto Produk</label>
-              <input
-                :id="`menu-img-${i}`"
-                v-model="m.img"
-                type="url"
-                maxlength="255"
-                placeholder="https://contoh.com/foto-menu.jpg"
-                class="w-full rounded-[10px] border border-border-input bg-white px-3 py-2.5 text-sm"
+            <div v-if="isAdmin" class="mt-3 flex items-center gap-3">
+              <img
+                v-if="m.photoPreview || m.img"
+                :src="m.photoPreview || m.img"
+                :alt="`Foto ${m.name || 'produk'}`"
+                class="h-16 w-16 flex-none rounded-lg border border-border-divider object-cover"
               />
-              <div v-if="m.img.trim()" class="mt-2">
-                <img
-                  :src="m.img"
-                  :alt="`Foto ${m.name || 'produk'}`"
-                  class="h-24 w-24 rounded-xl border border-border-divider object-cover"
-                  @error="($event.target as HTMLImageElement).style.display = 'none'"
-                  @load="($event.target as HTMLImageElement).style.display = 'block'"
-                />
+              <div class="min-w-0 flex-1">
+                <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border-input px-3 py-2 text-xs font-bold text-brand-navy hover:border-brand-blue">
+                  <PlusIcon size="13px" />
+                  {{ m.photoFile ? 'Ganti foto produk' : (m.img ? 'Ganti foto produk' : 'Tambah foto produk') }}
+                  <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPickProductPhoto($event, m)" />
+                </label>
+                <p class="mt-1 text-[11px] text-text-faint">JPG, PNG, atau WebP · Maks. 4 MB. Foto disimpan saat tombol Simpan ditekan.</p>
               </div>
-              <p class="mt-1 text-xs text-text-faint">Tempel URL gambar yang dapat diakses publik.</p>
             </div>
           </div>
         </div>

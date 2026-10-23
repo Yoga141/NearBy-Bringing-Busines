@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\ProblemReportController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ProfilePhotoController;
+use App\Http\Controllers\Api\ProductPhotoController;
 use App\Http\Controllers\Api\QuestionController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\SocialVideoController;
@@ -64,6 +65,14 @@ Route::get('/avatar/{filename}', [ProfilePhotoController::class, 'show'])
 |--------------------------------------------------------------------------
 */
 Route::get('/umkm-photos/{filename}', [UmkmPhotoController::class, 'show'])
+    ->where('filename', '[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)');
+
+/*
+|--------------------------------------------------------------------------
+| Product photos (public read; uploads are admin-only below)
+|--------------------------------------------------------------------------
+*/
+Route::get('/product-photos/{filename}', [ProductPhotoController::class, 'show'])
     ->where('filename', '[A-Za-z0-9_-]+\.(jpg|jpeg|png|webp)');
 
 /*
@@ -153,6 +162,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin dashboard (role: admin)
     Route::prefix('admin')->middleware('role:admin')->group(function () {
+        // Product photo upload/replace is deliberately admin-only.
+        Route::post('/umkm/{umkm}/items/{item}/photo', [ProductPhotoController::class, 'store']);
+        Route::delete('/umkm/{umkm}/items/{item}/photo', [ProductPhotoController::class, 'destroy']);
+
         Route::get('/users', [AdminController::class, 'users']);
         Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus']);
         Route::delete('/users/{user}', [AdminController::class, 'destroyUser']);

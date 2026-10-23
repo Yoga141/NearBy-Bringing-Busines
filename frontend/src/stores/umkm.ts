@@ -37,6 +37,7 @@ export function umkmFromApi(row: any): Umkm {
     ig: row.ig ?? '',
     listLabel: row.listLabel ?? '',
     items: (row.items ?? []).map((it: any) => ({
+      id: it.id ?? undefined,
       name: it.name,
       price: it.price ?? '',
       img: it.img ?? undefined,
@@ -254,6 +255,17 @@ export const useUmkmStore = defineStore('umkm', () => {
     items?: { name: string; price?: string | null; img?: string | null; available?: boolean }[]
   }
 
+  /** Upload or replace a product photo. This endpoint is restricted to admins by the backend. */
+  async function uploadProductPhoto(umkmId: number, itemId: number, file: File): Promise<string> {
+    const form = new FormData()
+    form.append('photo', file)
+    const result = await apiFetch<{ img: string }>(`/admin/umkm/${umkmId}/items/${itemId}/photo`, {
+      method: 'POST',
+      body: form,
+    })
+    return result.img
+  }
+
   /** Upload photos (multipart); returns the updated UMKM with its photo list. */
   async function uploadPhotos(id: number, files: File[]): Promise<Umkm> {
     const form = new FormData()
@@ -328,6 +340,7 @@ export const useUmkmStore = defineStore('umkm', () => {
     setUmkmStatus,
     deleteUmkm,
     uploadPhotos,
+    uploadProductPhoto,
     deletePhoto,
     setCoverPhoto,
   }
