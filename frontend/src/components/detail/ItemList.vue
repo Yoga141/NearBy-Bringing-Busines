@@ -4,7 +4,16 @@ import ExpandIcon from '@/components/shared/ExpandIcon.vue'
 import { isPhotoUrl, resolveMenuIcon } from '@/lib/menuIcons'
 import type { UmkmItem } from '@/types'
 
-defineProps<{ items: UmkmItem[] }>()
+const props = withDefaults(
+  defineProps<{
+    items: UmkmItem[]
+    cat?: string
+  }>(),
+  {
+    cat: '',
+  },
+)
+
 const ui = useUiStore()
 
 function available(item: UmkmItem) {
@@ -41,13 +50,13 @@ function zoom(item: UmkmItem) {
           class="h-full w-full object-cover object-center transition-transform duration-200 hover:scale-105"
         />
 
-        <!-- Default icon placeholder (makanan / mangkok / minuman / kopi dsb) -->
+        <!-- Default icon placeholder (makanan, fashion, penginapan, jasa, kerajinan) -->
         <div
           v-else
           class="flex h-full w-full items-center justify-center border border-[#EDE7D9] bg-[#FAF5EC] text-[#B07A1E] transition-colors dark:border-[#2b3a4c] dark:bg-[#1e2733] dark:text-[#E5B558]"
-          :title="resolveMenuIcon(it.img, it.name).label"
+          :title="resolveMenuIcon(it.img, it.name, cat).label"
         >
-          <component :is="resolveMenuIcon(it.img, it.name).icon" size="26px" />
+          <component :is="resolveMenuIcon(it.img, it.name, cat).icon" size="26px" />
         </div>
 
         <span

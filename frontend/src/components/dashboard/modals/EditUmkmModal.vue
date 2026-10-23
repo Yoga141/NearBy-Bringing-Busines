@@ -11,7 +11,14 @@ import BaseModal from '@/components/shared/BaseModal.vue'
 import ShieldIcon from '@/components/shared/ShieldIcon.vue'
 import CloseIcon from '@/components/shared/CloseIcon.vue'
 import PlusIcon from '@/components/shared/PlusIcon.vue'
-import { MENU_ICON_OPTIONS, isPhotoUrl, resolveMenuIcon } from '@/lib/menuIcons'
+import {
+  MENU_ICON_CATEGORIES,
+  MENU_ICON_OPTIONS,
+  type MenuIconCategory,
+  type MenuIconOption,
+  isPhotoUrl,
+  resolveMenuIcon,
+} from '@/lib/menuIcons'
 
 const ui = useUiStore()
 const umkmStore = useUmkmStore()
@@ -82,6 +89,7 @@ watch(
   (item) => {
     error.value = ''
     photoError.value = ''
+    activeIconFilterCat.value = {}
     clearPending()
     clearAllMenuPhotoPreviews()
     if (item && !item.isNew) {
@@ -141,6 +149,37 @@ function addMenuRow() {
 function removeMenuRow(i: number) {
   clearMenuPhotoPreview(draft.menu[i])
   draft.menu.splice(i, 1)
+  delete activeIconFilterCat.value[i]
+}
+
+const activeIconFilterCat = ref<Record<number, MenuIconCategory>>({})
+
+function getIconFilterCat(index: number): MenuIconCategory {
+  if (activeIconFilterCat.value[index]) {
+    return activeIconFilterCat.value[index]
+  }
+  const item = draft.menu[index]
+  if (item?.img && item.img.startsWith('icon:')) {
+    const found = MENU_ICON_OPTIONS.find((o) => o.key === item.img)
+    if (found) return found.category
+  }
+  const bCat = (draft.cat || '').toLowerCase()
+  if (bCat.includes('fashion') || bCat.includes('pakaian')) return 'Fashion'
+  if (bCat.includes('penginapan') || bCat.includes('hotel') || bCat.includes('wisma')) return 'Penginapan'
+  if (bCat.includes('jasa') || bCat.includes('servis')) return 'Jasa'
+  if (bCat.includes('oleh') || bCat.includes('kerajinan') || bCat.includes('kriya')) return 'Kerajinan'
+  if (bCat.includes('kuliner') || bCat.includes('minuman') || bCat.includes('sayur')) return 'Kuliner'
+  return 'Semua'
+}
+
+function setIconFilterCat(index: number, cat: MenuIconCategory) {
+  activeIconFilterCat.value[index] = cat
+}
+
+function getFilteredIcons(index: number): MenuIconOption[] {
+  const cat = getIconFilterCat(index)
+  if (cat === 'Semua') return MENU_ICON_OPTIONS
+  return MENU_ICON_OPTIONS.filter((opt) => opt.category === cat)
 }
 
 function selectMenuIcon(item: DraftMenuItem, iconKey: string) {
@@ -633,79 +672,104 @@ async function saveUmkm() {
             </div>
 
             <!-- Row 2: Media Management (Icon Selector OR Real Photo Upload) for BOTH Admin and Owner -->
-            <div class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-border-divider/70 pt-2.5 dark:border-[#243548]">
-              <!-- Visual indicator -->
-              <div class="flex items-center gap-2.5">
-                <!-- If has photo preview or real photo URL -->
-                <template v-if="m.photoPreview || isPhotoUrl(m.img)">
-                  <img
-                    :src="m.photoPreview || m.img"
-                    :alt="`Foto ${m.name || 'produk'}`"
-                    class="h-11 w-11 flex-none rounded-lg border border-border-divider object-cover shadow-xs dark:border-[#2e4257]"
-                  />
-                  <div>
-                    <div class="inline-flex items-center gap-1 rounded-md bg-[#E8F3EE] px-2 py-0.5 text-[11px] font-bold text-[#20695A] dark:bg-[#173833] dark:text-[#62c3ae]">
-                      <span class="h-1.5 w-1.5 rounded-full bg-[#20695A] dark:bg-[#62c3ae]" /> Foto Asli
+            <div class="mt-3 flex flex-col gap-2.5 border-t border-border-divider/70 pt-2.5 dark:border-[#243548]">
+              <!-- Indicator & Photo Upload button row -->
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <!-- Visual indicator -->
+                <div class="flex items-center gap-2.5">
+                  <!-- If has photo preview or real photo URL -->
+                  <template v-if="m.photoPreview || isPhotoUrl(m.img)">
+                    <img
+                      :src="m.photoPreview || m.img"
+                      :alt="`Foto ${m.name || 'produk'}`"
+                      class="h-11 w-11 flex-none rounded-lg border border-border-divider object-cover shadow-xs dark:border-[#2e4257]"
+                    />
+                    <div>
+                      <div class="inline-flex items-center gap-1 rounded-md bg-[#E8F3EE] px-2 py-0.5 text-[11px] font-bold text-[#20695A] dark:bg-[#173833] dark:text-[#62c3ae]">
+                        <span class="h-1.5 w-1.5 rounded-full bg-[#20695A] dark:bg-[#62c3ae]" /> Foto Asli
+                      </div>
+                      <div class="mt-0.5 flex items-center gap-2">
+                        <label class="cursor-pointer text-[11px] font-bold text-brand-blue hover:underline dark:text-[#7fa9ea]">
+                          Ganti foto
+                          <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPickProductPhoto($event, m)" />
+                        </label>
+                        <span class="text-[11px] text-text-faint">·</span>
+                        <button type="button" class="text-[11px] font-bold text-danger hover:underline dark:text-[#f08c77]" @click="removeProductPhoto(m)">
+                          Gunakan Ikon
+                        </button>
+                      </div>
                     </div>
-                    <div class="mt-0.5 flex items-center gap-2">
-                      <label class="cursor-pointer text-[11px] font-bold text-brand-blue hover:underline dark:text-[#7fa9ea]">
-                        Ganti foto
-                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPickProductPhoto($event, m)" />
-                      </label>
-                      <span class="text-[11px] text-text-faint">·</span>
-                      <button type="button" class="text-[11px] font-bold text-danger hover:underline dark:text-[#f08c77]" @click="removeProductPhoto(m)">
-                        Gunakan Ikon
-                      </button>
-                    </div>
-                  </div>
-                </template>
+                  </template>
 
-                <!-- If icon mode -->
-                <template v-else>
-                  <div class="flex h-11 w-11 flex-none items-center justify-center rounded-lg border border-[#EDE7D9] bg-[#FAF5EC] text-[#B07A1E] shadow-xs transition-colors dark:border-[#2b3a4c] dark:bg-[#1e2733] dark:text-[#E5B558]">
-                    <component :is="resolveMenuIcon(m.img, m.name).icon" size="22px" />
-                  </div>
-                  <div>
-                    <div class="text-[11.5px] font-bold text-brand-navy dark:text-text-primary">
-                      Ikon: <span class="font-extrabold text-gold dark:text-[#E5B558]">{{ resolveMenuIcon(m.img, m.name).shortLabel }}</span>
+                  <!-- If icon mode -->
+                  <template v-else>
+                    <div class="flex h-11 w-11 flex-none items-center justify-center rounded-lg border border-[#EDE7D9] bg-[#FAF5EC] text-[#B07A1E] shadow-xs transition-colors dark:border-[#2b3a4c] dark:bg-[#1e2733] dark:text-[#E5B558]">
+                      <component :is="resolveMenuIcon(m.img, m.name, draft.cat).icon" size="22px" />
                     </div>
-                    <div class="text-[11px] text-text-faint">Pilih ikon atau unggah foto asli</div>
-                  </div>
-                </template>
-              </div>
-
-              <!-- Action Controls: Icon Selector Chips & Upload Button -->
-              <div class="flex flex-wrap items-center gap-1.5">
-                <!-- Icon choice chips (visible when not using a photo) -->
-                <div v-if="!m.photoPreview && !isPhotoUrl(m.img)" class="flex items-center gap-1 rounded-lg border border-border-input bg-white p-1 dark:border-[#2e4257] dark:bg-[#1a293a]">
-                  <button
-                    v-for="opt in MENU_ICON_OPTIONS"
-                    :key="opt.key"
-                    type="button"
-                    class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold transition-all"
-                    :class="
-                      resolveMenuIcon(m.img, m.name).key === opt.key
-                        ? 'bg-brand-navy text-white shadow-xs dark:bg-brand-blue dark:text-white'
-                        : 'text-text-secondary hover:bg-black/5 hover:text-brand-navy dark:text-text-faint dark:hover:bg-white/10 dark:hover:text-text-primary'
-                    "
-                    :title="opt.label"
-                    @click="selectMenuIcon(m, opt.key)"
-                  >
-                    <component :is="opt.icon" size="13px" />
-                    <span>{{ opt.shortLabel }}</span>
-                  </button>
+                    <div>
+                      <div class="text-[11.5px] font-bold text-brand-navy dark:text-text-primary">
+                        Ikon Aktif: <span class="font-extrabold text-gold dark:text-[#E5B558]">{{ resolveMenuIcon(m.img, m.name, draft.cat).label }}</span>
+                      </div>
+                      <div class="text-[11px] text-text-faint">Pilih variasi ikon di bawah atau unggah foto asli</div>
+                    </div>
+                  </template>
                 </div>
 
-                <!-- Upload Real Photo Button -->
+                <!-- Upload Real Photo Button (when in icon mode) -->
                 <label
                   v-if="!m.photoPreview && !isPhotoUrl(m.img)"
                   class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border-input bg-white px-2.5 py-1.5 text-xs font-bold text-brand-navy shadow-xs transition-colors hover:border-brand-blue hover:text-brand-blue dark:border-[#2e4257] dark:bg-[#1a293a] dark:text-text-primary dark:hover:border-brand-blue dark:hover:text-[#7fa9ea]"
-                  title="Unggah foto asli untuk menu ini"
+                  title="Unggah foto asli untuk menu/produk ini"
                 >
                   <PlusIcon size="12px" />
                   <span>Foto Asli</span>
                   <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPickProductPhoto($event, m)" />
                 </label>
+              </div>
+
+              <!-- Icon Category Filter and Options (visible when not using a photo) -->
+              <div
+                v-if="!m.photoPreview && !isPhotoUrl(m.img)"
+                class="rounded-lg border border-border-divider bg-white/70 p-2 dark:border-[#263749] dark:bg-[#131f2c]"
+              >
+                <!-- Category Tabs -->
+                <div class="mb-2 flex flex-wrap items-center gap-1 border-b border-border-divider/60 pb-1.5 dark:border-[#233344]">
+                  <span class="mr-1 text-[10.5px] font-bold uppercase tracking-wider text-text-faint">Kategori:</span>
+                  <button
+                    v-for="cat in MENU_ICON_CATEGORIES"
+                    :key="cat"
+                    type="button"
+                    class="rounded-md px-2 py-0.5 text-[11px] transition-colors"
+                    :class="
+                      getIconFilterCat(i) === cat
+                        ? 'bg-brand-blue-tint font-bold text-brand-blue dark:bg-brand-blue-tint dark:text-[#7fa9ea]'
+                        : 'font-medium text-text-secondary hover:text-brand-navy dark:text-text-faint dark:hover:text-text-primary'
+                    "
+                    @click="setIconFilterCat(i, cat)"
+                  >
+                    {{ cat }}
+                  </button>
+                </div>
+
+                <!-- Filtered Icon Buttons -->
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <button
+                    v-for="opt in getFilteredIcons(i)"
+                    :key="opt.key"
+                    type="button"
+                    class="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-all"
+                    :class="
+                      resolveMenuIcon(m.img, m.name, draft.cat).key === opt.key
+                        ? 'border-brand-navy bg-brand-navy font-bold text-white shadow-xs dark:border-brand-blue dark:bg-brand-blue dark:text-white'
+                        : 'border-border-input bg-white font-medium text-brand-navy hover:border-brand-blue/50 hover:bg-[#FAF8F3] dark:border-[#2e4257] dark:bg-[#1a293a] dark:text-text-primary dark:hover:bg-[#203042]'
+                    "
+                    :title="opt.label"
+                    @click="selectMenuIcon(m, opt.key)"
+                  >
+                    <component :is="opt.icon" size="14px" />
+                    <span>{{ opt.shortLabel }}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

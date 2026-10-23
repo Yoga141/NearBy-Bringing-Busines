@@ -113,7 +113,7 @@ const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id
 
           <template v-if="sel.items.length">
             <h3 class="mb-3.5 text-[19px] font-extrabold">{{ sel.listLabel || 'Produk & layanan' }}</h3>
-            <ItemList :items="sel.items" />
+            <ItemList :items="sel.items" :cat="sel.cat" />
           </template>
 
           <h3 class="mb-3.5 text-[19px] font-extrabold">Ulasan &amp; rating</h3>
