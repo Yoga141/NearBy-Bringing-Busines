@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <circle cx="24" cy="24" r="22" fill="#EBF1FA" stroke="#2C5EAD" stroke-width="1.5" stroke-opacity="0.3"/>
+  <!-- Shirt / Apparel -->
+  <path d="M19 13C19 15.7614 21.2386 18 24 18C26.7614 18 29 15.7614 29 13L35 17L32 23L29 21V34C29 34.5523 28.5523 35 28 35H20C19.4477 35 19 34.5523 19 34V21L16 23L13 17L19 13Z" fill="#3D75CE" stroke="#2C5EAD" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Buttons -->
+  <circle cx="24" cy="22" r="1.2" fill="#FFFFFF"/>
+  <circle cx="24" cy="26" r="1.2" fill="#FFFFFF"/>
+  <circle cx="24" cy="30" r="1.2" fill="#FFFFFF"/>
+</svg>

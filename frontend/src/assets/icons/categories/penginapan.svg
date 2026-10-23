@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <circle cx="24" cy="24" r="22" fill="#E6F2F0" stroke="#3E8E82" stroke-width="1.5" stroke-opacity="0.3"/>
+  <!-- Bed frame -->
+  <path d="M10 32V23C10 21.8954 10.8954 21 12 21H36C37.1046 21 38 21.8954 38 23V32" stroke="#3E8E82" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M8 32H40" stroke="#3E8E82" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Mattress / blanket -->
+  <rect x="12" y="25" width="24" height="6" rx="2" fill="#58A89C"/>
+  <!-- Pillow -->
+  <rect x="14" y="19" width="8" height="5" rx="2" fill="#3E8E82"/>
+  <rect x="26" y="19" width="8" height="5" rx="2" fill="#3E8E82"/>
+  <!-- Star / Moon accent -->
+  <path d="M33 11C33.8 11.5 34.3 12.4 34.3 13.4C34.3 15 33 16.3 31.4 16.3C30.6 16.3 29.8 15.9 29.3 15.3C29.6 16.8 30.9 18 32.5 18C34.4 18 36 16.4 36 14.5C36 12.9 34.7 11.4 33 11Z" fill="#3E8E82"/>
+</svg>

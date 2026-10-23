@@ -14,10 +14,14 @@ use Illuminate\Validation\Rule;
 
 class UmkmController extends Controller
 {
-    /** Public list with ?category= &location= &q= filters. */
+    /** Public list with ?category= &location= &q= &complete= filters. */
     public function index(Request $request)
     {
         $query = Umkm::query()->visible();
+
+        if ($request->boolean('complete') || $request->query('complete') === '1') {
+            $query->complete();
+        }
 
         if (($cat = $request->query('category')) && $cat !== 'Semua') {
             $query->where('category', $cat);

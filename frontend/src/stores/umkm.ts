@@ -18,6 +18,28 @@ export interface UmkmDetail extends EnrichedUmkm {
 const STATUS_FROM_API: Record<string, UmkmStatus> = { aktif: 'Aktif', libur: 'Libur', tutup: 'Tutup' }
 const STATUS_TO_API: Record<UmkmStatus, string> = { Aktif: 'aktif', Libur: 'libur', Tutup: 'tutup' }
 
+/**
+ * Checks whether an UMKM has all essential business information filled.
+ * Any UMKM with empty or missing fields (name, category, location, address,
+ * operating hours, phone, price range, description) is considered incomplete.
+ */
+export function isUmkmComplete(u: Umkm): boolean {
+  if (!u) return false
+  const isFilled = (val: unknown): boolean =>
+    typeof val === 'string' ? val.trim().length > 0 : val !== null && val !== undefined
+
+  return Boolean(
+    isFilled(u.name) &&
+    isFilled(u.cat) &&
+    isFilled(u.loc) &&
+    isFilled(u.address) &&
+    isFilled(u.hours) &&
+    isFilled(u.phone) &&
+    isFilled(u.priceLabel) &&
+    isFilled(u.tag)
+  )
+}
+
 /** Maps a raw Laravel UmkmResource row onto the frontend `Umkm` shape. Exported for the dashboard store, which fetches UMKM rows from the owner/admin endpoints directly. */
 export function umkmFromApi(row: any): Umkm {
   return {
@@ -110,22 +132,34 @@ export const useUmkmStore = defineStore('umkm', () => {
     return enrichedAll.value.find((u) => u.id === id)
   }
 
-  /** Homepage "UMKM unggulan": top 4 by rating (there's no curated-pick concept in the API). */
-  const featured = computed(() => [...enrichedAll.value].sort((a, b) => b.rating - a.rating).slice(0, 4))
+  /**
+   * Only UMKM whose business data is completely filled.
+   * This filter is strictly used by homepage sections (featured, category counts, region counts).
+   */
+  const completeAll = computed(() => all.value.filter(isUmkmComplete))
+  const completeEnrichedAll = computed(() => completeAll.value.map(enrichUmkm))
+  const completeCount = computed(() => completeAll.value.length)
 
+  /** Homepage "UMKM unggulan": top 4 by rating, strictly from UMKM with complete data only. */
+  const featured = computed(() =>
+    [...completeEnrichedAll.value].sort((a, b) => b.rating - a.rating).slice(0, 4),
+  )
+
+  /** Homepage category cards: only count UMKM with complete data. */
   const categoryCards = computed(() =>
     CATEGORY_NAMES.map((name) => ({
       name,
       ...CAT[name],
-      count: all.value.filter((u) => u.cat === name).length,
+      count: completeAll.value.filter((u) => u.cat === name).length,
     })),
   )
 
+  /** Homepage region cards: only count UMKM with complete data. */
   const regionCards = computed(() =>
     REGION_CARDS.map(([full, short]) => ({
       full,
       short,
-      count: all.value.filter((u) => u.loc === full).length,
+      count: completeAll.value.filter((u) => u.loc === full).length,
     })),
   )
 
@@ -313,6 +347,9 @@ export const useUmkmStore = defineStore('umkm', () => {
     error,
     loaded,
     enrichedAll,
+    completeAll,
+    completeEnrichedAll,
+    completeCount,
     byId,
     favorites,
     favoritesLoaded,

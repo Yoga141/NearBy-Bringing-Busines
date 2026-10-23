@@ -1,9 +1,11 @@
 import type { CategoryName, CategoryStyle, LocationName } from '@/types'
-import iconKuliner from '@/assets/Kuliner.png'
-import iconPenginapan from '@/assets/Penginapan.png'
-import iconFashion from '@/assets/Fashion.png'
-import iconOlehOleh from '@/assets/Oleh.png'
-import iconJasa from '@/assets/Jasa.png'
+import iconKuliner from '@/assets/icons/categories/kuliner.svg'
+import iconPenginapan from '@/assets/icons/categories/penginapan.svg'
+import iconFashion from '@/assets/icons/categories/fashion.svg'
+import iconOlehOleh from '@/assets/icons/categories/oleh-oleh.svg'
+import iconJasa from '@/assets/icons/categories/jasa.svg'
+import iconMinuman from '@/assets/icons/categories/minuman.svg'
+import iconSayurBuah from '@/assets/icons/categories/sayur-buah.svg'
 
 export const CAT: Record<CategoryName, CategoryStyle> = {
   Kuliner: { accent: '#C98A2E', soft: '#F7EDDC', initial: 'K', icon: iconKuliner },
@@ -11,8 +13,8 @@ export const CAT: Record<CategoryName, CategoryStyle> = {
   Fashion: { accent: '#2C5EAD', soft: '#E6EDF8', initial: 'F', icon: iconFashion },
   'Oleh-Oleh': { accent: '#1591DC', soft: '#E1F1FB', initial: 'O', icon: iconOlehOleh },
   Jasa: { accent: '#5B6672', soft: '#EEF0F2', initial: 'J', icon: iconJasa },
-  Minuman: { accent: '#438A5E', soft: '#E6F2E9', initial: 'M', icon: iconKuliner },
-  'Toko Sayur & Buah': { accent: '#6B8E23', soft: '#EEF4DF', initial: 'S', icon: iconOlehOleh },
+  Minuman: { accent: '#438A5E', soft: '#E6F2E9', initial: 'M', icon: iconMinuman },
+  'Toko Sayur & Buah': { accent: '#6B8E23', soft: '#EEF4DF', initial: 'S', icon: iconSayurBuah },
 }
 
 export const CATEGORY_NAMES: CategoryName[] = [

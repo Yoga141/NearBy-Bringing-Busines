@@ -45,6 +45,25 @@ class Umkm extends Model
         return $this->verification === 'disetujui' && ! $this->hidden;
     }
 
+    /** Filter to only UMKM whose essential business fields are non-empty. */
+    #[Scope]
+    protected function complete(Builder $query): void
+    {
+        foreach (['name', 'category', 'location', 'address', 'hours', 'phone', 'price_label', 'tag'] as $field) {
+            $query->whereNotNull($field)->where($field, '!=', '');
+        }
+    }
+
+    public function isComplete(): bool
+    {
+        foreach (['name', 'category', 'location', 'address', 'hours', 'phone', 'price_label', 'tag'] as $field) {
+            if ($this->{$field} === null || trim((string) $this->{$field}) === '') {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Recompute the cached `rating` / `reviews_count` from the reviews table.
      *

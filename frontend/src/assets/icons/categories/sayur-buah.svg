@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <circle cx="24" cy="24" r="22" fill="#F0F5E3" stroke="#6B8E23" stroke-width="1.5" stroke-opacity="0.3"/>
+  <!-- Apple / Tomato fruit -->
+  <path d="M19.5 19C17 19 14 21 14 25.5C14 31 19 36 22 36C23.5 36 24 35 25 35C26 35 26.5 36 28 36C31 36 36 31 36 25.5C36 21 33 19 30.5 19C28 19 26 21 25 21C24 21 22 19 19.5 19Z" fill="#84AF2E" stroke="#6B8E23" stroke-width="2"/>
+  <!-- Stem -->
+  <path d="M25 19C25 16 26.5 13 28 12" stroke="#55701B" stroke-width="2" stroke-linecap="round"/>
+  <!-- Leaf -->
+  <path d="M26 15C29 14 32 15 32 15C32 15 32 18 29 19C26 20 26 15 26 15Z" fill="#55701B"/>
+</svg>

@@ -17,12 +17,18 @@ withDefaults(defineProps<{ umkm: EnrichedUmkm; size?: 'md' | 'lg' }>(), { size: 
     as an absolutely-positioned sibling instead.
   -->
   <div
-    class="relative overflow-hidden rounded-[18px] border border-border-card bg-white shadow-[0_4px_18px_rgba(19,50,77,.05)] transition-all duration-150 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(19,50,77,.12)]"
+    class="group relative overflow-hidden rounded-[18px] border border-border-card bg-white shadow-[0_4px_18px_rgba(19,50,77,.05)] transition-all duration-150 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(19,50,77,.12)]"
   >
     <RouterLink :to="{ name: 'detail', params: { id: umkm.id } }" class="block">
       <div class="relative overflow-hidden" :class="size === 'lg' ? 'h-[160px]' : 'h-[150px]'">
-        <UmkmThumb :src="umkm.coverUrl" :alt="`Foto ${umkm.name}`" :label="umkm.imgLabel" />
-        <div class="absolute top-3 left-3">
+        <UmkmThumb
+          :src="umkm.coverUrl"
+          :alt="`Foto ${umkm.name}`"
+          :label="umkm.imgLabel"
+          :cat="umkm.cat"
+          :id="umkm.id"
+        />
+        <div class="absolute top-3 left-3 z-10">
           <CategoryPill :category="umkm.cat" size="sm" />
         </div>
       </div>

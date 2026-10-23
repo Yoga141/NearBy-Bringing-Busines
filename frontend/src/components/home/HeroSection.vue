@@ -3,7 +3,8 @@ import { computed, defineAsyncComponent, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUmkmStore } from '@/stores/umkm'
 import { CATEGORY_FILTERS, CATEGORY_NAMES, LOCATION_NAMES } from '@/data/categories'
-import PlaceholderThumb from '@/components/shared/PlaceholderThumb.vue'
+import UmkmThumb from '@/components/shared/UmkmThumb.vue'
+import CategoryPill from '@/components/shared/CategoryPill.vue'
 import SearchIcon from '@/components/shared/SearchIcon.vue'
 import StarIcon from '@/components/shared/StarIcon.vue'
 
@@ -15,7 +16,7 @@ const router = useRouter()
 const umkm = useUmkmStore()
 const heroCat = ref('Semua')
 
-/** The 2 top-rated UMKM, for the hero's small preview cards. */
+/** Top 2 UMKM with complete data, for the hero's preview cards. */
 const heroPreview = computed(() => umkm.featured.slice(0, 2))
 
 function doHeroSearch() {
@@ -87,7 +88,7 @@ function doHeroSearch() {
 
         <div class="mt-[34px] flex gap-[26px]">
           <div>
-            <div class="text-[26px] font-extrabold text-white">{{ umkm.all.length }}+</div>
+            <div class="text-[26px] font-extrabold text-white">{{ umkm.completeCount }}+</div>
             <div class="text-[13px] font-semibold text-[#9FB4D0]">UMKM terdaftar</div>
           </div>
           <div class="w-px bg-white/15" />
@@ -104,22 +105,66 @@ function doHeroSearch() {
       </div>
 
       <div class="relative animate-float-up">
-        <div class="rounded-3xl border border-white/16 bg-white/8 p-[18px] backdrop-blur-[6px]">
-          <div class="relative h-[200px]">
-            <div class="h-full w-full overflow-hidden rounded-2xl">
-              <PlaceholderThumb :label="heroPreview[0]?.imgLabel || 'UMKM sekitaranmu'" variant="navy" rounded="rounded-none" />
+        <div class="rounded-3xl border border-white/16 bg-white/8 p-[18px] backdrop-blur-[6px] shadow-[0_20px_45px_rgba(10,24,39,0.35)]">
+          <!-- Main Hero Showcase Card -->
+          <div class="relative h-[210px] overflow-hidden rounded-2xl shadow-inner">
+            <RouterLink
+              v-if="heroPreview[0]"
+              :to="{ name: 'detail', params: { id: heroPreview[0].id } }"
+              class="group relative block h-full w-full"
+            >
+              <UmkmThumb
+                :src="heroPreview[0].coverUrl"
+                :alt="`Foto ${heroPreview[0].name}`"
+                :cat="heroPreview[0].cat"
+                :id="heroPreview[0].id"
+                rounded="rounded-2xl"
+              />
+              <!-- Dark gradient overlay for title legibility -->
+              <div class="absolute inset-0 bg-gradient-to-t from-[rgba(10,24,39,0.88)] via-[rgba(10,24,39,0.2)] to-transparent" />
+              <div class="absolute top-3 left-3 z-10">
+                <CategoryPill :category="heroPreview[0].cat" size="sm" />
+              </div>
+              <div class="absolute bottom-3.5 left-4 right-4 z-10 text-white">
+                <div class="truncate text-[16px] font-extrabold transition-colors group-hover:text-gold-bright">
+                  {{ heroPreview[0].name }}
+                </div>
+                <div class="mt-1 flex items-center justify-between text-[12.5px] font-semibold text-[#DCE9FB]">
+                  <span>{{ heroPreview[0].loc }}</span>
+                  <span class="flex items-center gap-1 font-bold text-gold-bright">
+                    <StarIcon size="12px" /> {{ heroPreview[0].rating }}
+                  </span>
+                </div>
+              </div>
+            </RouterLink>
+            <div v-else class="flex h-full w-full items-center justify-center bg-brand-navy/60 text-sm font-semibold text-white">
+              UMKM Sekitaranmu
             </div>
           </div>
-          <div v-if="heroPreview.length" class="mt-3 grid grid-cols-2 gap-3">
+
+          <!-- Bottom 2 Preview Mini Cards -->
+          <div v-if="heroPreview.length" class="mt-3.5 grid grid-cols-2 gap-3">
             <RouterLink
               v-for="u in heroPreview"
               :key="u.id"
               :to="{ name: 'detail', params: { id: u.id } }"
-              class="rounded-[14px] bg-white p-3.5"
+              class="group rounded-[16px] bg-white p-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
             >
-              <div class="h-[74px] rounded-[9px]" style="background: repeating-linear-gradient(135deg, #ece6da 0 10px, #f4efe6 10px 20px)" />
-              <div class="mt-2.5 truncate text-[13px] font-bold text-brand-navy">{{ u.name }}</div>
-              <div class="flex items-center gap-1 text-[12px] font-bold" :style="{ color: u.accent }"><StarIcon size="11px" /> {{ u.rating }} · {{ u.cat }}</div>
+              <div class="h-[80px] overflow-hidden rounded-[10px]">
+                <UmkmThumb
+                  :src="u.coverUrl"
+                  :alt="`Foto ${u.name}`"
+                  :cat="u.cat"
+                  :id="u.id"
+                  rounded="rounded-[10px]"
+                />
+              </div>
+              <div class="mt-2.5 truncate text-[13.5px] font-extrabold text-brand-navy transition-colors group-hover:text-brand-blue">
+                {{ u.name }}
+              </div>
+              <div class="mt-0.5 flex items-center gap-1 text-[12px] font-bold" :style="{ color: u.accent }">
+                <StarIcon size="11px" /> {{ u.rating }} · {{ u.cat }}
+              </div>
             </RouterLink>
           </div>
           <div v-else class="mt-3 rounded-[14px] bg-white p-4 text-center text-[13px] font-semibold text-text-faint">

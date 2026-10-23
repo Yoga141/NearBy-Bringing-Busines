@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <circle cx="24" cy="24" r="22" fill="#FDF3E1" stroke="#C98A2E" stroke-width="1.5" stroke-opacity="0.3"/>
+  <!-- Cloche / Plate -->
+  <path d="M10 32C10 31.4477 10.4477 31 11 31H37C37.5523 31 38 31.4477 38 32C38 32.5523 37.5523 33 37 33H11C10.4477 33 10 32.5523 10 32Z" fill="#C98A2E"/>
+  <path d="M13 29C13 22.9249 17.9249 18 24 18C30.0751 18 35 22.9249 35 29H13Z" fill="#E4A84D" stroke="#C98A2E" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="24" cy="15" r="2.5" fill="#C98A2E"/>
+  <!-- Steam lines -->
+  <path d="M19 12C19 12 18 10 19 8" stroke="#C98A2E" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M24 11C24 11 23 9 24 7" stroke="#C98A2E" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M29 12C29 12 28 10 29 8" stroke="#C98A2E" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

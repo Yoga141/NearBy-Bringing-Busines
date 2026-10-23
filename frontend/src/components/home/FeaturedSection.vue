@@ -11,12 +11,21 @@ const umkm = useUmkmStore()
     <div v-reveal class="mb-[26px] flex items-end justify-between gap-5">
       <div>
         <div class="text-[13px] font-bold tracking-[.08em] text-gold uppercase">Pilihan warga</div>
-        <h2 class="mt-1.5 text-[24px] font-extrabold tracking-[-.02em] mobile:text-[28px] tablet:text-[32px]">UMKM unggulan minggu ini</h2>
+        <h2 class="mt-1.5 text-[24px] font-extrabold tracking-[-.02em] mobile:text-[28px] tablet:text-[32px]">
+          UMKM unggulan minggu ini
+        </h2>
       </div>
-      <RouterLink :to="{ name: 'daftar' }" class="flex items-center gap-1 font-bold whitespace-nowrap text-brand-blue">Jelajahi semua <ArrowRightIcon size="13px" /></RouterLink>
+      <RouterLink :to="{ name: 'daftar' }" class="flex items-center gap-1 font-bold whitespace-nowrap text-brand-blue">
+        Jelajahi semua <ArrowRightIcon size="13px" />
+      </RouterLink>
     </div>
-    <div class="grid grid-cols-1 gap-5 mobile:grid-cols-2 tablet:grid-cols-4">
+
+    <!-- Featured UMKM List (filtered: complete data only & visible photo with food-and-beverage placeholders) -->
+    <div v-if="umkm.featured.length" class="grid grid-cols-1 gap-5 mobile:grid-cols-2 tablet:grid-cols-4">
       <UmkmCard v-for="(u, i) in umkm.featured" :key="u.id" v-reveal="{ delay: i * 60 }" :umkm="u" />
+    </div>
+    <div v-else class="rounded-2xl border border-border-card bg-white p-8 text-center text-sm font-semibold text-text-muted">
+      Belum ada UMKM dengan data lengkap untuk ditampilkan.
     </div>
   </section>
 </template>

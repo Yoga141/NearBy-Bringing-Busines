@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <circle cx="24" cy="24" r="22" fill="#F0F2F4" stroke="#5B6672" stroke-width="1.5" stroke-opacity="0.3"/>
+  <!-- Wrench and Screwdriver / Service -->
+  <path d="M16 34L25 25M25 25L32 18C33.5 16.5 33.5 14 32 12.5C30.5 11 28 11 26.5 12.5L20 19M25 25L20 19M16 34L14 32C13 31 13 29.5 14 28.5L18 24.5M16 34L18 36C19 37 20.5 37 21.5 36L25.5 32" stroke="#5B6672" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Screwdriver -->
+  <path d="M33 33L27 27M33 33L36 30C36.8 29.2 36.8 27.8 36 27L34 25M33 33L31 35C30.2 35.8 28.8 35.8 28 35L26 33M19 19L15 15M15 15L13 13M15 15L17 13M15 15L13 17" stroke="#7E8B99" stroke-width="2.2" stroke-linecap="round"/>
+</svg>
