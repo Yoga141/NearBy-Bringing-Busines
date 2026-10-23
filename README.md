@@ -10,7 +10,7 @@
 ![Vue Router](https://img.shields.io/badge/Vue_Router-5.1-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white)
 ![Three.js](https://img.shields.io/badge/Three.js-0.185-000000?style=for-the-badge&logo=threedotjs&logoColor=white)
 ![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
-![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.5.12-777BB4?style=for-the-badge&logo=php&logoColor=white)
 
 </div>
 
@@ -82,7 +82,7 @@ NearBy-Bringing-Busines/
 - Three.js (3D graphics)
 
 ### Backend (`backend/`)
-- PHP 8.3
+- PHP 8.5.12
 - Laravel 13
 - Laravel Sanctum (autentikasi API berbasis token, berlaku 30 hari)
 - Penulis/pembaca `.xlsx` bawaan (tanpa library tambahan) untuk ekspor/impor Excel
@@ -102,7 +102,7 @@ NearBy-Bringing-Busines/
 
 ## 🚀 Instalasi dan Menjalankan Proyek
 
-Persyaratan: PHP 8.3+, Composer, Node.js 20+, dan npm.
+Persyaratan: PHP 8.5.12+, Composer, Node.js 20+, dan npm.
 
 ### 1. Clone repository
 
