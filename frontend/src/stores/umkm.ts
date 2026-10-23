@@ -289,15 +289,22 @@ export const useUmkmStore = defineStore('umkm', () => {
     items?: { name: string; price?: string | null; img?: string | null; available?: boolean }[]
   }
 
-  /** Upload or replace a product photo. This endpoint is restricted to admins by the backend. */
+  /** Upload or replace a product photo for an item (Admin & UMKM Owner). */
   async function uploadProductPhoto(umkmId: number, itemId: number, file: File): Promise<string> {
     const form = new FormData()
     form.append('photo', file)
-    const result = await apiFetch<{ img: string }>(`/admin/umkm/${umkmId}/items/${itemId}/photo`, {
+    const result = await apiFetch<{ img: string }>(`/umkm/${umkmId}/items/${itemId}/photo`, {
       method: 'POST',
       body: form,
     })
     return result.img
+  }
+
+  /** Delete a product photo for an item. */
+  async function deleteProductPhoto(umkmId: number, itemId: number): Promise<void> {
+    await apiFetch(`/umkm/${umkmId}/items/${itemId}/photo`, {
+      method: 'DELETE',
+    })
   }
 
   /** Upload photos (multipart); returns the updated UMKM with its photo list. */
@@ -378,6 +385,7 @@ export const useUmkmStore = defineStore('umkm', () => {
     deleteUmkm,
     uploadPhotos,
     uploadProductPhoto,
+    deleteProductPhoto,
     deletePhoto,
     setCoverPhoto,
   }

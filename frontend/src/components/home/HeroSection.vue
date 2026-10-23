@@ -114,10 +114,8 @@ function doHeroSearch() {
               class="group relative block h-full w-full"
             >
               <UmkmThumb
-                :src="heroPreview[0].coverUrl"
+                :src="heroPreview[0].photos?.[0]?.url || heroPreview[0].coverUrl"
                 :alt="`Foto ${heroPreview[0].name}`"
-                :cat="heroPreview[0].cat"
-                :id="heroPreview[0].id"
                 rounded="rounded-2xl"
               />
               <!-- Dark gradient overlay for title legibility -->
@@ -152,10 +150,8 @@ function doHeroSearch() {
             >
               <div class="h-[80px] overflow-hidden rounded-[10px]">
                 <UmkmThumb
-                  :src="u.coverUrl"
+                  :src="u.photos?.[0]?.url || u.coverUrl"
                   :alt="`Foto ${u.name}`"
-                  :cat="u.cat"
-                  :id="u.id"
                   rounded="rounded-[10px]"
                 />
               </div>

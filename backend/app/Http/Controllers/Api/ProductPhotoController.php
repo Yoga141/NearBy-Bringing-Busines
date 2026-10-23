@@ -27,10 +27,10 @@ class ProductPhotoController extends Controller
         ]);
     }
 
-    /** Upload or replace one product photo. The route is protected by role:admin. */
+    /** Upload or replace one product photo. Accessible to UMKM owner and admin. */
     public function store(Request $request, Umkm $umkm, UmkmItem $item)
     {
-        $this->assertItemBelongsToUmkm($umkm, $item);
+        $this->assertCanManage($request, $umkm, $item);
 
         $request->validate([
             'photo' => [
@@ -66,10 +66,10 @@ class ProductPhotoController extends Controller
         return response()->json(['id' => $item->id, 'img' => $url]);
     }
 
-    /** Remove a product photo. This route is also admin-only. */
-    public function destroy(Umkm $umkm, UmkmItem $item)
+    /** Remove a product photo. Accessible to UMKM owner and admin. */
+    public function destroy(Request $request, Umkm $umkm, UmkmItem $item)
     {
-        $this->assertItemBelongsToUmkm($umkm, $item);
+        $this->assertCanManage($request, $umkm, $item);
         $oldPath = $this->managedPath($item->img);
         $item->update(['img' => null]);
         if ($oldPath) {
@@ -79,9 +79,11 @@ class ProductPhotoController extends Controller
         return response()->json(['id' => $item->id, 'img' => null]);
     }
 
-    private function assertItemBelongsToUmkm(Umkm $umkm, UmkmItem $item): void
+    private function assertCanManage(Request $request, Umkm $umkm, UmkmItem $item): void
     {
         abort_unless((int) $item->umkm_id === (int) $umkm->id, 404, 'Produk tidak ditemukan pada UMKM ini.');
+        $user = $request->user();
+        abort_unless($user && ($user->isAdmin() || (int) $umkm->owner_id === (int) $user->id), 403, 'Bukan pemilik UMKM ini.');
     }
 
     /** Only delete a file whose URL belongs to this app's product-photo route. */

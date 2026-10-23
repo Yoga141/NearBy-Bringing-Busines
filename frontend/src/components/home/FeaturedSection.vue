@@ -20,7 +20,7 @@ const umkm = useUmkmStore()
       </RouterLink>
     </div>
 
-    <!-- Featured UMKM List (filtered: complete data only & visible photo with food-and-beverage placeholders) -->
+    <!-- Featured UMKM List (filtered: complete data only) -->
     <div v-if="umkm.featured.length" class="grid grid-cols-1 gap-5 mobile:grid-cols-2 tablet:grid-cols-4">
       <UmkmCard v-for="(u, i) in umkm.featured" :key="u.id" v-reveal="{ delay: i * 60 }" :umkm="u" />
     </div>

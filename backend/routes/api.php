@@ -122,6 +122,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/umkm/{umkm}/photos/{photo}/cover', [UmkmPhotoController::class, 'cover']);
         Route::delete('/umkm/{umkm}/photos/{photo}', [UmkmPhotoController::class, 'destroy']);
 
+        // Product photo upload / remove (accessible to UMKM owner and admin)
+        Route::post('/umkm/{umkm}/items/{item}/photo', [ProductPhotoController::class, 'store']);
+        Route::delete('/umkm/{umkm}/items/{item}/photo', [ProductPhotoController::class, 'destroy']);
+
         // Excel export / import (see ExcelPortController). Deliberately NOT
         // under /umkm/*, because the public `GET /umkm/{umkm}` route would
         // swallow `/umkm/export` as an id lookup.

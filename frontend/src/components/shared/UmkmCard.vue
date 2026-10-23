@@ -22,11 +22,9 @@ withDefaults(defineProps<{ umkm: EnrichedUmkm; size?: 'md' | 'lg' }>(), { size: 
     <RouterLink :to="{ name: 'detail', params: { id: umkm.id } }" class="block">
       <div class="relative overflow-hidden" :class="size === 'lg' ? 'h-[160px]' : 'h-[150px]'">
         <UmkmThumb
-          :src="umkm.coverUrl"
+          :src="umkm.photos?.[0]?.url || umkm.coverUrl"
           :alt="`Foto ${umkm.name}`"
           :label="umkm.imgLabel"
-          :cat="umkm.cat"
-          :id="umkm.id"
         />
         <div class="absolute top-3 left-3 z-10">
           <CategoryPill :category="umkm.cat" size="sm" />

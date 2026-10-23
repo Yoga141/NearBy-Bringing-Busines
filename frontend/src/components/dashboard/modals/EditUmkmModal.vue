@@ -11,6 +11,7 @@ import BaseModal from '@/components/shared/BaseModal.vue'
 import ShieldIcon from '@/components/shared/ShieldIcon.vue'
 import CloseIcon from '@/components/shared/CloseIcon.vue'
 import PlusIcon from '@/components/shared/PlusIcon.vue'
+import { MENU_ICON_OPTIONS, isPhotoUrl, resolveMenuIcon } from '@/lib/menuIcons'
 
 const ui = useUiStore()
 const umkmStore = useUmkmStore()
@@ -27,6 +28,7 @@ const MAX_PHOTO_BYTES = 4 * 1024 * 1024
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 interface DraftMenuItem {
+  id?: number
   name: string
   price: string
   avail: boolean
@@ -95,7 +97,8 @@ watch(
       draft.listLabel = item.listLabel || ''
       draft.status = (['Aktif', 'Libur', 'Tutup'] as UmkmStatus[]).includes(item.status) ? item.status : 'Aktif'
       draft.desc = item.tag || ''
-      draft.menu = (item.items ?? []).map((it: { name: string; price: string; img?: string; avail?: boolean }) => ({
+      draft.menu = (item.items ?? []).map((it: { id?: number; name: string; price: string; img?: string; avail?: boolean }) => ({
+        id: it.id,
         name: it.name,
         price: it.price,
         avail: it.avail !== false,
@@ -138,6 +141,18 @@ function addMenuRow() {
 function removeMenuRow(i: number) {
   clearMenuPhotoPreview(draft.menu[i])
   draft.menu.splice(i, 1)
+}
+
+function selectMenuIcon(item: DraftMenuItem, iconKey: string) {
+  clearMenuPhotoPreview(item)
+  item.img = iconKey
+}
+
+function removeProductPhoto(item: DraftMenuItem) {
+  clearMenuPhotoPreview(item)
+  if (isPhotoUrl(item.img)) {
+    item.img = ''
+  }
 }
 
 function onPickProductPhoto(e: Event, item: DraftMenuItem) {
@@ -277,7 +292,12 @@ async function saveUmkm() {
     tag: draft.desc.trim() || null,
     items: draft.menu
       .filter((m) => m.name.trim())
-      .map((m) => ({ name: m.name.trim(), price: m.price.trim() || null, ...(isAdmin.value ? { img: m.img || null } : {}), available: m.avail })),
+      .map((m) => ({
+        name: m.name.trim(),
+        price: m.price.trim() || null,
+        img: m.photoFile ? null : (m.img || null),
+        available: m.avail,
+      })),
   }
 
   const wasNew = isNew.value
@@ -297,8 +317,8 @@ async function saveUmkm() {
       saved = await umkmStore.updateUmkm(editingId.value, payload)
     }
 
-    // Product photos are uploaded only after the menu rows have IDs from the API.
-    if (isAdmin.value && saved) {
+    // Product photos can be uploaded by both Admin and UMKM Owner
+    if (saved) {
       const namedRows = draft.menu.filter((m) => m.name.trim())
       for (let index = 0; index < namedRows.length; index++) {
         const row = namedRows[index]
@@ -336,7 +356,7 @@ async function saveUmkm() {
 </script>
 
 <template>
-  <BaseModal max-width="max-w-[680px]" @close="ui.closeModal">
+  <BaseModal max-width="max-w-[700px]" @close="ui.closeModal">
     <div class="flex max-h-[90vh] flex-col">
       <div class="flex flex-none items-center justify-between border-b border-border-divider px-[26px] py-[19px]">
         <div class="text-[19px] font-extrabold">{{ title }}</div>
@@ -369,63 +389,104 @@ async function saveUmkm() {
           </div>
         </div>
 
-        <!-- Foto -->
-        <div class="mb-1.5 flex items-center justify-between">
-          <label class="text-[13px] font-bold">Foto usaha ({{ photoCount }}/{{ MAX_PHOTOS }})</label>
-          <span class="text-[12px] text-text-faint">JPG/PNG/WebP, maks. 4 MB</span>
-        </div>
-        <div class="mb-1.5 flex flex-wrap gap-2.5">
-          <div v-for="(p, i) in photos" :key="p.id" class="relative h-[86px] w-[86px] flex-none">
-            <img :src="p.url" alt="" class="h-full w-full rounded-xl object-cover" />
-            <span v-if="i === 0" class="absolute bottom-1 left-1 rounded-md bg-brand-navy/80 px-1.5 py-0.5 text-[10px] font-bold text-white">Sampul</span>
-            <button
-              v-else
-              type="button"
-              class="absolute bottom-1 left-1 rounded-md bg-white/90 px-1.5 py-0.5 text-[10px] font-bold text-brand-navy disabled:opacity-50"
-              :disabled="photoBusy"
-              @click="makeCover(p)"
-            >
-              Jadikan sampul
-            </button>
-            <button
-              type="button"
-              aria-label="Hapus foto"
-              class="absolute -top-1.5 -right-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border border-white bg-danger text-white disabled:opacity-50"
-              :disabled="photoBusy"
-              @click="removePhoto(p)"
-            >
-              <CloseIcon size="12px" />
-            </button>
+        <!-- Foto galeri (max 8) -->
+        <div class="mb-4">
+          <div class="mb-1 flex items-center justify-between">
+            <label class="text-[13px] font-bold">Foto UMKM</label>
+            <span class="text-xs font-semibold text-text-faint">{{ photoCount }} / {{ MAX_PHOTOS }}</span>
           </div>
-          <div v-for="(p, i) in pending" :key="p.preview" class="relative h-[86px] w-[86px] flex-none">
-            <img :src="p.preview" alt="" class="h-full w-full rounded-xl object-cover opacity-80" />
-            <span class="absolute right-1 bottom-1 left-1 rounded-md bg-white/90 px-1 py-0.5 text-center text-[9.5px] leading-tight font-bold text-brand-navy">Diunggah saat simpan</span>
-            <button
-              type="button"
-              aria-label="Batalkan foto"
-              class="absolute -top-1.5 -right-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border border-white bg-brand-navy text-white"
-              @click="removePending(i)"
+          <p class="mb-2 text-xs text-text-faint">
+            Foto pertama otomatis menjadi sampul. JPG, PNG, atau WebP, maksimal 4 MB per foto.
+          </p>
+
+          <div class="grid grid-cols-3 gap-2.5 mobile:grid-cols-4">
+            <!-- Existing photos -->
+            <div
+              v-for="(photo, i) in photos"
+              :key="photo.id"
+              class="group relative aspect-4/3 overflow-hidden rounded-xl border border-border-divider bg-[#FAFAF8]"
             >
-              <CloseIcon size="12px" />
-            </button>
+              <img :src="photo.url" :alt="`Foto ${i + 1}`" class="h-full w-full object-cover" />
+              <span
+                v-if="i === 0"
+                class="absolute top-1.5 left-1.5 rounded-md bg-[rgba(15,30,45,.75)] px-1.5 py-0.5 text-[10.5px] font-bold text-white"
+              >
+                Sampul
+              </span>
+              <div
+                class="absolute inset-0 flex items-center justify-center gap-1.5 bg-[rgba(15,30,45,.55)] opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                <button
+                  v-if="i !== 0"
+                  type="button"
+                  title="Jadikan sampul"
+                  class="rounded-lg bg-white/90 px-2 py-1 text-[11px] font-bold text-brand-navy hover:bg-white"
+                  :disabled="photoBusy"
+                  @click="makeCover(photo)"
+                >
+                  Sampul
+                </button>
+                <button
+                  type="button"
+                  title="Hapus foto"
+                  class="rounded-lg bg-[#FFEBEA] p-1.5 text-danger hover:bg-[#FFD6D3]"
+                  :disabled="photoBusy"
+                  @click="removePhoto(photo)"
+                >
+                  <CloseIcon size="13px" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Pending photos for new UMKM -->
+            <div
+              v-for="(p, i) in pending"
+              :key="p.preview"
+              class="group relative aspect-4/3 overflow-hidden rounded-xl border border-border-divider bg-[#FAFAF8]"
+            >
+              <img :src="p.preview" :alt="`Foto baru ${i + 1}`" class="h-full w-full object-cover" />
+              <span
+                v-if="photos.length === 0 && i === 0"
+                class="absolute top-1.5 left-1.5 rounded-md bg-[rgba(15,30,45,.75)] px-1.5 py-0.5 text-[10.5px] font-bold text-white"
+              >
+                Sampul
+              </span>
+              <button
+                type="button"
+                title="Batalkan foto ini"
+                class="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(15,30,45,.7)] text-white hover:bg-danger"
+                @click="removePending(i)"
+              >
+                <CloseIcon size="11px" />
+              </button>
+            </div>
+
+            <!-- Upload trigger tile -->
+            <label
+              v-if="photoCount < MAX_PHOTOS"
+              class="flex aspect-4/3 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#DDD7C9] bg-[#FAF8F3] text-center transition-colors hover:border-brand-blue hover:bg-white"
+              :class="{ 'pointer-events-none opacity-50': photoBusy }"
+            >
+              <input
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp"
+                class="hidden"
+                :disabled="photoBusy"
+                @change="onPickPhotos"
+              />
+              <span class="text-xs font-bold text-brand-blue">+ Tambah foto</span>
+              <span class="text-[11px] text-text-faint">{{ MAX_PHOTOS - photoCount }} slot</span>
+            </label>
           </div>
-          <label
-            v-if="photoCount < MAX_PHOTOS"
-            class="flex h-[86px] w-[86px] cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[#D6CFC0] text-[11px] font-semibold text-text-faint hover:border-brand-blue hover:text-brand-blue"
-            :class="photoBusy ? 'pointer-events-none opacity-60' : ''"
-          >
-            <PlusIcon size="18px" />
-            {{ photoBusy ? 'Mengunggah…' : 'Tambah foto' }}
-            <input type="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden" @change="onPickPhotos" />
-          </label>
+
+          <p v-if="photoError" class="mt-2 text-xs font-semibold text-danger">{{ photoError }}</p>
         </div>
-        <p v-if="photoError" class="mb-2 text-[12.5px] font-semibold text-danger">{{ photoError }}</p>
-        <p class="mb-3.5 text-[12px] text-text-faint">Foto pertama menjadi sampul di kartu dan halaman detail.</p>
 
         <div class="grid grid-cols-1 gap-3 mobile:grid-cols-2">
           <div>
-            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-wa">Nomor WhatsApp</label>
-            <input id="umkm-wa" v-model="draft.wa" type="tel" placeholder="0812-xxxx-xxxx" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
+            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-wa">Nomor HP / WhatsApp</label>
+            <input id="umkm-wa" v-model="draft.wa" placeholder="08xxxxxxxxxx" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
           </div>
           <div>
             <label class="mb-1.5 block text-[13px] font-bold" for="umkm-ig">Instagram</label>
@@ -467,47 +528,115 @@ async function saveUmkm() {
         <label class="mb-1.5 block text-[13px] font-bold" for="umkm-desc">Deskripsi</label>
         <textarea id="umkm-desc" v-model="draft.desc" maxlength="2000" class="mb-4 min-h-20 w-full resize-y rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
 
+        <!-- Menu / Produk & Harga -->
         <div class="mb-2.5 flex items-center justify-between">
-          <label class="text-[13px] font-bold">Menu / produk &amp; harga</label>
+          <div>
+            <label class="text-[13px] font-bold">Menu / produk &amp; harga</label>
+            <p class="text-[11.5px] text-text-faint">Pilih ikon default atau unggah foto asli untuk setiap menu.</p>
+          </div>
           <button type="button" class="flex items-center gap-1 rounded-[9px] bg-brand-blue-tint px-[13px] py-1.5 text-[12.5px] font-bold text-brand-blue" @click="addMenuRow">
             <PlusIcon size="12px" /> Tambah
           </button>
         </div>
-        <div class="flex flex-col gap-2">
-          <div v-for="(m, i) in draft.menu" :key="i" class="rounded-xl border border-border-divider p-3">
+
+        <div class="flex flex-col gap-3">
+          <div v-for="(m, i) in draft.menu" :key="i" class="rounded-xl border border-border-divider bg-[#FAFAFA] p-3.5">
+            <!-- Row 1: Item name, price, availability, delete -->
             <div class="flex items-center gap-2">
-              <input v-model="m.name" placeholder="Nama menu / produk" class="min-w-0 flex-1 rounded-[10px] border border-border-input bg-white px-3 py-2.5" />
-              <input v-model="m.price" placeholder="Harga" class="w-24 flex-none rounded-[10px] border border-border-input bg-white px-3 py-2.5" />
+              <input v-model="m.name" placeholder="Nama menu / produk" class="min-w-0 flex-1 rounded-[10px] border border-border-input bg-white px-3 py-2 text-sm font-semibold text-brand-navy" />
+              <input v-model="m.price" placeholder="Harga" class="w-24 flex-none rounded-[10px] border border-border-input bg-white px-3 py-2 text-sm" />
               <button
                 type="button"
-                class="flex-none rounded-[9px] px-3 py-2.5 text-xs font-bold whitespace-nowrap"
+                class="flex-none rounded-[9px] px-3 py-2 text-xs font-bold whitespace-nowrap transition-colors"
                 :style="m.avail ? { background: '#E3EFED', color: '#2E7D6E' } : { background: '#F6E4DF', color: '#C0472F' }"
                 @click="toggleMenuAvail(i)"
               >
                 {{ m.avail ? 'Tersedia' : 'Habis' }}
               </button>
-              <button type="button" aria-label="Hapus baris" class="flex-none rounded-[9px] border border-danger-border px-2.5 py-2.5 font-bold text-danger" @click="removeMenuRow(i)">
+              <button type="button" aria-label="Hapus baris" class="flex-none rounded-[9px] border border-danger-border px-2.5 py-2 font-bold text-danger hover:bg-danger-tint" @click="removeMenuRow(i)">
                 <CloseIcon size="13px" />
               </button>
             </div>
-            <div v-if="isAdmin" class="mt-3 flex items-center gap-3">
-              <img
-                v-if="m.photoPreview || m.img"
-                :src="m.photoPreview || m.img"
-                :alt="`Foto ${m.name || 'produk'}`"
-                class="h-16 w-16 flex-none rounded-lg border border-border-divider object-cover"
-              />
-              <div class="min-w-0 flex-1">
-                <label class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border-input px-3 py-2 text-xs font-bold text-brand-navy hover:border-brand-blue">
-                  <PlusIcon size="13px" />
-                  {{ m.photoFile ? 'Ganti foto produk' : (m.img ? 'Ganti foto produk' : 'Tambah foto produk') }}
+
+            <!-- Row 2: Media Management (Icon Selector OR Real Photo Upload) for BOTH Admin and Owner -->
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-border-divider/70 pt-2.5">
+              <!-- Visual indicator -->
+              <div class="flex items-center gap-2.5">
+                <!-- If has photo preview or real photo URL -->
+                <template v-if="m.photoPreview || isPhotoUrl(m.img)">
+                  <img
+                    :src="m.photoPreview || m.img"
+                    :alt="`Foto ${m.name || 'produk'}`"
+                    class="h-11 w-11 flex-none rounded-lg border border-border-divider object-cover shadow-xs"
+                  />
+                  <div>
+                    <div class="inline-flex items-center gap-1 rounded-md bg-[#E8F3EE] px-2 py-0.5 text-[11px] font-bold text-[#20695A]">
+                      <span class="h-1.5 w-1.5 rounded-full bg-[#20695A]" /> Foto Asli
+                    </div>
+                    <div class="mt-0.5 flex items-center gap-2">
+                      <label class="cursor-pointer text-[11px] font-bold text-brand-blue hover:underline">
+                        Ganti foto
+                        <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPickProductPhoto($event, m)" />
+                      </label>
+                      <span class="text-[11px] text-text-faint">·</span>
+                      <button type="button" class="text-[11px] font-bold text-danger hover:underline" @click="removeProductPhoto(m)">
+                        Gunakan Ikon
+                      </button>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- If icon mode -->
+                <template v-else>
+                  <div class="flex h-11 w-11 flex-none items-center justify-center rounded-lg border border-[#EDE7D9] bg-[#FBF8F1] text-brand-gold shadow-xs">
+                    <component :is="resolveMenuIcon(m.img, m.name).icon" size="22px" />
+                  </div>
+                  <div>
+                    <div class="text-[11.5px] font-bold text-brand-navy">
+                      Ikon: <span class="font-extrabold text-brand-gold">{{ resolveMenuIcon(m.img, m.name).shortLabel }}</span>
+                    </div>
+                    <div class="text-[11px] text-text-faint">Pilih ikon atau unggah foto asli</div>
+                  </div>
+                </template>
+              </div>
+
+              <!-- Action Controls: Icon Selector Chips & Upload Button -->
+              <div class="flex flex-wrap items-center gap-1.5">
+                <!-- Icon choice chips (visible when not using a photo) -->
+                <div v-if="!m.photoPreview && !isPhotoUrl(m.img)" class="flex items-center gap-1 rounded-lg border border-border-input bg-white p-1">
+                  <button
+                    v-for="opt in MENU_ICON_OPTIONS"
+                    :key="opt.key"
+                    type="button"
+                    class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold transition-all"
+                    :class="
+                      resolveMenuIcon(m.img, m.name).key === opt.key
+                        ? 'bg-brand-navy text-white shadow-xs'
+                        : 'text-text-secondary hover:bg-gray-100 hover:text-brand-navy'
+                    "
+                    :title="opt.label"
+                    @click="selectMenuIcon(m, opt.key)"
+                  >
+                    <component :is="opt.icon" size="12px" />
+                    <span>{{ opt.shortLabel }}</span>
+                  </button>
+                </div>
+
+                <!-- Upload Real Photo Button -->
+                <label
+                  v-if="!m.photoPreview && !isPhotoUrl(m.img)"
+                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border-input bg-white px-2.5 py-1.5 text-xs font-bold text-brand-navy shadow-xs transition-colors hover:border-brand-blue hover:text-brand-blue"
+                  title="Unggah foto asli untuk menu ini"
+                >
+                  <PlusIcon size="12px" />
+                  <span>Foto Asli</span>
                   <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPickProductPhoto($event, m)" />
                 </label>
-                <p class="mt-1 text-[11px] text-text-faint">JPG, PNG, atau WebP · Maks. 4 MB. Foto disimpan saat tombol Simpan ditekan.</p>
               </div>
             </div>
           </div>
         </div>
+
         <div v-if="draft.menu.length === 0" class="pt-1.5 text-[12.5px] text-text-faint">
           Belum ada menu. Klik "+ Tambah" untuk menambahkan item.
         </div>
