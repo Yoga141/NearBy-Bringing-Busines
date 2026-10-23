@@ -1,6 +1,6 @@
 # Perintah Suara - Asisten Suara NearBy
 
-Dokumen ini berisi daftar perintah suara yang dapat dikenali oleh asisten suara NearBy, fitur aksesibilitas untuk pengguna low-vision/tunanetra. Pengenalan perintah (NLP) dijalankan oleh layanan Python di `nlp-service/` (endpoint `POST /api/voice-nlp`, lihat `nlp-service/README.md`), dan penanganannya ada di `frontend/src/stores/voice.ts`. Jika layanan Python tidak bisa dihubungi, frontend memakai parser cadangan `frontend/src/lib/voiceIntent.ts` dengan aturan yang sama.
+Dokumen ini berisi daftar perintah suara yang dapat dikenali oleh asisten suara NearBy, fitur aksesibilitas untuk pengguna low-vision/tunanetra. Pengenalan perintah dijalankan langsung di browser oleh parser `frontend/src/lib/voiceIntent.ts` (lewat `frontend/src/lib/voiceCommand.ts`), dan penanganannya ada di `frontend/src/stores/voice.ts`.
 
 ## Cara Mengaktifkan
 

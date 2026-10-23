@@ -6,7 +6,7 @@ import { useAuthStore } from './auth'
 import { useA11yStore } from './a11y'
 import { useAssistantStore } from './assistant'
 import { stripWakeWord, type PageName } from '@/lib/voiceIntent'
-import { interpret, type VoiceCommand } from '@/lib/voiceNlp'
+import { interpret, type VoiceCommand } from '@/lib/voiceCommand'
 
 /**
  * Hands-free voice assistant for blind and low-vision visitors.
@@ -28,9 +28,9 @@ import { interpret, type VoiceCommand } from '@/lib/voiceNlp'
  *     hiccup, a command that threw) still comes back. The only ways out are
  *     the user switching the assistant off or leaving the page.
  *
- * What an utterance means is decided by the Python NLP service
- * (`nlp-service/`, via `lib/voiceNlp.ts`), which also supplies the first
- * sentence of the answer; this store only executes the result.
+ * What an utterance means is decided by the in-browser rules in
+ * `lib/voiceIntent.ts` (via `lib/voiceCommand.ts`); this store only executes
+ * the result.
  *
  * Searching reuses the directory filters in the umkm store instead of querying
  * separately, so a sighted helper looking over the user's shoulder sees exactly
@@ -370,9 +370,9 @@ export const useVoiceStore = defineStore('voice', () => {
   // ---- Alur perintah ----
 
   /**
-   * Every final transcript goes to the Python NLP service (`lib/voiceNlp.ts`);
+   * Every final transcript goes to `interpret` (`lib/voiceCommand.ts`);
    * nothing is interpreted here. While idle that includes background chatter -
-   * the server is what decides whether "Oke NearBy" was said.
+   * `interpret` is what decides whether "Oke NearBy" was said.
    */
   async function handleTranscript(transcript: string) {
     if (phase.value === 'bicara' || phase.value === 'memproses') return
@@ -380,18 +380,13 @@ export const useVoiceStore = defineStore('voice', () => {
 
     if (awake) {
       // Already woken: whatever was said is the command. Close the microphone
-      // while the server thinks, and don't let the command window run out
-      // mid-request.
+      // and don't let the command window run out while it runs.
       clearTimeout(commandTimer)
       phase.value = 'memproses'
       stopRecognition()
     }
 
-    const cmd = await interpret(transcript, !awake)
-    if (!enabled.value) return
-    // While idle the microphone stays open during the request, so another
-    // utterance may already have woken us - first answer wins.
-    if (!awake && phase.value !== 'siaga') return
+    const cmd = interpret(transcript, !awake)
 
     if (cmd.action === 'abaikan') {
       if (awake) backToListening('mendengar')
