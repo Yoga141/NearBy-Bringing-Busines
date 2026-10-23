@@ -82,7 +82,7 @@ const reviews = computed(() => (sel.value ? reviewsStore.reviewsFor(sel.value.id
     </div>
 
     <template v-else-if="sel">
-      <DetailGallery :name="sel.name" :photos="sel.photos" />
+      <DetailGallery :name="sel.name" :img-label="sel.imgLabel" :photos="sel.photos" />
 
       <div class="grid grid-cols-1 items-start gap-[34px] tablet:grid-cols-[1.6fr_.9fr]">
         <div class="min-w-0">

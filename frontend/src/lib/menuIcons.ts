@@ -1,8 +1,8 @@
 import type { Component } from 'vue'
 import PlateIcon from '@/components/shared/PlateIcon.vue'
+import BowlIcon from '@/components/shared/BowlIcon.vue'
 import DrinkIcon from '@/components/shared/DrinkIcon.vue'
 import CoffeeIcon from '@/components/shared/CoffeeIcon.vue'
-import BowlIcon from '@/components/shared/BowlIcon.vue'
 import SnackIcon from '@/components/shared/SnackIcon.vue'
 
 export interface MenuIconOption {
@@ -14,10 +14,10 @@ export interface MenuIconOption {
 
 export const MENU_ICON_OPTIONS: MenuIconOption[] = [
   { key: 'icon:plate', label: 'Makanan / Piring', shortLabel: 'Makanan', icon: PlateIcon },
+  { key: 'icon:bowl', label: 'Mangkok / Mie / Sup', shortLabel: 'Mangkok', icon: BowlIcon },
   { key: 'icon:drink', label: 'Minuman Dingin', shortLabel: 'Minuman', icon: DrinkIcon },
   { key: 'icon:coffee', label: 'Kopi / Teh Hangat', shortLabel: 'Kopi', icon: CoffeeIcon },
-  { key: 'icon:bowl', label: 'Mangkok / Mie / Sup', shortLabel: 'Mangkok', icon: BowlIcon },
-  { key: 'icon:snack', label: 'Cemilan / Kue / Roti', shortLabel: 'Cemilan', icon: SnackIcon },
+  { key: 'icon:snack', label: 'Cemilan / Roti / Kue', shortLabel: 'Cemilan', icon: SnackIcon },
 ]
 
 /**
@@ -49,7 +49,19 @@ export function resolveMenuIcon(img?: string | null, name?: string): MenuIconOpt
   // Infer default icon from item name
   const n = (name || '').toLowerCase()
   if (n.includes('kopi') || n.includes('coffee') || n.includes('espresso') || n.includes('latte') || n.includes('cappuccino')) {
-    return MENU_ICON_OPTIONS[2] // coffee
+    return MENU_ICON_OPTIONS[3] // coffee
+  }
+  if (
+    n.includes('mie') ||
+    n.includes('bakso') ||
+    n.includes('soto') ||
+    n.includes('sup') ||
+    n.includes('soup') ||
+    n.includes('ramen') ||
+    n.includes('rawon') ||
+    n.includes('bubur')
+  ) {
+    return MENU_ICON_OPTIONS[1] // bowl
   }
   if (
     n.includes('es ') ||
@@ -63,19 +75,7 @@ export function resolveMenuIcon(img?: string | null, name?: string): MenuIconOpt
     n.includes('milk') ||
     n.includes('susu')
   ) {
-    return MENU_ICON_OPTIONS[1] // drink
-  }
-  if (
-    n.includes('mie') ||
-    n.includes('bakso') ||
-    n.includes('soto') ||
-    n.includes('sup') ||
-    n.includes('soup') ||
-    n.includes('ramen') ||
-    n.includes('rawon') ||
-    n.includes('bubur')
-  ) {
-    return MENU_ICON_OPTIONS[3] // bowl
+    return MENU_ICON_OPTIONS[2] // drink
   }
   if (
     n.includes('snack') ||

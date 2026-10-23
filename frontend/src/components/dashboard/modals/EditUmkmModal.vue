@@ -359,31 +359,46 @@ async function saveUmkm() {
   <BaseModal max-width="max-w-[700px]" @close="ui.closeModal">
     <div class="flex max-h-[90vh] flex-col">
       <div class="flex flex-none items-center justify-between border-b border-border-divider px-[26px] py-[19px]">
-        <div class="text-[19px] font-extrabold">{{ title }}</div>
-        <button type="button" aria-label="Tutup" class="text-text-faint" @click="ui.closeModal"><CloseIcon size="20px" /></button>
+        <div class="text-[19px] font-extrabold text-brand-navy dark:text-text-primary">{{ title }}</div>
+        <button type="button" aria-label="Tutup" class="text-text-faint hover:text-brand-navy dark:hover:text-text-primary" @click="ui.closeModal">
+          <CloseIcon size="20px" />
+        </button>
       </div>
 
       <div class="overflow-y-auto px-[26px] py-6">
-        <div v-if="isNew && !isAdmin" class="mb-[18px] flex items-start gap-[11px] rounded-xl border border-[#EBD9B4] bg-[#FBF3E4] px-3.5 py-3">
-          <ShieldIcon size="17px" class="flex-none text-[#B07A1E]" />
-          <div class="text-[12.5px] leading-relaxed text-[#7A5B1E]">
-            UMKM baru <b class="text-[#8A5A12]">menunggu verifikasi admin</b> sebelum tampil ke publik.
+        <div v-if="isNew && !isAdmin" class="mb-[18px] flex items-start gap-[11px] rounded-xl border border-[#EBD9B4] bg-[#FBF3E4] px-3.5 py-3 dark:border-[#6b5220] dark:bg-[#33291a]">
+          <ShieldIcon size="17px" class="flex-none text-[#B07A1E] dark:text-[#dcae5c]" />
+          <div class="text-[12.5px] leading-relaxed text-[#7A5B1E] dark:text-[#dcae5c]">
+            UMKM baru <b class="text-[#8A5A12] dark:text-white">menunggu verifikasi admin</b> sebelum tampil ke publik.
           </div>
         </div>
 
-        <label class="mb-1.5 block text-[13px] font-bold" for="umkm-name">Nama UMKM *</label>
-        <input id="umkm-name" v-model="draft.name" maxlength="255" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
+        <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-name">Nama UMKM *</label>
+        <input
+          id="umkm-name"
+          v-model="draft.name"
+          maxlength="255"
+          class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5 font-medium text-brand-navy placeholder:text-text-faint dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+        />
 
         <div class="grid grid-cols-1 gap-3 mobile:grid-cols-2">
           <div>
-            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-cat">Kategori *</label>
-            <select id="umkm-cat" v-model="draft.cat" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3 py-2.5 font-semibold text-brand-navy">
+            <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-cat">Kategori *</label>
+            <select
+              id="umkm-cat"
+              v-model="draft.cat"
+              class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3 py-2.5 font-semibold text-brand-navy dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+            >
               <option v-for="c in CATEGORY_NAMES" :key="c">{{ c }}</option>
             </select>
           </div>
           <div>
-            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-loc">Wilayah *</label>
-            <select id="umkm-loc" v-model="draft.loc" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3 py-2.5 font-semibold text-brand-navy">
+            <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-loc">Wilayah *</label>
+            <select
+              id="umkm-loc"
+              v-model="draft.loc"
+              class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3 py-2.5 font-semibold text-brand-navy dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+            >
               <option v-for="l in LOCATION_NAMES" :key="l">{{ l }}</option>
             </select>
           </div>
@@ -392,7 +407,7 @@ async function saveUmkm() {
         <!-- Foto galeri (max 8) -->
         <div class="mb-4">
           <div class="mb-1 flex items-center justify-between">
-            <label class="text-[13px] font-bold">Foto UMKM</label>
+            <label class="text-[13px] font-bold text-brand-navy dark:text-text-primary">Foto UMKM</label>
             <span class="text-xs font-semibold text-text-faint">{{ photoCount }} / {{ MAX_PHOTOS }}</span>
           </div>
           <p class="mb-2 text-xs text-text-faint">
@@ -404,23 +419,23 @@ async function saveUmkm() {
             <div
               v-for="(photo, i) in photos"
               :key="photo.id"
-              class="group relative aspect-4/3 overflow-hidden rounded-xl border border-border-divider bg-[#FAFAF8]"
+              class="group relative aspect-4/3 overflow-hidden rounded-xl border border-border-divider bg-[#FAF8F3] dark:bg-[#152332] dark:border-[#243548]"
             >
               <img :src="photo.url" :alt="`Foto ${i + 1}`" class="h-full w-full object-cover" />
               <span
                 v-if="i === 0"
-                class="absolute top-1.5 left-1.5 rounded-md bg-[rgba(15,30,45,.75)] px-1.5 py-0.5 text-[10.5px] font-bold text-white"
+                class="absolute top-1.5 left-1.5 rounded-md bg-[rgba(15,30,45,.75)] px-1.5 py-0.5 text-[10.5px] font-bold text-white shadow-xs"
               >
                 Sampul
               </span>
               <div
-                class="absolute inset-0 flex items-center justify-center gap-1.5 bg-[rgba(15,30,45,.55)] opacity-0 transition-opacity group-hover:opacity-100"
+                class="absolute inset-0 flex items-center justify-center gap-1.5 bg-[rgba(15,30,45,.55)] opacity-0 transition-opacity group-hover:opacity-100 backdrop-blur-[1px]"
               >
                 <button
                   v-if="i !== 0"
                   type="button"
                   title="Jadikan sampul"
-                  class="rounded-lg bg-white/90 px-2 py-1 text-[11px] font-bold text-brand-navy hover:bg-white"
+                  class="rounded-lg bg-white/90 px-2 py-1 text-[11px] font-bold text-brand-navy hover:bg-white dark:bg-[#1a293a] dark:text-white"
                   :disabled="photoBusy"
                   @click="makeCover(photo)"
                 >
@@ -429,7 +444,7 @@ async function saveUmkm() {
                 <button
                   type="button"
                   title="Hapus foto"
-                  class="rounded-lg bg-[#FFEBEA] p-1.5 text-danger hover:bg-[#FFD6D3]"
+                  class="rounded-lg bg-[#FFEBEA] p-1.5 text-danger hover:bg-[#FFD6D3] dark:bg-[#3b211d] dark:text-[#f08c77]"
                   :disabled="photoBusy"
                   @click="removePhoto(photo)"
                 >
@@ -442,12 +457,12 @@ async function saveUmkm() {
             <div
               v-for="(p, i) in pending"
               :key="p.preview"
-              class="group relative aspect-4/3 overflow-hidden rounded-xl border border-border-divider bg-[#FAFAF8]"
+              class="group relative aspect-4/3 overflow-hidden rounded-xl border border-border-divider bg-[#FAF8F3] dark:bg-[#152332] dark:border-[#243548]"
             >
               <img :src="p.preview" :alt="`Foto baru ${i + 1}`" class="h-full w-full object-cover" />
               <span
                 v-if="photos.length === 0 && i === 0"
-                class="absolute top-1.5 left-1.5 rounded-md bg-[rgba(15,30,45,.75)] px-1.5 py-0.5 text-[10.5px] font-bold text-white"
+                class="absolute top-1.5 left-1.5 rounded-md bg-[rgba(15,30,45,.75)] px-1.5 py-0.5 text-[10.5px] font-bold text-white shadow-xs"
               >
                 Sampul
               </span>
@@ -464,7 +479,7 @@ async function saveUmkm() {
             <!-- Upload trigger tile -->
             <label
               v-if="photoCount < MAX_PHOTOS"
-              class="flex aspect-4/3 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#DDD7C9] bg-[#FAF8F3] text-center transition-colors hover:border-brand-blue hover:bg-white"
+              class="flex aspect-4/3 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#DDD7C9] bg-[#FAF8F3] text-center transition-colors hover:border-brand-blue hover:bg-white dark:border-[#2e4257] dark:bg-[#152332] dark:hover:bg-[#1a293a]"
               :class="{ 'pointer-events-none opacity-50': photoBusy }"
             >
               <input
@@ -475,7 +490,7 @@ async function saveUmkm() {
                 :disabled="photoBusy"
                 @change="onPickPhotos"
               />
-              <span class="text-xs font-bold text-brand-blue">+ Tambah foto</span>
+              <span class="text-xs font-bold text-brand-blue dark:text-[#7fa9ea]">+ Tambah foto</span>
               <span class="text-[11px] text-text-faint">{{ MAX_PHOTOS - photoCount }} slot</span>
             </label>
           </div>
@@ -485,81 +500,140 @@ async function saveUmkm() {
 
         <div class="grid grid-cols-1 gap-3 mobile:grid-cols-2">
           <div>
-            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-wa">Nomor HP / WhatsApp</label>
-            <input id="umkm-wa" v-model="draft.wa" placeholder="08xxxxxxxxxx" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
+            <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-wa">Nomor HP / WhatsApp</label>
+            <input
+              id="umkm-wa"
+              v-model="draft.wa"
+              placeholder="08xxxxxxxxxx"
+              class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5 font-medium text-brand-navy placeholder:text-text-faint dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+            />
           </div>
           <div>
-            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-ig">Instagram</label>
-            <input id="umkm-ig" v-model="draft.ig" placeholder="@namausaha" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
+            <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-ig">Instagram</label>
+            <input
+              id="umkm-ig"
+              v-model="draft.ig"
+              placeholder="@namausaha"
+              class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5 font-medium text-brand-navy placeholder:text-text-faint dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+            />
           </div>
         </div>
-        <label class="mb-1.5 block text-[13px] font-bold" for="umkm-address">Alamat lengkap</label>
+        <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-address">Alamat lengkap</label>
         <textarea
           id="umkm-address"
           v-model="draft.address"
           maxlength="255"
           placeholder="Jl. ... No. ..., kelurahan, Balikpapan"
-          class="mb-3.5 min-h-[56px] w-full resize-y rounded-xl border border-border-input bg-white px-3.5 py-2.5"
+          class="mb-3.5 min-h-[56px] w-full resize-y rounded-xl border border-border-input bg-white px-3.5 py-2.5 font-medium text-brand-navy placeholder:text-text-faint dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
         />
         <div class="grid grid-cols-1 gap-3 mobile:grid-cols-2">
           <div>
-            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-hours">Jam buka</label>
-            <input id="umkm-hours" v-model="draft.hours" placeholder="08.00 – 22.00 WITA" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
+            <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-hours">Jam buka</label>
+            <input
+              id="umkm-hours"
+              v-model="draft.hours"
+              placeholder="08.00 – 22.00 WITA"
+              class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5 font-medium text-brand-navy placeholder:text-text-faint dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+            />
           </div>
           <div>
-            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-price">Kisaran harga</label>
-            <input id="umkm-price" v-model="draft.price" placeholder="Rp15–50rb" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
+            <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-price">Kisaran harga</label>
+            <input
+              id="umkm-price"
+              v-model="draft.price"
+              placeholder="Rp15–50rb"
+              class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5 font-medium text-brand-navy placeholder:text-text-faint dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+            />
           </div>
         </div>
         <div class="grid grid-cols-1 gap-3 mobile:grid-cols-2">
           <div>
-            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-status">Status buka</label>
-            <select id="umkm-status" v-model="draft.status" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3 py-2.5 font-semibold text-brand-navy">
+            <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-status">Status buka</label>
+            <select
+              id="umkm-status"
+              v-model="draft.status"
+              class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3 py-2.5 font-semibold text-brand-navy dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+            >
               <option>Aktif</option>
               <option>Libur</option>
               <option>Tutup</option>
             </select>
           </div>
           <div>
-            <label class="mb-1.5 block text-[13px] font-bold" for="umkm-listlabel">Judul daftar produk</label>
-            <input id="umkm-listlabel" v-model="draft.listLabel" placeholder="Menu andalan / Layanan / Tipe kamar" class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
+            <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-listlabel">Judul daftar produk</label>
+            <input
+              id="umkm-listlabel"
+              v-model="draft.listLabel"
+              placeholder="Menu andalan / Layanan / Tipe kamar"
+              class="mb-3.5 w-full rounded-xl border border-border-input bg-white px-3.5 py-2.5 font-medium text-brand-navy placeholder:text-text-faint dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+            />
           </div>
         </div>
-        <label class="mb-1.5 block text-[13px] font-bold" for="umkm-desc">Deskripsi</label>
-        <textarea id="umkm-desc" v-model="draft.desc" maxlength="2000" class="mb-4 min-h-20 w-full resize-y rounded-xl border border-border-input bg-white px-3.5 py-2.5" />
+        <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-desc">Deskripsi</label>
+        <textarea
+          id="umkm-desc"
+          v-model="draft.desc"
+          maxlength="2000"
+          class="mb-4 min-h-20 w-full resize-y rounded-xl border border-border-input bg-white px-3.5 py-2.5 font-medium text-brand-navy placeholder:text-text-faint dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
+        />
 
         <!-- Menu / Produk & Harga -->
         <div class="mb-2.5 flex items-center justify-between">
           <div>
-            <label class="text-[13px] font-bold">Menu / produk &amp; harga</label>
+            <label class="text-[13px] font-bold text-brand-navy dark:text-text-primary">Menu / produk &amp; harga</label>
             <p class="text-[11.5px] text-text-faint">Pilih ikon default atau unggah foto asli untuk setiap menu.</p>
           </div>
-          <button type="button" class="flex items-center gap-1 rounded-[9px] bg-brand-blue-tint px-[13px] py-1.5 text-[12.5px] font-bold text-brand-blue" @click="addMenuRow">
+          <button
+            type="button"
+            class="flex items-center gap-1 rounded-[9px] bg-brand-blue-tint px-[13px] py-1.5 text-[12.5px] font-bold text-brand-blue dark:bg-brand-blue-tint dark:text-[#7fa9ea]"
+            @click="addMenuRow"
+          >
             <PlusIcon size="12px" /> Tambah
           </button>
         </div>
 
         <div class="flex flex-col gap-3">
-          <div v-for="(m, i) in draft.menu" :key="i" class="rounded-xl border border-border-divider bg-[#FAFAFA] p-3.5">
+          <div
+            v-for="(m, i) in draft.menu"
+            :key="i"
+            class="rounded-xl border border-border-divider bg-[#FAF8F3] p-3.5 transition-colors dark:border-[#243548] dark:bg-[#152332]"
+          >
             <!-- Row 1: Item name, price, availability, delete -->
             <div class="flex items-center gap-2">
-              <input v-model="m.name" placeholder="Nama menu / produk" class="min-w-0 flex-1 rounded-[10px] border border-border-input bg-white px-3 py-2 text-sm font-semibold text-brand-navy" />
-              <input v-model="m.price" placeholder="Harga" class="w-24 flex-none rounded-[10px] border border-border-input bg-white px-3 py-2 text-sm" />
+              <input
+                v-model="m.name"
+                placeholder="Nama menu / produk"
+                class="min-w-0 flex-1 rounded-[10px] border border-border-input bg-white px-3 py-2 text-sm font-semibold text-brand-navy placeholder:text-text-faint dark:border-[#2e4257] dark:bg-[#1a293a] dark:text-text-primary"
+              />
+              <input
+                v-model="m.price"
+                placeholder="Harga"
+                class="w-24 flex-none rounded-[10px] border border-border-input bg-white px-3 py-2 text-sm text-brand-navy placeholder:text-text-faint dark:border-[#2e4257] dark:bg-[#1a293a] dark:text-text-primary"
+              />
               <button
                 type="button"
                 class="flex-none rounded-[9px] px-3 py-2 text-xs font-bold whitespace-nowrap transition-colors"
-                :style="m.avail ? { background: '#E3EFED', color: '#2E7D6E' } : { background: '#F6E4DF', color: '#C0472F' }"
+                :class="
+                  m.avail
+                    ? 'bg-[#E3EFED] text-[#2E7D6E] dark:bg-[#173833] dark:text-[#62c3ae]'
+                    : 'bg-[#F6E4DF] text-[#C0472F] dark:bg-[#3b211d] dark:text-[#f08c77]'
+                "
                 @click="toggleMenuAvail(i)"
               >
                 {{ m.avail ? 'Tersedia' : 'Habis' }}
               </button>
-              <button type="button" aria-label="Hapus baris" class="flex-none rounded-[9px] border border-danger-border px-2.5 py-2 font-bold text-danger hover:bg-danger-tint" @click="removeMenuRow(i)">
+              <button
+                type="button"
+                aria-label="Hapus baris"
+                class="flex-none rounded-[9px] border border-danger-border px-2.5 py-2 font-bold text-danger transition-colors hover:bg-danger-tint dark:border-danger-border dark:hover:bg-danger-tint"
+                @click="removeMenuRow(i)"
+              >
                 <CloseIcon size="13px" />
               </button>
             </div>
 
             <!-- Row 2: Media Management (Icon Selector OR Real Photo Upload) for BOTH Admin and Owner -->
-            <div class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-border-divider/70 pt-2.5">
+            <div class="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-border-divider/70 pt-2.5 dark:border-[#243548]">
               <!-- Visual indicator -->
               <div class="flex items-center gap-2.5">
                 <!-- If has photo preview or real photo URL -->
@@ -567,19 +641,19 @@ async function saveUmkm() {
                   <img
                     :src="m.photoPreview || m.img"
                     :alt="`Foto ${m.name || 'produk'}`"
-                    class="h-11 w-11 flex-none rounded-lg border border-border-divider object-cover shadow-xs"
+                    class="h-11 w-11 flex-none rounded-lg border border-border-divider object-cover shadow-xs dark:border-[#2e4257]"
                   />
                   <div>
-                    <div class="inline-flex items-center gap-1 rounded-md bg-[#E8F3EE] px-2 py-0.5 text-[11px] font-bold text-[#20695A]">
-                      <span class="h-1.5 w-1.5 rounded-full bg-[#20695A]" /> Foto Asli
+                    <div class="inline-flex items-center gap-1 rounded-md bg-[#E8F3EE] px-2 py-0.5 text-[11px] font-bold text-[#20695A] dark:bg-[#173833] dark:text-[#62c3ae]">
+                      <span class="h-1.5 w-1.5 rounded-full bg-[#20695A] dark:bg-[#62c3ae]" /> Foto Asli
                     </div>
                     <div class="mt-0.5 flex items-center gap-2">
-                      <label class="cursor-pointer text-[11px] font-bold text-brand-blue hover:underline">
+                      <label class="cursor-pointer text-[11px] font-bold text-brand-blue hover:underline dark:text-[#7fa9ea]">
                         Ganti foto
                         <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="onPickProductPhoto($event, m)" />
                       </label>
                       <span class="text-[11px] text-text-faint">·</span>
-                      <button type="button" class="text-[11px] font-bold text-danger hover:underline" @click="removeProductPhoto(m)">
+                      <button type="button" class="text-[11px] font-bold text-danger hover:underline dark:text-[#f08c77]" @click="removeProductPhoto(m)">
                         Gunakan Ikon
                       </button>
                     </div>
@@ -588,12 +662,12 @@ async function saveUmkm() {
 
                 <!-- If icon mode -->
                 <template v-else>
-                  <div class="flex h-11 w-11 flex-none items-center justify-center rounded-lg border border-[#EDE7D9] bg-[#FBF8F1] text-brand-gold shadow-xs">
+                  <div class="flex h-11 w-11 flex-none items-center justify-center rounded-lg border border-[#EDE7D9] bg-[#FAF5EC] text-[#B07A1E] shadow-xs transition-colors dark:border-[#2b3a4c] dark:bg-[#1e2733] dark:text-[#E5B558]">
                     <component :is="resolveMenuIcon(m.img, m.name).icon" size="22px" />
                   </div>
                   <div>
-                    <div class="text-[11.5px] font-bold text-brand-navy">
-                      Ikon: <span class="font-extrabold text-brand-gold">{{ resolveMenuIcon(m.img, m.name).shortLabel }}</span>
+                    <div class="text-[11.5px] font-bold text-brand-navy dark:text-text-primary">
+                      Ikon: <span class="font-extrabold text-gold dark:text-[#E5B558]">{{ resolveMenuIcon(m.img, m.name).shortLabel }}</span>
                     </div>
                     <div class="text-[11px] text-text-faint">Pilih ikon atau unggah foto asli</div>
                   </div>
@@ -603,7 +677,7 @@ async function saveUmkm() {
               <!-- Action Controls: Icon Selector Chips & Upload Button -->
               <div class="flex flex-wrap items-center gap-1.5">
                 <!-- Icon choice chips (visible when not using a photo) -->
-                <div v-if="!m.photoPreview && !isPhotoUrl(m.img)" class="flex items-center gap-1 rounded-lg border border-border-input bg-white p-1">
+                <div v-if="!m.photoPreview && !isPhotoUrl(m.img)" class="flex items-center gap-1 rounded-lg border border-border-input bg-white p-1 dark:border-[#2e4257] dark:bg-[#1a293a]">
                   <button
                     v-for="opt in MENU_ICON_OPTIONS"
                     :key="opt.key"
@@ -611,13 +685,13 @@ async function saveUmkm() {
                     class="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold transition-all"
                     :class="
                       resolveMenuIcon(m.img, m.name).key === opt.key
-                        ? 'bg-brand-navy text-white shadow-xs'
-                        : 'text-text-secondary hover:bg-gray-100 hover:text-brand-navy'
+                        ? 'bg-brand-navy text-white shadow-xs dark:bg-brand-blue dark:text-white'
+                        : 'text-text-secondary hover:bg-black/5 hover:text-brand-navy dark:text-text-faint dark:hover:bg-white/10 dark:hover:text-text-primary'
                     "
                     :title="opt.label"
                     @click="selectMenuIcon(m, opt.key)"
                   >
-                    <component :is="opt.icon" size="12px" />
+                    <component :is="opt.icon" size="13px" />
                     <span>{{ opt.shortLabel }}</span>
                   </button>
                 </div>
@@ -625,7 +699,7 @@ async function saveUmkm() {
                 <!-- Upload Real Photo Button -->
                 <label
                   v-if="!m.photoPreview && !isPhotoUrl(m.img)"
-                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border-input bg-white px-2.5 py-1.5 text-xs font-bold text-brand-navy shadow-xs transition-colors hover:border-brand-blue hover:text-brand-blue"
+                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border-input bg-white px-2.5 py-1.5 text-xs font-bold text-brand-navy shadow-xs transition-colors hover:border-brand-blue hover:text-brand-blue dark:border-[#2e4257] dark:bg-[#1a293a] dark:text-text-primary dark:hover:border-brand-blue dark:hover:text-[#7fa9ea]"
                   title="Unggah foto asli untuk menu ini"
                 >
                   <PlusIcon size="12px" />
@@ -645,10 +719,16 @@ async function saveUmkm() {
       </div>
 
       <div class="flex flex-none justify-end gap-2.5 border-t border-border-divider px-6 py-[15px]">
-        <button type="button" class="rounded-xl border border-border-input px-5 py-2.5 font-bold text-brand-navy" @click="ui.closeModal">Batal</button>
         <button
           type="button"
-          class="rounded-xl bg-brand-blue px-[22px] py-2.5 font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          class="rounded-xl border border-border-input px-5 py-2.5 font-bold text-brand-navy transition-colors hover:bg-black/5 dark:border-[#2e4257] dark:text-text-primary dark:hover:bg-white/5"
+          @click="ui.closeModal"
+        >
+          Batal
+        </button>
+        <button
+          type="button"
+          class="rounded-xl bg-brand-blue px-[22px] py-2.5 font-extrabold text-white transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
           :disabled="saving || photoBusy"
           @click="saveUmkm"
         >
