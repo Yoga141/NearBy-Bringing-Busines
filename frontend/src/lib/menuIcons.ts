@@ -55,6 +55,21 @@ export const MENU_ICON_OPTIONS: MenuIconOption[] = [
   { key: 'icon:package', label: 'Oleh-oleh / Paket / Suvenir', shortLabel: 'Oleh-oleh', category: 'Kerajinan', icon: PackageIcon },
 ]
 
+/** Map of key -> option for O(1) lookup. */
+export const ICON_BY_KEY = new Map<string, MenuIconOption>(
+  MENU_ICON_OPTIONS.map((opt) => [opt.key, opt]),
+)
+
+/** Static pre-filtered icon arrays by category to avoid allocations on render. */
+export const ICONS_BY_CATEGORY: Record<MenuIconCategory, MenuIconOption[]> = {
+  Semua: MENU_ICON_OPTIONS,
+  Kuliner: MENU_ICON_OPTIONS.filter((o) => o.category === 'Kuliner'),
+  Fashion: MENU_ICON_OPTIONS.filter((o) => o.category === 'Fashion'),
+  Penginapan: MENU_ICON_OPTIONS.filter((o) => o.category === 'Penginapan'),
+  Jasa: MENU_ICON_OPTIONS.filter((o) => o.category === 'Jasa'),
+  Kerajinan: MENU_ICON_OPTIONS.filter((o) => o.category === 'Kerajinan'),
+}
+
 /**
  * Checks whether an img string represents an actual uploaded or external photo URL.
  */
@@ -71,63 +86,49 @@ export function isPhotoUrl(val?: string | null): boolean {
   )
 }
 
+const resolveCache = new Map<string, MenuIconOption>()
+const MAX_CACHE_SIZE = 300
+
 /**
  * Resolves which icon component to use when a menu item does not have a real photo.
  * Falls back intelligently to inferred icon based on the item name and business category.
+ * Cached for O(1) instantaneous access.
  */
 export function resolveMenuIcon(img?: string | null, name?: string, businessCategory?: string): MenuIconOption {
   if (img && img.startsWith('icon:')) {
-    const found = MENU_ICON_OPTIONS.find((opt) => opt.key === img)
+    const found = ICON_BY_KEY.get(img)
     if (found) return found
   }
 
+  const cacheKey = `${img || ''}|${name || ''}|${businessCategory || ''}`
+  const cached = resolveCache.get(cacheKey)
+  if (cached) return cached
+
   const n = (name || '').toLowerCase()
   const bCat = (businessCategory || '').toLowerCase()
+
+  let result: MenuIconOption = MENU_ICON_OPTIONS[0]
 
   // 1. Check specific item name keywords
 
   // Lodging keywords
   if (n.includes('kamar') || n.includes('bed') || n.includes('malam') || n.includes('deluxe') || n.includes('suite') || n.includes('superior') || n.includes('standard') || n.includes('villa') || n.includes('homestay') || n.includes('kost')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:bed')!
-  }
-
-  // Pants / bottoms keywords
-  if (n.includes('celana') || n.includes('jeans') || n.includes('rok') || n.includes('kulot') || n.includes('bawahan') || n.includes('short') || n.includes('trousers')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:pants')!
-  }
-
-  // Shirt / tops / fashion keywords
-  if (n.includes('baju') || n.includes('kaos') || n.includes('t-shirt') || n.includes('shirt') || n.includes('batik') || n.includes('kemeja') || n.includes('jaket') || n.includes('hoodie') || n.includes('gamis') || n.includes('tunik') || n.includes('atasan') || n.includes('kebaya')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:shirt')!
-  }
-
-  // Barber / Salon / Scissors keywords
-  if (n.includes('potong') || n.includes('cukur') || n.includes('barber') || n.includes('pangkas') || n.includes('jahit') || n.includes('makloon') || n.includes('vermak')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:scissors')!
-  }
-
-  // Service / Repair keywords
-  if (n.includes('servis') || n.includes('service') || n.includes('ganti') || n.includes('oli') || n.includes('reparasi') || n.includes('cuci') || n.includes('laundry') || n.includes('tune up') || n.includes('bengkel') || n.includes('perbaikan') || n.includes('instalasi')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:service')!
-  }
-
-  // Crafts / Woven / Rattan keywords
-  if (n.includes('rotan') || n.includes('anyaman') || n.includes('tas') || n.includes('dompet') || n.includes('kriya') || n.includes('ukir') || n.includes('kerajinan') || n.includes('rajut')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:craft')!
-  }
-
-  // Souvenirs / Packages
-  if (n.includes('oleh') || n.includes('paket') || n.includes('hampers') || n.includes('suvenir') || n.includes('souvenir') || n.includes('box')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:package')!
-  }
-
-  // Coffee / Tea keywords
-  if (n.includes('kopi') || n.includes('coffee') || n.includes('espresso') || n.includes('latte') || n.includes('cappuccino') || n.includes('americano')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:coffee')!
-  }
-
-  // Bowl / Soup / Noodles keywords
-  if (
+    result = ICON_BY_KEY.get('icon:bed')!
+  } else if (n.includes('celana') || n.includes('jeans') || n.includes('rok') || n.includes('kulot') || n.includes('bawahan') || n.includes('short') || n.includes('trousers')) {
+    result = ICON_BY_KEY.get('icon:pants')!
+  } else if (n.includes('baju') || n.includes('kaos') || n.includes('t-shirt') || n.includes('shirt') || n.includes('batik') || n.includes('kemeja') || n.includes('jaket') || n.includes('hoodie') || n.includes('gamis') || n.includes('tunik') || n.includes('atasan') || n.includes('kebaya')) {
+    result = ICON_BY_KEY.get('icon:shirt')!
+  } else if (n.includes('potong') || n.includes('cukur') || n.includes('barber') || n.includes('pangkas') || n.includes('jahit') || n.includes('makloon') || n.includes('vermak')) {
+    result = ICON_BY_KEY.get('icon:scissors')!
+  } else if (n.includes('servis') || n.includes('service') || n.includes('ganti') || n.includes('oli') || n.includes('reparasi') || n.includes('cuci') || n.includes('laundry') || n.includes('tune up') || n.includes('bengkel') || n.includes('perbaikan') || n.includes('instalasi')) {
+    result = ICON_BY_KEY.get('icon:service')!
+  } else if (n.includes('rotan') || n.includes('anyaman') || n.includes('tas') || n.includes('dompet') || n.includes('kriya') || n.includes('ukir') || n.includes('kerajinan') || n.includes('rajut')) {
+    result = ICON_BY_KEY.get('icon:craft')!
+  } else if (n.includes('oleh') || n.includes('paket') || n.includes('hampers') || n.includes('suvenir') || n.includes('souvenir') || n.includes('box')) {
+    result = ICON_BY_KEY.get('icon:package')!
+  } else if (n.includes('kopi') || n.includes('coffee') || n.includes('espresso') || n.includes('latte') || n.includes('cappuccino') || n.includes('americano')) {
+    result = ICON_BY_KEY.get('icon:coffee')!
+  } else if (
     n.includes('mie') ||
     n.includes('bakso') ||
     n.includes('soto') ||
@@ -139,11 +140,8 @@ export function resolveMenuIcon(img?: string | null, name?: string, businessCate
     n.includes('bihun') ||
     n.includes('kwetiau')
   ) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:bowl')!
-  }
-
-  // Cold Drinks keywords
-  if (
+    result = ICON_BY_KEY.get('icon:bowl')!
+  } else if (
     n.includes('es ') ||
     n.includes('jus') ||
     n.includes('juice') ||
@@ -156,11 +154,8 @@ export function resolveMenuIcon(img?: string | null, name?: string, businessCate
     n.includes('susu') ||
     n.includes('shake')
   ) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:drink')!
-  }
-
-  // Snacks / Pastries keywords
-  if (
+    result = ICON_BY_KEY.get('icon:drink')!
+  } else if (
     n.includes('snack') ||
     n.includes('roti') ||
     n.includes('kue') ||
@@ -172,22 +167,20 @@ export function resolveMenuIcon(img?: string | null, name?: string, businessCate
     n.includes('amplang') ||
     n.includes('cookies')
   ) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:snack')!
+    result = ICON_BY_KEY.get('icon:snack')!
+  } else if (bCat.includes('fashion') || bCat.includes('pakaian')) {
+    result = ICON_BY_KEY.get('icon:shirt')!
+  } else if (bCat.includes('penginapan') || bCat.includes('hotel') || bCat.includes('wisma')) {
+    result = ICON_BY_KEY.get('icon:bed')!
+  } else if (bCat.includes('jasa') || bCat.includes('servis')) {
+    result = ICON_BY_KEY.get('icon:service')!
+  } else if (bCat.includes('oleh') || bCat.includes('kriya') || bCat.includes('kerajinan')) {
+    result = ICON_BY_KEY.get('icon:craft')!
   }
 
-  // 2. Check business category fallback
-  if (bCat.includes('fashion') || bCat.includes('pakaian')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:shirt')!
+  if (resolveCache.size >= MAX_CACHE_SIZE) {
+    resolveCache.clear()
   }
-  if (bCat.includes('penginapan') || bCat.includes('hotel') || bCat.includes('wisma')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:bed')!
-  }
-  if (bCat.includes('jasa') || bCat.includes('servis')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:service')!
-  }
-  if (bCat.includes('oleh') || bCat.includes('kriya') || bCat.includes('kerajinan')) {
-    return MENU_ICON_OPTIONS.find((o) => o.key === 'icon:craft')!
-  }
-
-  return MENU_ICON_OPTIONS[0] // plate
+  resolveCache.set(cacheKey, result)
+  return result
 }

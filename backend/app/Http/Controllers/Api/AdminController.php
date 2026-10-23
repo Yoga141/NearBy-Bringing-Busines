@@ -184,7 +184,7 @@ class AdminController extends Controller
     {
         return response()->json([
             'users' => UserResource::collection(User::onlyTrashed()->latest('deleted_at')->get()),
-            'umkms' => UmkmResource::collection(Umkm::onlyTrashed()->with('owner:id,name,email')->latest('deleted_at')->get()),
+            'umkms' => UmkmResource::collection(Umkm::onlyTrashed()->with(['items', 'photos', 'owner:id,name,email'])->latest('deleted_at')->get()),
         ]);
     }
 

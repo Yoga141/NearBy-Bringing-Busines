@@ -58,7 +58,7 @@ class OwnerController extends Controller
     /** The owner's own soft-deleted UMKM (their "Tempat Sampah" tab). */
     public function trash(Request $request)
     {
-        $umkms = Umkm::onlyTrashed()->where('owner_id', $request->user()->id)->latest('deleted_at')->get();
+        $umkms = Umkm::onlyTrashed()->where('owner_id', $request->user()->id)->with(['items', 'photos'])->latest('deleted_at')->get();
 
         return UmkmResource::collection($umkms);
     }
