@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class UmkmController extends Controller
 {
@@ -90,6 +91,7 @@ class UmkmController extends Controller
         $data = $this->validateData($request);
         $user = $request->user();
         $isAdmin = $user->isAdmin();
+        $this->assertItemImagesAllowed($data['items'] ?? [], $isAdmin, []);
 
         $umkm = DB::transaction(function () use ($data, $user, $isAdmin) {
             $umkm = Umkm::create([
@@ -119,6 +121,14 @@ class UmkmController extends Controller
         $this->authorizeOwner($request, $umkm);
 
         $data = $this->validateData($request, partial: true);
+
+        if (array_key_exists('items', $data)) {
+            $this->assertItemImagesAllowed(
+                $data['items'],
+                $request->user()->isAdmin(),
+                $umkm->items()->whereNotNull('img')->pluck('img')->all(),
+            );
+        }
 
         DB::transaction(function () use ($umkm, $data, $request) {
             $umkm->update(collect($data)->except('items')->all());
@@ -193,6 +203,32 @@ class UmkmController extends Controller
             'location.in' => 'Wilayah tidak dikenali.',
             'items.*.name.required_with' => 'Setiap produk wajib punya nama.',
         ]);
+    }
+
+    /**
+     * Owners may pick an `icon:*` key or keep a photo URL the UMKM already
+     * has; new photos go through ProductPhotoController. This stops an owner
+     * pointing an item at another UMKM's photo file (and later deleting it).
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     * @param  array<int, string>  $existingImages
+     */
+    private function assertItemImagesAllowed(array $items, bool $isAdmin, array $existingImages): void
+    {
+        if ($isAdmin) {
+            return;
+        }
+
+        foreach (array_values($items) as $i => $item) {
+            $img = $item['img'] ?? null;
+            if ($img === null || $img === '' || preg_match('/^icon:[a-z-]+$/', $img) || in_array($img, $existingImages, true)) {
+                continue;
+            }
+
+            throw ValidationException::withMessages([
+                "items.{$i}.img" => 'Foto produk harus diunggah lewat tombol Foto.',
+            ]);
+        }
     }
 
     /**

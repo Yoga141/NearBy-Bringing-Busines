@@ -100,9 +100,10 @@ class Umkm extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    /** Products in the order they were saved (the editor pairs uploads by position). */
     public function items(): HasMany
     {
-        return $this->hasMany(UmkmItem::class);
+        return $this->hasMany(UmkmItem::class)->orderBy('id');
     }
 
     /** Photos, cover first. */
