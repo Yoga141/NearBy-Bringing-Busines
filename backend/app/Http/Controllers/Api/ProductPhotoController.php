@@ -5,14 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Umkm;
 use App\Models\UmkmItem;
+use App\Support\ImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/** Product/menu photos. Publicly readable; uploads and replacement are admin-only via api.php. */
+/** Product/menu photos. Publicly readable; the UMKM owner or an admin uploads and replaces them. */
 class ProductPhotoController extends Controller
 {
-    private const DIRECTORY = 'product-photos';
+    private const DIRECTORY = UmkmItem::PHOTO_DIRECTORY;
+
+    /** Shown at 60px and in the lightbox; larger only costs bandwidth. */
+    public const MAX_EDGE = 1000;
     private const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
     private const MAX_KILOBYTES = 4096;
 
@@ -46,10 +50,10 @@ class ProductPhotoController extends Controller
             'photo.uploaded' => 'PHP menolak berkas. Periksa upload_max_filesize dan post_max_size di php.ini.',
         ]);
 
-        $newPath = $request->file('photo')->store(self::DIRECTORY, 'public');
+        $newPath = ImageOptimizer::store($request->file('photo'), self::DIRECTORY, 'public', self::MAX_EDGE);
         abort_unless($newPath, 500, 'Foto gagal disimpan. Periksa izin folder storage.');
 
-        $oldPath = $this->managedPath($item->img);
+        $oldUrl = $item->img;
         $url = '/api/product-photos/'.basename($newPath);
 
         try {
@@ -59,9 +63,7 @@ class ProductPhotoController extends Controller
             throw $e;
         }
 
-        if ($oldPath && $oldPath !== $newPath) {
-            Storage::disk('public')->delete($oldPath);
-        }
+        UmkmItem::deleteUnusedPhotos([$oldUrl]);
 
         return response()->json(['id' => $item->id, 'img' => $url]);
     }
@@ -70,11 +72,9 @@ class ProductPhotoController extends Controller
     public function destroy(Request $request, Umkm $umkm, UmkmItem $item)
     {
         $this->assertCanManage($request, $umkm, $item);
-        $oldPath = $this->managedPath($item->img);
+        $oldUrl = $item->img;
         $item->update(['img' => null]);
-        if ($oldPath) {
-            Storage::disk('public')->delete($oldPath);
-        }
+        UmkmItem::deleteUnusedPhotos([$oldUrl]);
 
         return response()->json(['id' => $item->id, 'img' => null]);
     }
@@ -84,15 +84,5 @@ class ProductPhotoController extends Controller
         abort_unless((int) $item->umkm_id === (int) $umkm->id, 404, 'Produk tidak ditemukan pada UMKM ini.');
         $user = $request->user();
         abort_unless($user && ($user->isAdmin() || (int) $umkm->owner_id === (int) $user->id), 403, 'Bukan pemilik UMKM ini.');
-    }
-
-    /** Only delete a file whose URL belongs to this app's product-photo route. */
-    private function managedPath(?string $url): ?string
-    {
-        if (! $url || ! preg_match('~(?:^|/)api/product-photos/([A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp))$~i', $url, $matches)) {
-            return null;
-        }
-
-        return self::DIRECTORY.'/'.$matches[1];
     }
 }

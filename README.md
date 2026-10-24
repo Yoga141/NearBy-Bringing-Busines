@@ -166,7 +166,8 @@ npm run build
 1. Buat database MySQL + user di cPanel.
 2. Salin `backend/.env.production.example` menjadi `~/nearby-backend/.env`, isi `APP_URL`, `DB_*`, lalu `php artisan key:generate`.
 3. Pastikan `~/nearby-backend/storage` dan `bootstrap/cache` bisa ditulis PHP (foto UMKM, avatar, dan video panduan disimpan di `storage/app/public` dan tidak terhapus saat deploy).
-4. Opsional: isi `ANTHROPIC_API_KEY` supaya jawaban asisten dirangkai oleh Claude. Tanpa key, asisten tetap mencari dari database dan menjawab dengan teksnya sendiri.
+4. Aktifkan ekstensi PHP **gd** (dan **exif**) di *Select PHP Version*. Dengan gd, foto UMKM dan foto produk otomatis diperkecil dan disimpan sebagai WebP saat diunggah; tanpa gd, foto tetap tersimpan apa adanya. Foto lama bisa dikompres sekali dengan `php artisan photos:optimize` (cek dulu dengan `--dry-run`).
+5. Opsional: isi `ANTHROPIC_API_KEY` supaya jawaban asisten dirangkai oleh Claude. Tanpa key, asisten tetap mencari dari database dan menjawab dengan teksnya sendiri.
 
 Akun admin utama (`admin@gmail.com`) dibuat oleh migration `2026_09_28_000000_ensure_primary_admin_account` saat `migrate --force` pada deploy (hanya hash bcrypt yang disimpan di repo). Segera ganti kata sandinya setelah login pertama lewat **Akun → Keamanan**.
 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UmkmResource;
 use App\Models\Submission;
 use App\Models\Umkm;
+use App\Models\UmkmItem;
 use App\Support\UmkmCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -238,6 +239,7 @@ class UmkmController extends Controller
      */
     private function syncItems(Umkm $umkm, array $items): void
     {
+        $oldImages = $umkm->items()->whereNotNull('img')->pluck('img');
         $umkm->items()->delete();
 
         $now = now();
@@ -256,5 +258,9 @@ class UmkmController extends Controller
         if ($rows) {
             $umkm->items()->insert($rows);
         }
+
+        // Photos dropped by this edit ("Gunakan Ikon", removed rows) - only
+        // once the new rows are committed, so a rollback never loses a file.
+        DB::afterCommit(fn () => UmkmItem::deleteUnusedPhotos($oldImages));
     }
 }

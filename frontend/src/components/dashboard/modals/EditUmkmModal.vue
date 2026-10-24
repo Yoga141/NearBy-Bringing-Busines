@@ -5,6 +5,7 @@ import { useUmkmStore } from '@/stores/umkm'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
 import { ApiError } from '@/lib/api'
+import { compressImage } from '@/lib/compressImage'
 import { CATEGORY_NAMES, LOCATION_NAMES } from '@/data/categories'
 import type { CategoryName, LocationName, UmkmPhoto, UmkmStatus } from '@/types'
 import BaseModal from '@/components/shared/BaseModal.vue'
@@ -34,6 +35,18 @@ const title = computed(() => (isNew.value ? 'Tambah UMKM' : 'Edit UMKM'))
 const MAX_PHOTOS = 8
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+/** Picks may be larger than MAX_PHOTO_BYTES: they are compressed before that check. */
+const MAX_PICK_BYTES = 20 * 1024 * 1024
+/** Longest edge kept, mirroring the API's MAX_EDGE for each kind of photo. */
+const UMKM_PHOTO_EDGE = 1600
+const PRODUCT_PHOTO_EDGE = 1000
+
+/** Shrink valid picks in the browser so uploads are fast on mobile data. */
+function shrink(files: File[], maxEdge: number): Promise<File[]> {
+  return Promise.all(
+    files.map((f) => (PHOTO_TYPES.includes(f.type) && f.size <= MAX_PICK_BYTES ? compressImage(f, maxEdge) : f)),
+  )
+}
 
 interface DraftMenuItem {
   id?: number
@@ -209,17 +222,18 @@ function removeProductPhoto(item: DraftMenuItem) {
   }
 }
 
-function onPickProductPhoto(e: Event, item: DraftMenuItem) {
+async function onPickProductPhoto(e: Event, item: DraftMenuItem) {
   const input = e.target as HTMLInputElement
-  const file = input.files?.[0]
+  const picked = input.files?.[0]
   input.value = ''
-  if (!file) return
+  if (!picked) return
 
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+  if (!PHOTO_TYPES.includes(picked.type)) {
     error.value = 'Foto produk harus berformat JPG, PNG, atau WebP.'
     return
   }
-  if (file.size > 4 * 1024 * 1024) {
+  const [file] = await shrink([picked], PRODUCT_PHOTO_EDGE)
+  if (file.size > MAX_PHOTO_BYTES) {
     error.value = 'Ukuran foto produk maksimal 4 MB.'
     return
   }
@@ -264,17 +278,20 @@ function acceptable(files: File[]): File[] {
 
 async function onPickPhotos(e: Event) {
   const input = e.target as HTMLInputElement
-  const files = acceptable(Array.from(input.files ?? []))
+  const picked = Array.from(input.files ?? [])
   input.value = ''
-  if (!files.length) return
-
-  if (!editingId.value) {
-    pending.value.push(...files.map((file) => ({ file, preview: URL.createObjectURL(file) })))
-    return
-  }
+  if (!picked.length) return
 
   photoBusy.value = true
   try {
+    const files = acceptable(await shrink(picked, UMKM_PHOTO_EDGE))
+    if (!files.length) return
+
+    if (!editingId.value) {
+      pending.value.push(...files.map((file) => ({ file, preview: URL.createObjectURL(file) })))
+      return
+    }
+
     const updated = await umkmStore.uploadPhotos(editingId.value, files)
     photos.value = updated.photos
   } catch (err) {
@@ -467,7 +484,7 @@ async function saveUmkm() {
             <span class="text-xs font-semibold text-text-faint">{{ photoCount }} / {{ MAX_PHOTOS }}</span>
           </div>
           <p class="mb-2 text-xs text-text-faint">
-            Foto pertama otomatis menjadi sampul. JPG, PNG, atau WebP, maksimal 4 MB per foto.
+            Foto pertama otomatis menjadi sampul. JPG, PNG, atau WebP; foto besar otomatis dikompres.
           </p>
 
           <div class="grid grid-cols-3 gap-2.5 mobile:grid-cols-4">

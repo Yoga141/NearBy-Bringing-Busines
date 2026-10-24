@@ -92,6 +92,7 @@ class Umkm extends Model
     {
         static::forceDeleting(function (Umkm $umkm) {
             $umkm->photos()->get()->each->deleteFile();
+            UmkmItem::deleteUnusedPhotos($umkm->items()->pluck('img'), ignoreUmkmId: $umkm->id);
         });
     }
 
