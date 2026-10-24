@@ -104,7 +104,9 @@ export function resolveMenuIcon(img?: string | null, name?: string, businessCate
   const cached = resolveCache.get(cacheKey)
   if (cached) return cached
 
-  const n = (name || '').toLowerCase()
+  // Match whole words only, so "steak" is not read as "tea" or "super" as "sup".
+  const words = ` ${(name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ')} `
+  const has = (keyword: string) => words.includes(` ${keyword} `)
   const bCat = (businessCategory || '').toLowerCase()
 
   let result: MenuIconOption = MENU_ICON_OPTIONS[0]
@@ -112,60 +114,60 @@ export function resolveMenuIcon(img?: string | null, name?: string, businessCate
   // 1. Check specific item name keywords
 
   // Lodging keywords
-  if (n.includes('kamar') || n.includes('bed') || n.includes('malam') || n.includes('deluxe') || n.includes('suite') || n.includes('superior') || n.includes('standard') || n.includes('villa') || n.includes('homestay') || n.includes('kost')) {
+  if (has('kamar') || has('bed') || has('malam') || has('deluxe') || has('suite') || has('superior') || has('standard') || has('villa') || has('homestay') || has('kost')) {
     result = ICON_BY_KEY.get('icon:bed')!
-  } else if (n.includes('celana') || n.includes('jeans') || n.includes('rok') || n.includes('kulot') || n.includes('bawahan') || n.includes('short') || n.includes('trousers')) {
+  } else if (has('celana') || has('jeans') || has('rok') || has('kulot') || has('bawahan') || has('short') || has('trousers')) {
     result = ICON_BY_KEY.get('icon:pants')!
-  } else if (n.includes('baju') || n.includes('kaos') || n.includes('t-shirt') || n.includes('shirt') || n.includes('batik') || n.includes('kemeja') || n.includes('jaket') || n.includes('hoodie') || n.includes('gamis') || n.includes('tunik') || n.includes('atasan') || n.includes('kebaya')) {
+  } else if (has('baju') || has('kaos') || has('shirt') || has('batik') || has('kemeja') || has('jaket') || has('hoodie') || has('gamis') || has('tunik') || has('atasan') || has('kebaya')) {
     result = ICON_BY_KEY.get('icon:shirt')!
-  } else if (n.includes('potong') || n.includes('cukur') || n.includes('barber') || n.includes('pangkas') || n.includes('jahit') || n.includes('makloon') || n.includes('vermak')) {
+  } else if (has('potong') || has('cukur') || has('barber') || has('pangkas') || has('jahit') || has('makloon') || has('vermak')) {
     result = ICON_BY_KEY.get('icon:scissors')!
-  } else if (n.includes('servis') || n.includes('service') || n.includes('ganti') || n.includes('oli') || n.includes('reparasi') || n.includes('cuci') || n.includes('laundry') || n.includes('tune up') || n.includes('bengkel') || n.includes('perbaikan') || n.includes('instalasi')) {
+  } else if (has('servis') || has('service') || has('ganti') || has('oli') || has('reparasi') || has('cuci') || has('laundry') || has('tune up') || has('bengkel') || has('perbaikan') || has('instalasi')) {
     result = ICON_BY_KEY.get('icon:service')!
-  } else if (n.includes('rotan') || n.includes('anyaman') || n.includes('tas') || n.includes('dompet') || n.includes('kriya') || n.includes('ukir') || n.includes('kerajinan') || n.includes('rajut')) {
+  } else if (has('rotan') || has('anyaman') || has('tas') || has('dompet') || has('kriya') || has('ukir') || has('kerajinan') || has('rajut')) {
     result = ICON_BY_KEY.get('icon:craft')!
-  } else if (n.includes('oleh') || n.includes('paket') || n.includes('hampers') || n.includes('suvenir') || n.includes('souvenir') || n.includes('box')) {
+  } else if (has('oleh') || has('paket') || has('hampers') || has('suvenir') || has('souvenir') || has('box')) {
     result = ICON_BY_KEY.get('icon:package')!
-  } else if (n.includes('kopi') || n.includes('coffee') || n.includes('espresso') || n.includes('latte') || n.includes('cappuccino') || n.includes('americano')) {
+  } else if (has('kopi') || has('coffee') || has('espresso') || has('latte') || has('cappuccino') || has('americano')) {
     result = ICON_BY_KEY.get('icon:coffee')!
   } else if (
-    n.includes('mie') ||
-    n.includes('bakso') ||
-    n.includes('soto') ||
-    n.includes('sup') ||
-    n.includes('soup') ||
-    n.includes('ramen') ||
-    n.includes('rawon') ||
-    n.includes('bubur') ||
-    n.includes('bihun') ||
-    n.includes('kwetiau')
+    has('mie') ||
+    has('bakso') ||
+    has('soto') ||
+    has('sup') ||
+    has('soup') ||
+    has('ramen') ||
+    has('rawon') ||
+    has('bubur') ||
+    has('bihun') ||
+    has('kwetiau')
   ) {
     result = ICON_BY_KEY.get('icon:bowl')!
   } else if (
-    n.includes('es ') ||
-    n.includes('jus') ||
-    n.includes('juice') ||
-    n.includes('teh') ||
-    n.includes('tea') ||
-    n.includes('drink') ||
-    n.includes('soda') ||
-    n.includes('boba') ||
-    n.includes('milk') ||
-    n.includes('susu') ||
-    n.includes('shake')
+    has('es') ||
+    has('jus') ||
+    has('juice') ||
+    has('teh') ||
+    has('tea') ||
+    has('drink') ||
+    has('soda') ||
+    has('boba') ||
+    has('milk') ||
+    has('susu') ||
+    has('shake')
   ) {
     result = ICON_BY_KEY.get('icon:drink')!
   } else if (
-    n.includes('snack') ||
-    n.includes('roti') ||
-    n.includes('kue') ||
-    n.includes('cake') ||
-    n.includes('pisang') ||
-    n.includes('keripik') ||
-    n.includes('pastry') ||
-    n.includes('donat') ||
-    n.includes('amplang') ||
-    n.includes('cookies')
+    has('snack') ||
+    has('roti') ||
+    has('kue') ||
+    has('cake') ||
+    has('pisang') ||
+    has('keripik') ||
+    has('pastry') ||
+    has('donat') ||
+    has('amplang') ||
+    has('cookies')
   ) {
     result = ICON_BY_KEY.get('icon:snack')!
   } else if (bCat.includes('fashion') || bCat.includes('pakaian')) {

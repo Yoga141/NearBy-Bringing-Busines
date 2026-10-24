@@ -349,7 +349,9 @@ async function saveUmkm() {
       .map((m) => ({
         name: m.name.trim(),
         price: m.price.trim() || null,
-        img: m.photoFile ? null : (m.img || null),
+        // Keep the current image while a new photo uploads: the upload
+        // replaces (and cleans up) it, and a failed upload loses nothing.
+        img: m.img || null,
         available: m.avail,
       })),
   }

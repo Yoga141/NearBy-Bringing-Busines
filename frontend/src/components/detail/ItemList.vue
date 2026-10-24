@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { reactive } from 'vue'
 import { useUiStore } from '@/stores/ui'
 import ExpandIcon from '@/components/shared/ExpandIcon.vue'
 import { isPhotoUrl, resolveMenuIcon } from '@/lib/menuIcons'
@@ -20,8 +21,14 @@ function available(item: UmkmItem) {
   return item.avail !== false
 }
 
+/** Photo URLs that failed to load fall back to the menu icon. */
+const failed = reactive(new Set<string>())
+function hasPhoto(item: UmkmItem) {
+  return isPhotoUrl(item.img) && !failed.has(item.img!)
+}
+
 function zoom(item: UmkmItem) {
-  if (isPhotoUrl(item.img)) {
+  if (hasPhoto(item)) {
     ui.openLightbox(item.img ?? null, item.name, 'plate')
   }
 }
@@ -31,23 +38,24 @@ function zoom(item: UmkmItem) {
   <div class="mb-[30px] grid grid-cols-1 gap-3 mobile:grid-cols-2">
     <div
       v-for="it in items"
-      :key="it.name"
+      :key="it.id ?? it.name"
       class="flex items-center gap-[13px] rounded-xl border border-border-card bg-white px-3.5 py-2.5 transition-colors dark:bg-[#16222f] dark:border-border-card"
     >
       <div
         class="relative h-[60px] w-[60px] flex-none overflow-hidden rounded-[10px]"
-        :class="isPhotoUrl(it.img) ? 'cursor-zoom-in' : 'cursor-default'"
-        :title="isPhotoUrl(it.img) ? 'Klik untuk perbesar foto' : it.name"
+        :class="hasPhoto(it) ? 'cursor-zoom-in' : 'cursor-default'"
+        :title="hasPhoto(it) ? 'Klik untuk perbesar foto' : it.name"
         @click="zoom(it)"
       >
         <!-- Foto asli jika ada -->
         <img
-          v-if="isPhotoUrl(it.img)"
+          v-if="hasPhoto(it)"
           :src="it.img!"
           :alt="it.name"
           loading="lazy"
           decoding="async"
           class="h-full w-full object-cover object-center transition-transform duration-200 hover:scale-105"
+          @error="failed.add(it.img!)"
         />
 
         <!-- Default icon placeholder (makanan, fashion, penginapan, jasa, kerajinan) -->
@@ -60,7 +68,7 @@ function zoom(item: UmkmItem) {
         </div>
 
         <span
-          v-if="isPhotoUrl(it.img)"
+          v-if="hasPhoto(it)"
           class="absolute right-[3px] bottom-[3px] flex h-[17px] w-[17px] items-center justify-center rounded-[6px] bg-[rgba(15,30,45,.66)] text-white shadow-xs"
         >
           <ExpandIcon size="10px" />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, reactive } from 'vue'
 import PlaceholderThumb from '@/components/shared/PlaceholderThumb.vue'
 import ImageIcon from '@/components/shared/ImageIcon.vue'
 import ExpandIcon from '@/components/shared/ExpandIcon.vue'
@@ -24,6 +24,12 @@ const photo2 = computed(() => props.photos[1] ?? null)
 const photo3 = computed(() => props.photos[2] ?? null)
 const extra = computed(() => Math.max(0, props.photos.length - 3))
 
+/** URLs that failed to load (e.g. a dead external link) fall back to the placeholder. */
+const failed = reactive(new Set<string>())
+function shown(photo: UmkmPhoto | null): photo is UmkmPhoto {
+  return !!photo?.url && !failed.has(photo.url)
+}
+
 function zoom(photo: UmkmPhoto | null, fallbackCaption: string, index: number) {
   const caption = photo ? `${props.name} · foto ${index + 1}` : fallbackCaption
   ui.openLightbox(photo?.url ?? null, caption)
@@ -42,12 +48,13 @@ function zoom(photo: UmkmPhoto | null, fallbackCaption: string, index: number) {
       @click="zoom(main, `${imgLabel || name} · utama`, 0)"
     >
       <img
-        v-if="main?.url"
+        v-if="shown(main)"
         :src="main.url"
         :alt="`Foto utama ${name}`"
-        loading="lazy"
+        fetchpriority="high"
         decoding="async"
         class="block h-full max-h-full w-full max-w-full object-cover object-center rounded-[20px] transition-transform duration-300 group-hover:scale-105"
+        @error="failed.add(main.url)"
       />
       <PlaceholderThumb
         v-else
@@ -71,12 +78,13 @@ function zoom(photo: UmkmPhoto | null, fallbackCaption: string, index: number) {
         @click="zoom(photo2, 'Galeri 2', 1)"
       >
         <img
-          v-if="photo2?.url"
+          v-if="shown(photo2)"
           :src="photo2.url"
           :alt="`Foto 2 ${name}`"
           loading="lazy"
           decoding="async"
           class="block h-full max-h-full w-full max-w-full object-cover object-center rounded-[20px] transition-transform duration-300 group-hover:scale-105"
+          @error="failed.add(photo2.url)"
         />
         <PlaceholderThumb
           v-else
@@ -98,12 +106,13 @@ function zoom(photo: UmkmPhoto | null, fallbackCaption: string, index: number) {
         @click="zoom(photo3, 'Galeri 3', 2)"
       >
         <img
-          v-if="photo3?.url"
+          v-if="shown(photo3)"
           :src="photo3.url"
           :alt="`Foto 3 ${name}`"
           loading="lazy"
           decoding="async"
           class="block h-full max-h-full w-full max-w-full object-cover object-center rounded-[20px] transition-transform duration-300 group-hover:scale-105"
+          @error="failed.add(photo3.url)"
         />
         <PlaceholderThumb
           v-else
