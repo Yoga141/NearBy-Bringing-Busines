@@ -98,6 +98,12 @@ onBeforeUnmount(() => {
   clearAllMenuPhotoPreviews()
 })
 
+// Declared before the immediate watch below, which resets them on first run.
+/** Index of the menu item row whose icon picker panel is currently open (null = none). */
+const activePickerIndex = ref<number | null>(null)
+/** Category filter for the open icon picker. */
+const pickerFilterCat = ref<MenuIconCategory>('Semua')
+
 watch(
   () => ui.modalItem,
   (item) => {
@@ -171,11 +177,6 @@ function removeMenuRow(i: number) {
     activePickerIndex.value--
   }
 }
-
-/** Index of the menu item row whose icon picker panel is currently open (null = none). */
-const activePickerIndex = ref<number | null>(null)
-/** Category filter for the open icon picker. */
-const pickerFilterCat = ref<MenuIconCategory>('Semua')
 
 function getInitialIconCat(index: number): MenuIconCategory {
   const item = draft.menu[index]
