@@ -86,6 +86,8 @@ const photos = ref<UmkmPhoto[]>([])
 const pending = ref<{ file: File; preview: string }[]>([])
 const photoBusy = ref(false)
 const photoError = ref('')
+/** Edit mode saves photo changes on the server at once, so the dashboard rows are stale until refreshed. */
+const photosChanged = ref(false)
 
 const photoCount = computed(() => photos.value.length + pending.value.length)
 
@@ -109,6 +111,7 @@ watch(
   (item) => {
     error.value = ''
     photoError.value = ''
+    photosChanged.value = false
     activePickerIndex.value = null
     pickerFilterCat.value = 'Semua'
     clearPending()
@@ -295,6 +298,7 @@ async function onPickPhotos(e: Event) {
 
     const updated = await umkmStore.uploadPhotos(editingId.value, files)
     photos.value = updated.photos
+    photosChanged.value = true
   } catch (err) {
     photoError.value = messageOf(err, 'Foto gagal diunggah. Coba lagi.')
   } finally {
@@ -307,6 +311,7 @@ async function removePhoto(photo: UmkmPhoto) {
   photoBusy.value = true
   try {
     photos.value = (await umkmStore.deletePhoto(editingId.value, photo.id)).photos
+    photosChanged.value = true
   } catch (err) {
     photoError.value = messageOf(err, 'Foto gagal dihapus.')
   } finally {
@@ -319,6 +324,7 @@ async function makeCover(photo: UmkmPhoto) {
   photoBusy.value = true
   try {
     photos.value = (await umkmStore.setCoverPhoto(editingId.value, photo.id)).photos
+    photosChanged.value = true
   } catch (err) {
     photoError.value = messageOf(err, 'Gagal menjadikan sampul.')
   } finally {
@@ -336,6 +342,12 @@ async function refreshDashboard() {
   else await dashboard.fetchOwnerDashboard()
   // The public catalogue may have changed (edits, admin-created UMKM).
   await umkmStore.fetchAll(true)
+}
+
+/** Closing without "Simpan" must still show photo changes already saved on the server. */
+function close() {
+  if (photosChanged.value) refreshDashboard().catch(() => undefined)
+  ui.closeModal()
 }
 
 async function saveUmkm() {
@@ -430,11 +442,11 @@ async function saveUmkm() {
 </script>
 
 <template>
-  <BaseModal max-width="max-w-[700px]" @close="ui.closeModal">
+  <BaseModal max-width="max-w-[700px]" @close="close">
     <div class="flex max-h-[90vh] flex-col">
       <div class="flex flex-none items-center justify-between border-b border-border-divider px-[26px] py-[19px]">
         <div class="text-[19px] font-extrabold text-brand-navy dark:text-text-primary">{{ title }}</div>
-        <button type="button" aria-label="Tutup" class="text-text-faint hover:text-brand-navy dark:hover:text-text-primary" @click="ui.closeModal">
+        <button type="button" aria-label="Tutup" class="text-text-faint hover:text-brand-navy dark:hover:text-text-primary" @click="close">
           <CloseIcon size="20px" />
         </button>
       </div>
@@ -861,7 +873,7 @@ async function saveUmkm() {
         <button
           type="button"
           class="rounded-xl border border-border-input px-5 py-2.5 font-bold text-brand-navy transition-colors hover:bg-black/5 dark:border-[#2e4257] dark:text-text-primary dark:hover:bg-white/5"
-          @click="ui.closeModal"
+          @click="close"
         >
           Batal
         </button>
