@@ -5,7 +5,6 @@ import { useUmkmStore } from '@/stores/umkm'
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStore } from '@/stores/dashboard'
 import { ApiError } from '@/lib/api'
-import { compressImage } from '@/lib/compressImage'
 import { CATEGORY_NAMES, LOCATION_NAMES } from '@/data/categories'
 import type { CategoryName, LocationName, UmkmPhoto, UmkmStatus } from '@/types'
 import BaseModal from '@/components/shared/BaseModal.vue'
@@ -31,22 +30,10 @@ const isNew = computed(() => !!ui.modalItem?.isNew)
 const isAdmin = computed(() => auth.isAdmin)
 const title = computed(() => (isNew.value ? 'Tambah UMKM' : 'Edit UMKM'))
 
-/** Mirrors UmkmPhotoController on the API. */
+/** Mirrors UmkmPhotoController / ProductPhotoController on the API (= PHP upload_max_filesize). */
 const MAX_PHOTOS = 8
 const MAX_PHOTO_BYTES = 2 * 1024 * 1024
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-/** Picks may be larger than MAX_PHOTO_BYTES: they are compressed before that check. */
-const MAX_PICK_BYTES = 20 * 1024 * 1024
-/** Longest edge kept, mirroring the API's MAX_EDGE for each kind of photo. */
-const UMKM_PHOTO_EDGE = 1600
-const PRODUCT_PHOTO_EDGE = 1000
-
-/** Shrink valid picks in the browser so uploads are fast on mobile data. */
-function shrink(files: File[], maxEdge: number): Promise<File[]> {
-  return Promise.all(
-    files.map((f) => (PHOTO_TYPES.includes(f.type) && f.size <= MAX_PICK_BYTES ? compressImage(f, maxEdge) : f)),
-  )
-}
 
 interface DraftMenuItem {
   id?: number
@@ -236,9 +223,9 @@ async function onPickProductPhoto(e: Event, item: DraftMenuItem) {
     error.value = 'Foto produk harus berformat JPG, PNG, atau WebP.'
     return
   }
-  const [file] = await shrink([picked], PRODUCT_PHOTO_EDGE)
+  const file = picked
   if (file.size > MAX_PHOTO_BYTES) {
-    error.value = 'Foto produk masih lebih dari 2 MB setelah dikompres. Pilih foto yang lebih kecil.'
+    error.value = 'Foto produk lebih dari 2 MB (batas server). Pilih atau kecilkan foto dulu.'
     return
   }
 
@@ -270,7 +257,7 @@ function acceptable(files: File[]): File[] {
     if (!PHOTO_TYPES.includes(file.type)) {
       photoError.value = `"${file.name}" bukan JPG, PNG, atau WebP.`
     } else if (file.size > MAX_PHOTO_BYTES) {
-      photoError.value = `"${file.name}" masih lebih dari 2 MB setelah dikompres. Pilih foto yang lebih kecil.`
+      photoError.value = `"${file.name}" lebih dari 2 MB (batas server). Pilih atau kecilkan foto dulu.`
     } else {
       ok.push(file)
     }
@@ -290,7 +277,7 @@ async function onPickPhotos(e: Event) {
 
   photoBusy.value = true
   try {
-    const files = acceptable(await shrink(picked, UMKM_PHOTO_EDGE))
+    const files = acceptable(picked)
     if (!files.length) return
 
     if (!editingId.value) {
@@ -499,7 +486,7 @@ async function saveUmkm() {
             <span class="text-xs font-semibold text-text-faint">{{ photoCount }} / {{ MAX_PHOTOS }}</span>
           </div>
           <p class="mb-2 text-xs text-text-faint">
-            Foto pertama otomatis menjadi sampul. JPG, PNG, atau WebP; foto besar otomatis dikompres.
+            Foto pertama otomatis menjadi sampul. JPG, PNG, atau WebP; maksimal 2 MB per foto.
           </p>
 
           <div class="grid grid-cols-3 gap-2.5 mobile:grid-cols-4">

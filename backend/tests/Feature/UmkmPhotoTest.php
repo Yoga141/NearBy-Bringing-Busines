@@ -42,15 +42,15 @@ class UmkmPhotoTest extends TestCase
 
         $res->assertOk()->assertJsonCount(2, 'photos');
         $url = $res->json('coverUrl');
-        $this->assertStringStartsWith('/api/umkm-photos/', $url);
-
         $photo = UmkmPhoto::where('umkm_id', $umkm->id)->orderBy('sort_order')->first();
         Storage::disk('public')->assertExists($photo->path);
+        // The URL is the stored path under the public disk's /storage symlink.
+        $this->assertSame('/storage/'.$photo->path, $url);
 
-        // Public list and detail carry the same URL, and it serves the file.
+        // Public list and detail carry the same URL; the legacy API route still serves the file.
         $this->getJson('/api/umkm')->assertOk()->assertJsonPath('0.coverUrl', $url);
         $this->getJson("/api/umkm/{$umkm->id}")->assertOk()->assertJsonPath('photos.0.url', $url);
-        $this->get($url)->assertOk();
+        $this->get('/api/umkm-photos/'.basename($photo->path))->assertOk();
     }
 
     public function test_setting_a_cover_and_deleting_a_photo_removes_the_file(): void

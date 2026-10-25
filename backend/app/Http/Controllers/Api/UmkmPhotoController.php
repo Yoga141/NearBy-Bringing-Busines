@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UmkmResource;
 use App\Models\Umkm;
 use App\Models\UmkmPhoto;
-use App\Support\ImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -28,9 +27,6 @@ class UmkmPhotoController extends Controller
 
     /** Photos one UMKM may have in total. */
     public const MAX_PHOTOS = 8;
-
-    /** Longest edge kept: sharp on the detail banner, a fraction of a phone photo's size. */
-    public const MAX_EDGE = 1600;
 
     /**
      * Public: serve one uploaded photo by its stored filename.
@@ -90,7 +86,7 @@ class UmkmPhotoController extends Controller
         try {
             DB::transaction(function () use ($files, $disk, $umkm, &$next, &$stored) {
                 foreach ($files as $file) {
-                    $path = ImageOptimizer::store($file, UmkmPhoto::DIRECTORY, $disk, self::MAX_EDGE);
+                    $path = $file->store(UmkmPhoto::DIRECTORY, $disk);
                     abort_unless($path, 500, 'Foto gagal disimpan di server. Periksa izin folder storage.');
                     $stored[] = $path;
 

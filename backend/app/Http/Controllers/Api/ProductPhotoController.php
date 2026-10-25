@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Umkm;
 use App\Models\UmkmItem;
-use App\Support\ImageOptimizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -15,8 +14,6 @@ class ProductPhotoController extends Controller
 {
     private const DIRECTORY = UmkmItem::PHOTO_DIRECTORY;
 
-    /** Shown at 60px and in the lightbox; larger only costs bandwidth. */
-    public const MAX_EDGE = 1000;
     private const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
     private const MAX_KILOBYTES = 2048;
 
@@ -50,7 +47,7 @@ class ProductPhotoController extends Controller
             'photo.uploaded' => 'PHP menolak berkas. Periksa upload_max_filesize dan post_max_size di php.ini.',
         ]);
 
-        $newPath = ImageOptimizer::store($request->file('photo'), self::DIRECTORY, 'public', self::MAX_EDGE);
+        $newPath = $request->file('photo')->store(self::DIRECTORY, 'public');
         abort_unless($newPath, 500, 'Foto gagal disimpan. Periksa izin folder storage.');
 
         $oldUrl = $item->img;

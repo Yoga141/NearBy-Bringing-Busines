@@ -38,10 +38,11 @@ class UmkmPhoto extends Model
     /**
      * What an <img> should load.
      *
-     * Uploaded files on a local disk are served through `GET /api/umkm-photos/{file}`
-     * (same reasoning as avatars: no `storage:link` symlink needed, and the API
-     * lives at the same origin as the SPA). Files on a cloud disk use the disk's
-     * own public URL.
+     * Uploaded files on the local `public` disk are served by the web server
+     * straight from `/storage/{path}` - the stored path is the file's location
+     * under storage/app/public, reached through the `storage` symlink next to
+     * the SPA. Relative on purpose, so it does not depend on APP_URL. Files on
+     * a cloud disk use the disk's own public URL.
      */
     protected function publicUrl(): Attribute
     {
@@ -53,7 +54,7 @@ class UmkmPhoto extends Model
                 return null;
             }
             if (config("filesystems.disks.{$this->disk}.driver") === 'local') {
-                return '/api/umkm-photos/'.basename($this->path);
+                return '/storage/'.ltrim($this->path, '/');
             }
 
             return Storage::disk($this->disk)->url($this->path);
