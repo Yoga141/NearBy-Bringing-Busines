@@ -18,7 +18,7 @@ class ProductPhotoController extends Controller
     /** Shown at 60px and in the lightbox; larger only costs bandwidth. */
     public const MAX_EDGE = 1000;
     private const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
-    private const MAX_KILOBYTES = 4096;
+    private const MAX_KILOBYTES = 2048;
 
     /** Public image route; <img> tags cannot attach the user's Bearer token. */
     public function show(string $filename): BinaryFileResponse
@@ -46,7 +46,7 @@ class ProductPhotoController extends Controller
             'photo.required' => 'Pilih foto produk terlebih dahulu.',
             'photo.image' => 'Berkas harus berupa gambar.',
             'photo.mimetypes' => 'Format foto harus JPG, PNG, atau WebP.',
-            'photo.max' => 'Ukuran foto produk maksimal 4 MB.',
+            'photo.max' => 'Ukuran foto produk maksimal '.(self::MAX_KILOBYTES / 1024).' MB.',
             'photo.uploaded' => 'PHP menolak berkas. Periksa upload_max_filesize dan post_max_size di php.ini.',
         ]);
 

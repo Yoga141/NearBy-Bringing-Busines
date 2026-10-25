@@ -24,7 +24,7 @@ class UmkmPhotoController extends Controller
     private const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
 
     /** Per file, in kilobytes. */
-    private const MAX_KILOBYTES = 4096;
+    private const MAX_KILOBYTES = 2048;
 
     /** Photos one UMKM may have in total. */
     public const MAX_PHOTOS = 8;

@@ -54,9 +54,10 @@ class SocialVideoController extends Controller
     }
 
     /**
-     * Shared validation. A link is optional (an empty slot is a valid state),
-     * but when given it has to be one we can actually turn into an embed for
-     * the chosen platform - otherwise the card would silently stay blank.
+     * Shared validation. A new slot may start without a link; saving a slot
+     * with an empty link is refused (hide it with `active` or delete it).
+     * The platform follows the link itself, so a wrong dropdown choice never
+     * rejects a good link, and the link is stored in its clean form.
      *
      * @return array<string, mixed>
      */
@@ -65,33 +66,24 @@ class SocialVideoController extends Controller
         $data = $request->validate([
             'platform' => [$existing ? 'sometimes' : 'required', Rule::in(['youtube', 'instagram'])],
             'title' => [$existing ? 'sometimes' : 'required', 'string', 'max:150'],
-            'url' => ['nullable', 'string', 'url', 'max:500'],
+            'url' => ['nullable', 'string', 'max:500'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'active' => ['nullable', 'boolean'],
         ]);
 
-        // Normalise an empty string from the form into a real "slot is empty".
-        if (array_key_exists('url', $data) && trim((string) $data['url']) === '') {
-            $data['url'] = null;
+        // No link sent: keep the stored one. A brand-new slot may start empty.
+        if (! array_key_exists('url', $data)) {
+            return $data;
+        }
+        if (! $existing && trim((string) $data['url']) === '') {
+            return [...$data, 'url' => null];
         }
 
-        $platform = $data['platform'] ?? $existing?->platform;
-        $url = array_key_exists('url', $data) ? $data['url'] : $existing?->url;
-
-        if ($url !== null) {
-            $recognised = $platform === 'youtube'
-                ? SocialVideo::youtubeId($url) !== null
-                : SocialVideo::instagramCode($url) !== null;
-
-            if (! $recognised) {
-                throw ValidationException::withMessages([
-                    'url' => $platform === 'youtube'
-                        ? 'Tautan YouTube tidak dikenali. Gunakan tautan video, youtu.be, atau Shorts.'
-                        : 'Tautan Instagram tidak dikenali. Gunakan tautan permalink post atau reel.',
-                ]);
-            }
+        $link = SocialVideo::parseLink((string) $data['url']);
+        if (is_string($link)) {
+            throw ValidationException::withMessages(['url' => $link]);
         }
 
-        return $data;
+        return [...$data, ...$link];
     }
 }

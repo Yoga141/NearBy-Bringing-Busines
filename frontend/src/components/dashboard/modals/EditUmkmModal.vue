@@ -33,7 +33,7 @@ const title = computed(() => (isNew.value ? 'Tambah UMKM' : 'Edit UMKM'))
 
 /** Mirrors UmkmPhotoController on the API. */
 const MAX_PHOTOS = 8
-const MAX_PHOTO_BYTES = 4 * 1024 * 1024
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024
 const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 /** Picks may be larger than MAX_PHOTO_BYTES: they are compressed before that check. */
 const MAX_PICK_BYTES = 20 * 1024 * 1024
@@ -238,7 +238,7 @@ async function onPickProductPhoto(e: Event, item: DraftMenuItem) {
   }
   const [file] = await shrink([picked], PRODUCT_PHOTO_EDGE)
   if (file.size > MAX_PHOTO_BYTES) {
-    error.value = 'Ukuran foto produk maksimal 4 MB.'
+    error.value = 'Foto produk masih lebih dari 2 MB setelah dikompres. Pilih foto yang lebih kecil.'
     return
   }
 
@@ -252,6 +252,8 @@ function toggleMenuAvail(i: number) {
 }
 
 function messageOf(e: unknown, fallback: string) {
+  // 413: the whole request passed PHP's post_max_size (several photos at once).
+  if (e instanceof ApiError && e.status === 413) return 'Total ukuran foto terlalu besar untuk sekali unggah. Unggah beberapa foto saja dulu.'
   return e instanceof ApiError ? e.firstError : fallback
 }
 
@@ -268,7 +270,7 @@ function acceptable(files: File[]): File[] {
     if (!PHOTO_TYPES.includes(file.type)) {
       photoError.value = `"${file.name}" bukan JPG, PNG, atau WebP.`
     } else if (file.size > MAX_PHOTO_BYTES) {
-      photoError.value = `"${file.name}" lebih dari 4 MB.`
+      photoError.value = `"${file.name}" masih lebih dari 2 MB setelah dikompres. Pilih foto yang lebih kecil.`
     } else {
       ok.push(file)
     }

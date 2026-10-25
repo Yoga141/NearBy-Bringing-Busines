@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref, watch } from 'vue'
 import { useVideoStore } from '@/stores/videos'
 import { ApiError } from '@/lib/api'
+import { parseVideoLink } from '@/lib/videoLink'
 import ToggleSwitch from '@/components/shared/ToggleSwitch.vue'
 import ClapperboardIcon from '@/components/shared/ClapperboardIcon.vue'
 import PlusIcon from '@/components/shared/PlusIcon.vue'
@@ -39,19 +40,32 @@ watch(
   { immediate: true, deep: false },
 )
 
+/** The platform follows the pasted link, so the dropdown can't be left on the wrong one. */
+function onUrlInput(v: SocialVideo) {
+  const link = parseVideoLink(drafts[v.id].url)
+  if ('platform' in link) drafts[v.id].platform = link.platform
+}
+
 async function save(v: SocialVideo) {
   const d = drafts[v.id]
   if (!d.title.trim()) {
     errors[v.id] = 'Judul tidak boleh kosong.'
     return
   }
+  const link = parseVideoLink(d.url)
+  if ('error' in link) {
+    errors[v.id] = link.error
+    return
+  }
+  d.platform = link.platform
+  d.url = link.url
   errors[v.id] = ''
   saving[v.id] = true
   try {
     await store.updateVideo(v.id, {
-      platform: d.platform,
+      platform: link.platform,
       title: d.title.trim(),
-      url: d.url.trim() || null,
+      url: link.url,
       active: d.active,
     })
     savedId.value = v.id
@@ -167,11 +181,13 @@ onMounted(() => store.fetchAdminVideos())
         <label class="mb-1.5 block text-[12.5px] font-bold text-brand-navy">Tautan video</label>
         <input
           v-model="drafts[v.id].url"
-          placeholder="Tempel tautan YouTube / Instagram - kosongkan untuk mengosongkan kartu"
+          placeholder="Tempel tautan YouTube / Instagram - platform terdeteksi otomatis"
           class="w-full rounded-[11px] border border-border-input bg-white px-3.5 py-2.5 text-brand-navy"
+          @input="onUrlInput(v)"
         />
         <p class="mt-1.5 text-[12px] leading-relaxed text-text-faint">
-          YouTube: tautan video, <span class="font-mono">youtu.be</span>, atau Shorts. Instagram: permalink post atau reel.
+          YouTube: tautan video, <span class="font-mono">youtu.be</span>, atau Shorts. Instagram: post, reel, atau IGTV.
+          Untuk menyembunyikan kartu, matikan "Tampilkan" atau hapus slot.
         </p>
       </div>
 

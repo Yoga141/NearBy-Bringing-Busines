@@ -49,10 +49,16 @@ export const useGuideVideoStore = defineStore('guideVideo', () => {
   const uploadProgress = ref<number | null>(null)
   const uploading = computed(() => uploadProgress.value !== null)
 
+  const adminError = ref('')
+
   async function fetchAdminVideos() {
     adminLoading.value = true
+    adminError.value = ''
     try {
-      adminVideos.value = await apiFetch<GuideVideo[]>('/admin/guide-videos')
+      // Time-boxed: a request that never answers must not leave the list on "Memuat…".
+      adminVideos.value = await apiFetch<GuideVideo[]>('/admin/guide-videos', { signal: AbortSignal.timeout(20_000) })
+    } catch (e) {
+      adminError.value = e instanceof ApiError ? e.message : 'Gagal memuat daftar video.'
     } finally {
       adminLoading.value = false
     }
@@ -163,6 +169,7 @@ export const useGuideVideoStore = defineStore('guideVideo', () => {
     fetchVideo,
     adminVideos,
     adminLoading,
+    adminError,
     fetchAdminVideos,
     limits,
     fetchLimits,

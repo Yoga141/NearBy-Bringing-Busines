@@ -201,6 +201,13 @@ onMounted(() => {
     Memuat…
   </div>
 
+  <div v-else-if="store.adminError && !store.adminVideos.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center">
+    <div class="text-[15px] font-bold text-danger">Daftar video gagal dimuat: {{ store.adminError }}</div>
+    <button type="button" class="mt-3.5 rounded-[11px] bg-brand-blue px-5 py-2.5 font-extrabold text-white" @click="store.fetchAdminVideos()">
+      Coba lagi
+    </button>
+  </div>
+
   <div v-else-if="!store.adminVideos.length" class="rounded-[18px] border border-border-card bg-white px-6 py-16 text-center">
     <ClapperboardIcon size="42px" class="mx-auto text-text-faint" />
     <div class="mt-3 text-[19px] font-extrabold text-brand-navy">Belum ada video panduan</div>
