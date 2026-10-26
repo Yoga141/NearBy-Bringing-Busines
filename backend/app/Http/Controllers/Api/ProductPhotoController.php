@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Umkm;
 use App\Models\UmkmItem;
+use App\Support\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -14,7 +15,6 @@ class ProductPhotoController extends Controller
 {
     private const DIRECTORY = UmkmItem::PHOTO_DIRECTORY;
 
-    private const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
     private const MAX_KILOBYTES = 2048;
 
     /** Public image route; <img> tags cannot attach the user's Bearer token. */
@@ -24,6 +24,7 @@ class ProductPhotoController extends Controller
         abort_unless(Storage::disk('public')->exists($path), 404, 'Foto produk tidak ditemukan.');
 
         return response()->file(Storage::disk('public')->path($path), [
+            'Content-Type' => ImageUpload::contentType($path),
             'Cache-Control' => 'public, max-age=604800',
         ]);
     }
@@ -32,22 +33,20 @@ class ProductPhotoController extends Controller
     public function store(Request $request, Umkm $umkm, UmkmItem $item)
     {
         $this->assertCanManage($request, $umkm, $item);
+        ImageUpload::ensureSupported();
 
         $request->validate([
-            'photo' => [
-                'required', 'file', 'image',
-                'mimetypes:'.implode(',', self::ALLOWED_MIMES),
-                'max:'.self::MAX_KILOBYTES,
-            ],
+            'photo' => ImageUpload::rules(self::MAX_KILOBYTES),
         ], [
             'photo.required' => 'Pilih foto produk terlebih dahulu.',
             'photo.image' => 'Berkas harus berupa gambar.',
             'photo.mimetypes' => 'Format foto harus JPG, PNG, atau WebP.',
+            'photo.extensions' => 'Format foto harus JPG, PNG, atau WebP.',
             'photo.max' => 'Ukuran foto produk maksimal '.(self::MAX_KILOBYTES / 1024).' MB.',
             'photo.uploaded' => 'PHP menolak berkas. Periksa upload_max_filesize dan post_max_size di php.ini.',
         ]);
 
-        $newPath = $request->file('photo')->store(self::DIRECTORY, 'public');
+        $newPath = ImageUpload::store($request->file('photo'), self::DIRECTORY, 'public');
         abort_unless($newPath, 500, 'Foto gagal disimpan. Periksa izin folder storage.');
 
         $oldUrl = $item->img;

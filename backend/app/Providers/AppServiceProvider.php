@@ -2,14 +2,23 @@
 
 namespace App\Providers;
 
+use App\Support\ImageUpload;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Filesystem\LocalFilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use League\Flysystem\Filesystem as Flysystem;
+use League\Flysystem\Local\LocalFilesystemAdapter as LocalAdapter;
+use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
+use League\Flysystem\Visibility;
+use League\MimeTypeDetection\ExtensionMimeTypeDetector;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -46,6 +55,43 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->configureRateLimiting();
+
+        if (! ImageUpload::fileinfoAvailable()) {
+            $this->useLocalDisksWithoutFileinfo();
+        }
+    }
+
+    /**
+     * Flysystem's local adapter builds a fileinfo-based MIME detector in its
+     * constructor, so without the extension merely opening a `local` disk
+     * (Storage::disk('public')->exists(), ->delete(), ->putFileAs()) dies with
+     * "Class finfo not found". Same driver as Laravel's createLocalDriver(),
+     * but detecting MIME types from the file extension instead.
+     */
+    private function useLocalDisksWithoutFileinfo(): void
+    {
+        Storage::extend('local', function (Application $app, array $config) {
+            $adapter = new LocalAdapter(
+                $config['root'],
+                PortableVisibilityConverter::fromArray(
+                    $config['permissions'] ?? [],
+                    $config['directory_visibility'] ?? $config['visibility'] ?? Visibility::PRIVATE
+                ),
+                $config['lock'] ?? LOCK_EX,
+                ($config['links'] ?? null) === 'skip' ? LocalAdapter::SKIP_LINKS : LocalAdapter::DISALLOW_LINKS,
+                new ExtensionMimeTypeDetector,
+            );
+
+            $flysystem = new Flysystem($adapter, array_intersect_key($config, array_flip([
+                'directory_visibility', 'disable_asserts', 'retain_visibility', 'temporary_url', 'url', 'visibility',
+            ])));
+
+            $name = array_search($config, (array) $app['config']['filesystems.disks'], true);
+
+            return (new LocalFilesystemAdapter($flysystem, $adapter, $config))
+                ->diskName(is_string($name) ? $name : 'local')
+                ->shouldServeSignedUrls($config['serve'] ?? false, fn () => $app['url']);
+        });
     }
 
     private function configureRateLimiting(): void

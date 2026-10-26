@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Support\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -14,8 +15,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class ProfilePhotoController extends Controller
 {
-    private const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
-
     /** Largest photo we accept, in kilobytes. */
     private const MAX_KILOBYTES = 2048;
 
@@ -38,6 +37,7 @@ class ProfilePhotoController extends Controller
         abort_unless(Storage::disk('public')->exists($path), 404, 'Foto tidak ditemukan.');
 
         return response()->file(Storage::disk('public')->path($path), [
+            'Content-Type' => ImageUpload::contentType($path),
             'Cache-Control' => 'public, max-age=86400',
         ]);
     }
@@ -45,18 +45,15 @@ class ProfilePhotoController extends Controller
     /** Upload or replace the signed-in user's profile photo. */
     public function store(Request $request)
     {
+        ImageUpload::ensureSupported();
+
         $request->validate([
-            'photo' => [
-                'required',
-                'file',
-                'image',
-                'mimetypes:'.implode(',', self::ALLOWED_MIMES),
-                'max:'.self::MAX_KILOBYTES,
-            ],
+            'photo' => ImageUpload::rules(self::MAX_KILOBYTES),
         ], [
             'photo.required' => 'Pilih berkas foto terlebih dahulu.',
             'photo.image' => 'Berkas harus berupa gambar.',
             'photo.mimetypes' => 'Format foto harus JPG, PNG, atau WebP.',
+            'photo.extensions' => 'Format foto harus JPG, PNG, atau WebP.',
             'photo.max' => 'Ukuran foto melebihi batas '.(self::MAX_KILOBYTES / 1024).' MB.',
             // A file between `upload_max_filesize` and `post_max_size` arrives
             // flagged UPLOAD_ERR_INI_SIZE, whose stock message ("The photo
@@ -73,7 +70,7 @@ class ProfilePhotoController extends Controller
         $user->deleteAvatarFile();
 
         $user->update([
-            'avatar_path' => $request->file('photo')->store('avatars', 'public'),
+            'avatar_path' => ImageUpload::store($request->file('photo'), 'avatars', 'public'),
         ]);
 
         return new UserResource($user->fresh());

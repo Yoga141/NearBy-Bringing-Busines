@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Support\ImageUpload;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -68,6 +69,20 @@ return Application::configure(basePath: dirname(__DIR__))
                     .', post_max_size = '.ini_get('post_max_size')
                     .'. Naikkan kedua nilai itu di php.ini lalu mulai ulang server.',
             ], 413);
+        });
+
+        // Anything still sniffing MIME types without PHP's fileinfo extension
+        // ("Class "finfo" not found", Symfony's "have you enabled the
+        // php_fileinfo extension?") gets a message an admin can act on.
+        // Photo uploads avoid it (App\Support\ImageUpload); this is the net
+        // for whatever else does, e.g. the guide-video `mimetypes` rule.
+        $exceptions->render(function (Throwable $e, Request $request) {
+            $message = strtolower($e->getMessage());
+            if (! $request->is('api/*') || (! str_contains($message, 'finfo') && ! str_contains($message, 'fileinfo'))) {
+                return null;
+            }
+
+            return response()->json(['message' => ImageUpload::MISSING_FILEINFO], 500);
         });
 
         // Laravel's own wording for these is English ("Unauthenticated.",

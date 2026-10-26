@@ -199,6 +199,7 @@ npm run build
 
 ## 📚 Dokumentasi Tambahan
 
+- [DEPLOY.md](DEPLOY.md) - ekstensi PHP yang dibutuhkan (fileinfo, dll.) dan `php artisan app:check-server`.
 - [PERINTAH_SUARA.md](PERINTAH_SUARA.md) - daftar lengkap perintah suara yang dikenali asisten aksesibilitas.
 - [backend/BACKEND_PLAN.md](backend/BACKEND_PLAN.md) - catatan rencana dan desain backend.
 

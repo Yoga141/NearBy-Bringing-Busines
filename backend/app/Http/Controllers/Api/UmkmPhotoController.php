@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\UmkmResource;
 use App\Models\Umkm;
 use App\Models\UmkmPhoto;
+use App\Support\ImageUpload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -20,8 +21,6 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class UmkmPhotoController extends Controller
 {
-    private const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
-
     /** Per file, in kilobytes. */
     private const MAX_KILOBYTES = 2048;
 
@@ -43,6 +42,7 @@ class UmkmPhotoController extends Controller
         abort_unless($disk->exists($photo->path), 404, 'Foto tidak ditemukan.');
 
         return response()->file($disk->path($photo->path), [
+            'Content-Type' => ImageUpload::contentType($photo->path),
             'Cache-Control' => 'public, max-age=604800',
         ]);
     }
@@ -51,23 +51,19 @@ class UmkmPhotoController extends Controller
     public function store(Request $request, Umkm $umkm)
     {
         $this->authorizeOwner($request, $umkm);
+        ImageUpload::ensureSupported();
 
         $request->validate([
             'photos' => ['required', 'array', 'min:1', 'max:'.self::MAX_PHOTOS],
-            'photos.*' => [
-                'required',
-                'file',
-                'image',
-                'mimetypes:'.implode(',', self::ALLOWED_MIMES),
-                'max:'.self::MAX_KILOBYTES,
-            ],
+            'photos.*' => ImageUpload::rules(self::MAX_KILOBYTES),
         ], [
             'photos.required' => 'Pilih minimal satu foto.',
             'photos.max' => 'Maksimal '.self::MAX_PHOTOS.' foto sekaligus.',
-            'photos.*.image' => 'Berkas harus berupa gambar.',
-            'photos.*.mimetypes' => 'Format foto harus JPG, PNG, atau WebP.',
-            'photos.*.max' => 'Ukuran tiap foto maksimal '.(self::MAX_KILOBYTES / 1024).' MB.',
-            'photos.*.uploaded' => 'Foto ditolak server karena melebihi upload_max_filesize ('
+            'photos.*.image' => 'Foto ke-:position bukan berkas gambar.',
+            'photos.*.mimetypes' => 'Foto ke-:position harus berformat JPG, PNG, atau WebP.',
+            'photos.*.extensions' => 'Foto ke-:position harus berformat JPG, PNG, atau WebP.',
+            'photos.*.max' => 'Foto ke-:position lebih dari '.(self::MAX_KILOBYTES / 1024).' MB. Kecilkan fotonya dulu.',
+            'photos.*.uploaded' => 'Foto ke-:position ditolak server karena melebihi upload_max_filesize ('
                 .ini_get('upload_max_filesize').'). Kecilkan fotonya, atau naikkan batas di php.ini.',
         ]);
 
@@ -86,7 +82,7 @@ class UmkmPhotoController extends Controller
         try {
             DB::transaction(function () use ($files, $disk, $umkm, &$next, &$stored) {
                 foreach ($files as $file) {
-                    $path = $file->store(UmkmPhoto::DIRECTORY, $disk);
+                    $path = ImageUpload::store($file, UmkmPhoto::DIRECTORY, $disk);
                     abort_unless($path, 500, 'Foto gagal disimpan di server. Periksa izin folder storage.');
                     $stored[] = $path;
 

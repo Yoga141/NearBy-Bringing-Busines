@@ -31,6 +31,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Uploads Without PHP fileinfo
+    |--------------------------------------------------------------------------
+    |
+    | When the `fileinfo` extension is missing, photo uploads fall back to an
+    | extension + getimagesize() check (see App\Support\ImageUpload). Set
+    | UPLOAD_FILEINFO_FALLBACK=false to refuse uploads with a clear message
+    | instead. UPLOAD_SIMULATE_NO_FILEINFO=true pretends fileinfo is missing -
+    | for testing the fallback locally only, never on the server.
+    |
+    */
+
+    'fileinfo_fallback' => (bool) env('UPLOAD_FILEINFO_FALLBACK', true),
+
+    'simulate_missing_fileinfo' => (bool) env('UPLOAD_SIMULATE_NO_FILEINFO', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

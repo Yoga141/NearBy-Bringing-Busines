@@ -43,6 +43,8 @@ interface DraftMenuItem {
   img: string
   photoFile?: File
   photoPreview?: string
+  /** Why the picked product photo was refused, shown under that row. */
+  photoError?: string
 }
 
 const STATUS_TO_API: Record<UmkmStatus, string> = { Aktif: 'aktif', Libur: 'libur', Tutup: 'tutup' }
@@ -148,6 +150,7 @@ function clearMenuPhotoPreview(item: DraftMenuItem) {
   if (item.photoFile && item.photoPreview) URL.revokeObjectURL(item.photoPreview)
   item.photoFile = undefined
   item.photoPreview = undefined
+  item.photoError = ''
 }
 
 function clearAllMenuPhotoPreviews() {
@@ -220,19 +223,19 @@ async function onPickProductPhoto(e: Event, item: DraftMenuItem) {
   if (!picked) return
 
   if (!PHOTO_TYPES.includes(picked.type)) {
-    error.value = 'Foto produk harus berformat JPG, PNG, atau WebP.'
+    item.photoError = `"${picked.name}" bukan JPG, PNG, atau WebP.`
     return
   }
   const file = picked
   if (file.size > MAX_PHOTO_BYTES) {
-    error.value = 'Foto produk lebih dari 2 MB (batas server). Pilih atau kecilkan foto dulu.'
+    item.photoError = `"${file.name}" lebih dari 2 MB (batas server). Pilih atau kecilkan foto dulu.`
     return
   }
 
   clearMenuPhotoPreview(item)
   item.photoFile = file
   item.photoPreview = URL.createObjectURL(file)
-  error.value = ''
+  item.photoError = ''
 }
 function toggleMenuAvail(i: number) {
   draft.menu[i].avail = !draft.menu[i].avail
@@ -241,7 +244,11 @@ function toggleMenuAvail(i: number) {
 function messageOf(e: unknown, fallback: string) {
   // 413: the whole request passed PHP's post_max_size (several photos at once).
   if (e instanceof ApiError && e.status === 413) return 'Total ukuran foto terlalu besar untuk sekali unggah. Unggah beberapa foto saja dulu.'
-  return e instanceof ApiError ? e.firstError : fallback
+  if (!(e instanceof ApiError)) return fallback
+  // Every distinct message, one per line: with several photos in one upload,
+  // each refused file gets its own ("Foto ke-2 ...", "Foto ke-3 ...").
+  const messages = [...new Set(Object.values(e.errors ?? {}).flat())]
+  return messages.length ? messages.join('\n') : e.message || fallback
 }
 
 /** Check files in the browser first, so a wrong type or size is explained before uploading. */
@@ -253,20 +260,19 @@ function acceptable(files: File[]): File[] {
     return []
   }
   const ok: File[] = []
+  const refused: string[] = []
   for (const file of files) {
     if (!PHOTO_TYPES.includes(file.type)) {
-      photoError.value = `"${file.name}" bukan JPG, PNG, atau WebP.`
+      refused.push(`"${file.name}" bukan JPG, PNG, atau WebP.`)
     } else if (file.size > MAX_PHOTO_BYTES) {
-      photoError.value = `"${file.name}" lebih dari 2 MB (batas server). Pilih atau kecilkan foto dulu.`
+      refused.push(`"${file.name}" lebih dari 2 MB (batas server). Pilih atau kecilkan foto dulu.`)
     } else {
       ok.push(file)
     }
   }
-  if (ok.length > room) {
-    photoError.value = `Hanya ${room} foto lagi yang bisa ditambahkan.`
-    return ok.slice(0, room)
-  }
-  return ok
+  if (ok.length > room) refused.push(`Hanya ${room} foto lagi yang bisa ditambahkan.`)
+  photoError.value = refused.join('\n')
+  return ok.slice(0, room)
 }
 
 async function onPickPhotos(e: Event) {
@@ -570,7 +576,13 @@ async function saveUmkm() {
             </label>
           </div>
 
-          <p v-if="photoError" class="mt-2 text-xs font-semibold text-danger">{{ photoError }}</p>
+          <p
+            v-if="photoError"
+            role="alert"
+            class="mt-2 rounded-lg border border-danger-border bg-danger-tint px-3 py-2 text-xs leading-relaxed font-semibold whitespace-pre-line text-danger"
+          >
+            {{ photoError }}
+          </p>
         </div>
 
         <div class="grid grid-cols-1 gap-3 mobile:grid-cols-2">
@@ -783,6 +795,8 @@ async function saveUmkm() {
               </div>
             </div>
 
+            <p v-if="m.photoError" role="alert" class="mt-2 text-xs font-semibold whitespace-pre-line text-danger">{{ m.photoError }}</p>
+
             <!-- On-Demand Icon Picker Panel (rendered ONLY when activePickerIndex === i) -->
             <div
               v-if="activePickerIndex === i"
@@ -855,7 +869,7 @@ async function saveUmkm() {
           Belum ada menu. Klik "+ Tambah" untuk menambahkan item.
         </div>
 
-        <p v-if="error" class="mt-4 text-[13px] font-semibold text-danger">{{ error }}</p>
+        <p v-if="error" class="mt-4 text-[13px] font-semibold whitespace-pre-line text-danger">{{ error }}</p>
       </div>
 
       <div class="flex flex-none justify-end gap-2.5 border-t border-border-divider px-6 py-[15px]">
