@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { apiFetch, ApiError } from '@/lib/api'
+import { resolveMediaUrl } from '@/lib/media'
 import { enrichUmkm, umkmFromApi, type EnrichedUmkm } from './umkm'
 import { CAT } from '@/data/categories'
 import type {
@@ -427,7 +428,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const pendingSubmissionsRaw = ref<PendingSubmission[]>([])
 
   async function fetchSubmissions() {
-    pendingSubmissionsRaw.value = await apiFetch<PendingSubmission[]>('/admin/submissions')
+    const rows = await apiFetch<PendingSubmission[]>('/admin/submissions')
+    pendingSubmissionsRaw.value = rows.map((sub) => ({
+      ...sub,
+      files: (sub.files ?? []).map((f) => ({ ...f, url: resolveMediaUrl(f.url) ?? undefined })),
+    }))
   }
 
   const pendingSubmissions = computed(() =>

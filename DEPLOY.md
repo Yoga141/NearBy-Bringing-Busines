@@ -4,6 +4,37 @@ Panduan ringkas menyiapkan server produksi (www.nearbybalikpapan.com). Alur
 deploy cPanel lengkap ada di [README.md](README.md#-deploy-ke-cpanel) dan
 `.cpanel.yml`.
 
+## 0. Dua domain: frontend dan API
+
+| Domain | Isi |
+|---|---|
+| `https://www.nearbybalikpapan.com` | SPA Vue (`frontend/dist`) |
+| `https://api.nearbybalikpapan.com` | Laravel API + file foto (`/storage/...`, `/api/product-photos/...`) |
+
+Link foto yang dikirim API dibentuk dari **`APP_URL`** di `.env` server
+(`app/Support/MediaUrl.php`), jadi nilainya **harus domain API**:
+
+```env
+APP_URL=https://api.nearbybalikpapan.com
+```
+
+Frontend memakai `VITE_API_URL` di `frontend/.env.production` (sudah diisi
+`https://api.nearbybalikpapan.com`) untuk mengarahkan path foto relatif dari
+data lama ke domain API. Nilai ini ikut di-build, jadi setelah mengubahnya
+jalankan `npm run build` lagi.
+
+Symlink `storage` harus ada di **document root subdomain `api`** (lihat cPanel
+→ **Domains**, kolom *Document Root* untuk `api.nearbybalikpapan.com`), bukan
+hanya di `public_html`:
+
+```bash
+ln -sfn /home/nearby/nearby-backend/storage/app/public <DOCROOT-API>/storage
+```
+
+Tanpa symlink itu, `https://api.nearbybalikpapan.com/storage/...` membalas 403
+(ditangani route Laravel) dan foto tidak tampil. Cek dengan membuka satu URL
+foto langsung di browser: harus tampil gambar, bukan halaman HTML.
+
 ## 1. Ekstensi PHP yang dibutuhkan
 
 | Ekstensi    | Wajib | Dipakai untuk |
@@ -71,8 +102,9 @@ Perintah ini menampilkan **OK/GAGAL** untuk:
 - `upload_max_filesize`, `post_max_size`, `file_uploads`;
 - `APP_URL` (harus domain asli, bukan localhost).
 
-Keluar dengan kode 1 bila ada item GAGAL. Folder web bisa ditentukan sendiri:
-`php artisan app:check-server --public=/home/nearby/public_html`.
+Keluar dengan kode 1 bila ada item GAGAL. Folder web bisa ditentukan sendiri,
+dan untuk foto yang penting adalah document root subdomain API:
+`php artisan app:check-server --public=<DOCROOT-API>`.
 
 > Nilai php.ini di CLI bisa berbeda dari PHP web. Kalau perintah ini OK tapi
 > upload di situs masih gagal, cek versi PHP domain di **MultiPHP Manager**.

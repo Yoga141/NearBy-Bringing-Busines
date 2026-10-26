@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\MediaUrl;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -40,21 +41,21 @@ class UmkmPhoto extends Model
      *
      * Uploaded files on the local `public` disk are served by the web server
      * straight from `/storage/{path}` - the stored path is the file's location
-     * under storage/app/public, reached through the `storage` symlink next to
-     * the SPA. Relative on purpose, so it does not depend on APP_URL. Files on
-     * a cloud disk use the disk's own public URL.
+     * under storage/app/public, reached through the `storage` symlink in the
+     * API's web root. Absolute on APP_URL (see MediaUrl), because the SPA runs
+     * on another domain. Files on a cloud disk use the disk's own public URL.
      */
     protected function publicUrl(): Attribute
     {
         return Attribute::get(function (): ?string {
             if ($this->url) {
-                return $this->url;
+                return MediaUrl::absolute($this->url);
             }
             if (! $this->path) {
                 return null;
             }
             if (config("filesystems.disks.{$this->disk}.driver") === 'local') {
-                return '/storage/'.ltrim($this->path, '/');
+                return MediaUrl::absolute('/storage/'.ltrim($this->path, '/'));
             }
 
             return Storage::disk($this->disk)->url($this->path);

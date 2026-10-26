@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\MediaUrl;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -55,7 +56,8 @@ class User extends Authenticatable
                 return null;
             }
 
-            return '/api/avatar/'.basename($this->avatar_path);
+            // Absolute on APP_URL: the SPA runs on another domain (see MediaUrl).
+            return MediaUrl::absolute('/api/avatar/'.basename($this->avatar_path));
         });
     }
 

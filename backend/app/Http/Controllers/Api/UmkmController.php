@@ -7,6 +7,7 @@ use App\Http\Resources\UmkmResource;
 use App\Models\Submission;
 use App\Models\Umkm;
 use App\Models\UmkmItem;
+use App\Support\MediaUrl;
 use App\Support\UmkmCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -175,7 +176,7 @@ class UmkmController extends Controller
     {
         $req = $partial ? 'sometimes' : 'required';
 
-        return $request->validate([
+        $data = $request->validate([
             'name' => [$req, 'string', 'min:2', 'max:255'],
             'category' => [$req, Rule::in(UmkmCatalog::CATEGORIES)],
             'location' => [$req, Rule::in(UmkmCatalog::LOCATIONS)],
@@ -204,6 +205,20 @@ class UmkmController extends Controller
             'location.in' => 'Wilayah tidak dikenali.',
             'items.*.name.required_with' => 'Setiap produk wajib punya nama.',
         ]);
+
+        // The SPA echoes back the absolute photo links the API sent it; store
+        // (and compare against) the relative form the database holds.
+        if (isset($data['items'])) {
+            $data['items'] = array_map(function (array $item) {
+                if (isset($item['img'])) {
+                    $item['img'] = MediaUrl::relative($item['img']);
+                }
+
+                return $item;
+            }, $data['items']);
+        }
+
+        return $data;
     }
 
     /**

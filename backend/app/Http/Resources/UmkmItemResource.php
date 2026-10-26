@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\MediaUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,8 @@ class UmkmItemResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'price' => $this->price,
-            'img' => $this->img,
+            // Absolute for an uploaded photo; icon keys and external links as stored.
+            'img' => MediaUrl::absolute($this->img),
             'avail' => (bool) $this->available,
         ];
     }

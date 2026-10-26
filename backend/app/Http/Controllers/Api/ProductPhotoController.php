@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Umkm;
 use App\Models\UmkmItem;
 use App\Support\ImageUpload;
+use App\Support\MediaUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -61,7 +62,7 @@ class ProductPhotoController extends Controller
 
         UmkmItem::deleteUnusedPhotos([$oldUrl]);
 
-        return response()->json(['id' => $item->id, 'img' => $url]);
+        return response()->json(['id' => $item->id, 'img' => MediaUrl::absolute($url)]);
     }
 
     /** Remove a product photo. Accessible to UMKM owner and admin. */

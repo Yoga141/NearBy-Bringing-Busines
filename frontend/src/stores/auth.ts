@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { AuthUser, Role } from '@/types'
 import { apiFetch, ApiError, getToken, setToken } from '@/lib/api'
+import { resolveMediaUrl } from '@/lib/media'
 import { useUmkmStore } from './umkm'
 
 /** Shape returned by UserResource on the Laravel side. */
@@ -71,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
       phone: apiUser.phone,
       role: apiUser.role,
       status: apiUser.status,
-      avatarUrl: apiUser.avatarUrl ?? null,
+      avatarUrl: resolveMediaUrl(apiUser.avatarUrl) ?? null,
     }
     profileName.value = apiUser.name
     profileEmail.value = apiUser.email

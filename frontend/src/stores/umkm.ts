@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { apiFetch, ApiError } from '@/lib/api'
+import { resolveMediaUrl } from '@/lib/media'
 import { CAT, CATEGORY_NAMES, REGION_CARDS } from '@/data/categories'
 import type { CategoryName, LocationName, Review, Umkm, UmkmStatus } from '@/types'
 
@@ -62,15 +63,15 @@ export function umkmFromApi(row: any): Umkm {
       id: it.id ?? undefined,
       name: it.name,
       price: it.price ?? '',
-      img: it.img ?? undefined,
+      img: resolveMediaUrl(it.img) ?? undefined,
       avail: it.avail !== false,
     })),
     status: STATUS_FROM_API[row.status] ?? 'Aktif',
     verification: row.verification ?? 'disetujui',
     hidden: !!row.hidden,
     views: Number(row.views) || 0,
-    photos: (row.photos ?? []).map((p: any) => ({ id: p.id, url: p.url, external: !!p.external })),
-    coverUrl: row.coverUrl ?? row.photos?.[0]?.url ?? null,
+    photos: (row.photos ?? []).map((p: any) => ({ id: p.id, url: resolveMediaUrl(p.url), external: !!p.external })),
+    coverUrl: resolveMediaUrl(row.coverUrl ?? row.photos?.[0]?.url) ?? null,
     ownerName: row.ownerName ?? null,
     ownerEmail: row.ownerEmail ?? null,
     deletedAt: row.deletedAt ?? null,
@@ -297,7 +298,7 @@ export const useUmkmStore = defineStore('umkm', () => {
       method: 'POST',
       body: form,
     })
-    return result.img
+    return resolveMediaUrl(result.img)
   }
 
   /** Delete a product photo for an item. */
