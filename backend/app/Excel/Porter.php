@@ -101,7 +101,7 @@ abstract class Porter
      */
     public function analyse(array $raws, User $user): array
     {
-        $raws = array_map(fn ($raw) => is_array($raw) ? $raw : [], array_values($raws));
+        $raws = array_map(fn ($raw) => $this->normalize(is_array($raw) ? $raw : []), array_values($raws));
         $context = $this->prepare($raws, $user);
 
         $rows = [];
@@ -156,6 +156,18 @@ abstract class Porter
         DB::transaction(fn () => $this->apply($result['rows'], $user));
 
         return ['ok' => true, ...$result];
+    }
+
+    /**
+     * Clean up one raw row before it is checked (e.g. canonical spellings).
+     * The default leaves the row untouched.
+     *
+     * @param  array<string, mixed>  $raw
+     * @return array<string, mixed>
+     */
+    protected function normalize(array $raw): array
+    {
+        return $raw;
     }
 
     /**

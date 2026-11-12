@@ -31,7 +31,9 @@ class UmkmController extends Controller
         }
 
         if (($loc = $request->query('location')) && $loc !== 'Semua') {
-            $query->where('location', $loc);
+            // "barat", "Balikpapan barat" and "Balikpapan Barat" are the same
+            // kecamatan; an unknown name matches nothing instead of erroring.
+            $query->where('location', UmkmCatalog::normalizeLocation($loc) ?? $loc);
         }
 
         if (is_string($q = $request->query('q')) && ($q = trim($q)) !== '') {
@@ -176,6 +178,14 @@ class UmkmController extends Controller
     {
         $req = $partial ? 'sometimes' : 'required';
 
+        // Accept any spelling of the kecamatan ("barat", "Kec. Balikpapan
+        // Barat") and store the canonical one, so counts never split.
+        if ($request->has('location') && ($location = UmkmCatalog::normalizeLocation($request->input('location')))) {
+            $request->merge(['location' => $location]);
+        }
+
+        $bounds = UmkmCatalog::BOUNDS;
+
         $data = $request->validate([
             'name' => [$req, 'string', 'min:2', 'max:255'],
             'category' => [$req, Rule::in(UmkmCatalog::CATEGORIES)],
@@ -189,6 +199,9 @@ class UmkmController extends Controller
             'ig' => ['nullable', 'string', 'max:255'],
             'list_label' => ['nullable', 'string', 'max:255'],
             'status' => ['sometimes', Rule::in(UmkmCatalog::STATUSES)],
+            // Map pin: both or neither, and inside Kota Balikpapan.
+            'latitude' => ['nullable', 'numeric', 'required_with:longitude', "between:{$bounds['lat_min']},{$bounds['lat_max']}"],
+            'longitude' => ['nullable', 'numeric', 'required_with:latitude', "between:{$bounds['lng_min']},{$bounds['lng_max']}"],
             'items' => ['sometimes', 'array', 'max:200'],
             'items.*.name' => ['required_with:items', 'string', 'max:255'],
             'items.*.price' => ['nullable', 'string', 'max:255'],
@@ -204,7 +217,20 @@ class UmkmController extends Controller
             'location.required' => 'Wilayah wajib dipilih.',
             'location.in' => 'Wilayah tidak dikenali.',
             'items.*.name.required_with' => 'Setiap produk wajib punya nama.',
+            'latitude.numeric' => 'Latitude harus berupa angka, misalnya -1.2654.',
+            'longitude.numeric' => 'Longitude harus berupa angka, misalnya 116.8312.',
+            'latitude.required_with' => 'Titik lokasi belum lengkap: latitude kosong.',
+            'longitude.required_with' => 'Titik lokasi belum lengkap: longitude kosong.',
+            'latitude.between' => 'Titik lokasi berada di luar Kota Balikpapan. Periksa lagi koordinatnya (latitude Balikpapan sekitar -1.0 sampai -1.4).',
+            'longitude.between' => 'Titik lokasi berada di luar Kota Balikpapan. Periksa lagi koordinatnya (longitude Balikpapan sekitar 116.7 sampai 117.1).',
         ]);
+
+        // Store a fixed precision (≈1 cm) so a pasted 15-digit value fits the column.
+        foreach (['latitude', 'longitude'] as $axis) {
+            if (isset($data[$axis])) {
+                $data[$axis] = round((float) $data[$axis], 7);
+            }
+        }
 
         // The SPA echoes back the absolute photo links the API sent it; store
         // (and compare against) the relative form the database holds.

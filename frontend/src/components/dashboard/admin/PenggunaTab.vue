@@ -40,14 +40,22 @@ const dashboard = useDashboardStore()
       <div><span class="rounded-full px-2.5 py-1 text-[11.5px] font-bold" :style="{ background: u.roleBg, color: u.roleColor }">{{ u.role }}</span></div>
       <div><span class="rounded-full px-2.5 py-1 text-[11.5px] font-bold" :style="{ color: u.statusColor, background: u.statusBg }">{{ u.status }}</span></div>
       <div class="text-right">
-        <button
-          v-if="u.deleted"
-          type="button"
-          class="rounded-[9px] bg-brand-blue-tint px-[13px] py-2 text-[13px] font-bold whitespace-nowrap text-brand-blue"
-          @click="dashboard.userRestore(u.id)"
-        >
-          Pulihkan akun
-        </button>
+        <div v-if="u.deleted" class="flex justify-end gap-2">
+          <button
+            type="button"
+            class="rounded-[9px] bg-brand-blue-tint px-[13px] py-2 text-[13px] font-bold whitespace-nowrap text-brand-blue"
+            @click="dashboard.userRestore(u.id)"
+          >
+            Pulihkan akun
+          </button>
+          <button
+            type="button"
+            class="rounded-[9px] border border-danger-border px-[13px] py-2 text-[13px] font-bold whitespace-nowrap text-danger"
+            @click="ui.openModal('purgeUser', u)"
+          >
+            Hapus permanen
+          </button>
+        </div>
         <button v-else type="button" class="rounded-[9px] border border-[#E7E0D2] px-[13px] py-2 text-[13px] font-bold text-brand-navy" @click="ui.openModal('manageUser', u)">
           Kelola
         </button>

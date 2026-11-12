@@ -35,6 +35,10 @@ class UmkmResource extends JsonResource
             'phone' => $this->phone,
             'ig' => $this->ig,
             'listLabel' => $this->list_label,
+            // Map pin (null until the owner sets one; the detail page then
+            // falls back to an address search).
+            'lat' => $this->latitude,
+            'lng' => $this->longitude,
             'status' => $this->status,
             'verification' => $this->verification,
             'hidden' => (bool) $this->hidden,

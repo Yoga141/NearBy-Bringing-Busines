@@ -12,9 +12,11 @@ use App\Models\Review;
 use App\Models\Submission;
 use App\Models\Umkm;
 use App\Models\User;
+use App\Support\UserPurger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
 {
@@ -54,6 +56,56 @@ class AdminController extends Controller
         $user->delete();
 
         return response()->json(['message' => 'Akun dipindahkan ke sampah.']);
+    }
+
+    /**
+     * What a permanent delete of this account would erase (active or in
+     * Trash), so the confirmation dialog can spell it out.
+     */
+    public function purgeSummary(Request $request, int $id, UserPurger $purger)
+    {
+        $user = $this->purgeTarget($request, $id);
+
+        return response()->json([
+            'user' => new UserResource($user),
+            'counts' => $purger->summary($user),
+        ]);
+    }
+
+    /**
+     * Permanently delete an account with all its UMKM, products, photos,
+     * reviews and files. Cannot be undone, so the request must repeat the
+     * account's email address as confirmation.
+     */
+    public function purgeUser(Request $request, int $id, UserPurger $purger)
+    {
+        $user = $this->purgeTarget($request, $id);
+
+        $data = $request->validate([
+            'confirm' => ['required', 'string'],
+        ], [
+            'confirm.required' => 'Ketik alamat email akun untuk mengonfirmasi penghapusan permanen.',
+        ]);
+
+        if (mb_strtolower(trim($data['confirm'])) !== mb_strtolower($user->email)) {
+            throw ValidationException::withMessages([
+                'confirm' => ['Email konfirmasi tidak cocok dengan akun ini.'],
+            ]);
+        }
+
+        $purger->purge($user);
+
+        return response()->json(['message' => "Akun {$user->email} beserta seluruh datanya dihapus permanen."]);
+    }
+
+    /** Any non-admin account other than your own, including ones in Trash. */
+    private function purgeTarget(Request $request, int $id): User
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        abort_if($user->isAdmin(), 403, 'Akun admin tidak bisa dihapus permanen.');
+        abort_if($user->id === $request->user()->id, 403, 'Tidak bisa menghapus akunmu sendiri.');
+
+        return $user;
     }
 
     /**

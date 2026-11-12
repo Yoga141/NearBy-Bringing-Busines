@@ -173,6 +173,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [AdminController::class, 'users']);
         Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus']);
         Route::delete('/users/{user}', [AdminController::class, 'destroyUser']);
+        // Permanent delete (account + UMKM + products + files). {id} rather
+        // than {user}: the account may already be in Trash.
+        Route::get('/users/{id}/purge-summary', [AdminController::class, 'purgeSummary'])->whereNumber('id');
+        Route::delete('/users/{id}/purge', [AdminController::class, 'purgeUser'])->whereNumber('id');
         Route::post('/users/{user}/reset-password', [AdminController::class, 'resetUserPassword']);
         Route::get('/umkm', [AdminController::class, 'umkms']);
         Route::post('/umkm/{umkm}/toggle-hidden', [AdminController::class, 'toggleHidden']);

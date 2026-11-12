@@ -19,6 +19,10 @@ function remove() {
   ui.closeModal()
   if (item) dashboard.userDelete(item.id, item.name)
 }
+function purge() {
+  // Same modal slot, so swap the content instead of stacking a second overlay.
+  if (ui.modalItem) ui.openModal('purgeUser', ui.modalItem)
+}
 function toggleActive() {
   const item = ui.modalItem
   ui.closeModal()
@@ -68,6 +72,14 @@ function toggleActive() {
             @click="remove"
           >
             Hapus akun (pindahkan ke sampah)
+          </button>
+          <button
+            type="button"
+            class="rounded-xl border border-danger bg-danger px-[15px] py-[13px] text-left text-sm font-bold text-white"
+            @click="purge"
+          >
+            Hapus permanen beserta data UMKM
+            <span class="block text-[12px] font-semibold text-white/85">Akun, UMKM, produk, foto, dan ulasan dihapus selamanya.</span>
           </button>
         </div>
       </div>

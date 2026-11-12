@@ -242,6 +242,17 @@ export const useDashboardStore = defineStore('dashboard', () => {
     deletedAt: string | null
   }
 
+  interface PurgeCounts {
+    umkms: number
+    items: number
+    photos: number
+    reviewsReceived: number
+    reviewsWritten: number
+    favorites: number
+    questions: number
+    problemReports: number
+  }
+
   const adminUsersRaw = ref<AdminUserRow[]>([])
   const adminTrashUsersRaw = ref<AdminUserRow[]>([])
 
@@ -324,6 +335,29 @@ export const useDashboardStore = defineStore('dashboard', () => {
     } catch (e) {
       failed(e, 'Gagal menghapus akun.')
     }
+  }
+
+  /** Counts of everything a permanent delete would erase, for the confirmation modal. */
+  async function userPurgeSummary(id: number): Promise<PurgeCounts> {
+    const res = await apiFetch<{ counts: PurgeCounts }>(`/admin/users/${id}/purge-summary`)
+    return res.counts
+  }
+
+  /**
+   * Permanently delete an account with all its UMKM, products, photos and
+   * reviews. `confirmEmail` must repeat the account's email (checked again
+   * by the API). Throws so the modal can show the error in place.
+   */
+  async function userPurge(id: number, confirmEmail: string): Promise<string> {
+    const res = await apiFetch<{ message: string }>(`/admin/users/${id}/purge`, {
+      method: 'DELETE',
+      body: JSON.stringify({ confirm: confirmEmail }),
+    })
+    adminUsersRaw.value = adminUsersRaw.value.filter((u) => u.id !== id)
+    adminTrashUsersRaw.value = adminTrashUsersRaw.value.filter((u) => u.id !== id)
+    // Their UMKM, reviews and ratings are gone too.
+    await Promise.all([fetchAdminUmkm(), fetchAdminTrash(), fetchAdminReviews(), fetchAdminReports()]).catch(() => undefined)
+    return res.message
   }
 
   async function userToggleActive(id: number, name: string) {
@@ -614,6 +648,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     userRestore,
     userResetPassword,
     userDelete,
+    userPurgeSummary,
+    userPurge,
     userToggleActive,
     reportStats,
     growthBars,

@@ -55,6 +55,9 @@ export interface Umkm {
   phone: string
   ig: string
   listLabel: string
+  /** Map pin; null until the owner sets one (the detail page then falls back to an address search). */
+  lat: number | null
+  lng: number | null
   items: UmkmItem[]
   status: UmkmStatus
   verification: UmkmVerification

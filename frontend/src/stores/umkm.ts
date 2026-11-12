@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { apiFetch, ApiError } from '@/lib/api'
 import { resolveMediaUrl } from '@/lib/media'
 import { CAT, CATEGORY_NAMES, REGION_CARDS } from '@/data/categories'
+import { normalizeLocation } from '@/lib/geo'
 import type { CategoryName, LocationName, Review, Umkm, UmkmStatus } from '@/types'
 
 export interface EnrichedUmkm extends Umkm {
@@ -48,7 +49,9 @@ export function umkmFromApi(row: any): Umkm {
     ownerId: row.ownerId ?? null,
     name: row.name,
     cat: row.cat,
-    loc: row.loc,
+    // Canonical kecamatan name whatever spelling the row carries, so every
+    // count and filter below can compare with ===.
+    loc: normalizeLocation(row.loc) ?? row.loc,
     rating: Number(row.rating) || 0,
     reviews: Number(row.reviews) || 0,
     priceLabel: row.priceLabel ?? '',
@@ -59,6 +62,8 @@ export function umkmFromApi(row: any): Umkm {
     phone: row.phone ?? '',
     ig: row.ig ?? '',
     listLabel: row.listLabel ?? '',
+    lat: toCoord(row.lat),
+    lng: toCoord(row.lng),
     items: (row.items ?? []).map((it: any) => ({
       id: it.id ?? undefined,
       name: it.name,
@@ -76,6 +81,12 @@ export function umkmFromApi(row: any): Umkm {
     ownerEmail: row.ownerEmail ?? null,
     deletedAt: row.deletedAt ?? null,
   }
+}
+
+function toCoord(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null
+  const n = Number(value)
+  return Number.isFinite(n) ? n : null
 }
 
 function fromApiDetail(row: any): UmkmDetail {
@@ -146,23 +157,26 @@ export const useUmkmStore = defineStore('umkm', () => {
     [...completeEnrichedAll.value].sort((a, b) => b.rating - a.rating).slice(0, 4),
   )
 
-  /** Homepage category cards: only count UMKM with complete data. */
+  /**
+   * Homepage category / region cards. Each card opens the directory filtered
+   * to that category or kecamatan, so it counts exactly what the directory
+   * will list: every published UMKM, not only those with all eight business
+   * fields filled. (Counting only "complete" rows made e.g. Barat show
+   * "0 UMKM" while the directory behind it listed several.)
+   */
   const categoryCards = computed(() =>
     CATEGORY_NAMES.map((name) => ({
       name,
       ...CAT[name],
-      count: completeAll.value.filter((u) => u.cat === name).length,
+      count: all.value.filter((u) => u.cat === name).length,
     })),
   )
 
-  /** Homepage region cards: only count UMKM with complete data. */
-  const regionCards = computed(() =>
-    REGION_CARDS.map(([full, short]) => ({
-      full,
-      short,
-      count: completeAll.value.filter((u) => u.loc === full).length,
-    })),
-  )
+  const regionCards = computed(() => {
+    const counts = new Map<string, number>()
+    for (const u of all.value) counts.set(u.loc, (counts.get(u.loc) ?? 0) + 1)
+    return REGION_CARDS.map(([full, short]) => ({ full, short, count: counts.get(full) ?? 0 }))
+  })
 
   const filteredDirectory = computed(() => {
     const query = q.value.trim().toLowerCase()
@@ -287,6 +301,8 @@ export const useUmkmStore = defineStore('umkm', () => {
     ig?: string | null
     list_label?: string | null
     status?: string
+    latitude?: number | null
+    longitude?: number | null
     items?: { name: string; price?: string | null; img?: string | null; available?: boolean }[]
   }
 

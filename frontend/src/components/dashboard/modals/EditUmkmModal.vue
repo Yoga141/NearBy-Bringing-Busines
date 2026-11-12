@@ -11,6 +11,8 @@ import BaseModal from '@/components/shared/BaseModal.vue'
 import ShieldIcon from '@/components/shared/ShieldIcon.vue'
 import CloseIcon from '@/components/shared/CloseIcon.vue'
 import PlusIcon from '@/components/shared/PlusIcon.vue'
+import LocationPinInput from '@/components/dashboard/shared/LocationPinInput.vue'
+import { normalizeLocation, type LatLng } from '@/lib/geo'
 import {
   ICONS_BY_CATEGORY,
   MENU_ICON_CATEGORIES,
@@ -65,8 +67,11 @@ const draft = reactive({
   listLabel: '',
   status: 'Aktif' as UmkmStatus,
   desc: '',
+  pin: null as LatLng | null,
   menu: [{ name: '', price: '', avail: true, img: '' }] as DraftMenuItem[],
 })
+/** The pin box holds text that isn't a usable Balikpapan coordinate. */
+const pinInvalid = ref(false)
 
 // ---- Foto ----
 /** Photos already on the server (existing UMKM). */
@@ -109,7 +114,7 @@ watch(
       editingId.value = item.id ?? null
       draft.name = item.name ?? ''
       draft.cat = item.cat ?? CATEGORY_NAMES[0]
-      draft.loc = item.loc ?? LOCATION_NAMES[0]
+      draft.loc = normalizeLocation(item.loc) ?? LOCATION_NAMES[0]
       draft.wa = item.phone || ''
       draft.ig = item.ig || ''
       draft.address = item.address || ''
@@ -118,6 +123,7 @@ watch(
       draft.listLabel = item.listLabel || ''
       draft.status = (['Aktif', 'Libur', 'Tutup'] as UmkmStatus[]).includes(item.status) ? item.status : 'Aktif'
       draft.desc = item.tag || ''
+      draft.pin = item.lat != null && item.lng != null ? { lat: Number(item.lat), lng: Number(item.lng) } : null
       draft.menu = (item.items ?? []).map((it: { id?: number; name: string; price: string; img?: string; avail?: boolean }) => ({
         id: it.id,
         name: it.name,
@@ -139,6 +145,7 @@ watch(
       draft.listLabel = ''
       draft.status = 'Aktif'
       draft.desc = ''
+      draft.pin = null
       draft.menu = [{ name: '', price: '', avail: true, img: '' }]
       photos.value = []
     }
@@ -355,6 +362,10 @@ async function saveUmkm() {
     error.value = 'Setiap produk yang punya harga wajib diberi nama.'
     return
   }
+  if (pinInvalid.value) {
+    error.value = 'Titik lokasi belum benar. Perbaiki atau kosongkan kolom "Titik lokasi di peta".'
+    return
+  }
   saving.value = true
   error.value = ''
   const payload = {
@@ -369,6 +380,8 @@ async function saveUmkm() {
     list_label: draft.listLabel.trim() || null,
     status: STATUS_TO_API[draft.status],
     tag: draft.desc.trim() || null,
+    latitude: draft.pin?.lat ?? null,
+    longitude: draft.pin?.lng ?? null,
     items: draft.menu
       .filter((m) => m.name.trim())
       .map((m) => ({
@@ -613,6 +626,7 @@ async function saveUmkm() {
           placeholder="Jl. ... No. ..., kelurahan, Balikpapan"
           class="mb-3.5 min-h-[56px] w-full resize-y rounded-xl border border-border-input bg-white px-3.5 py-2.5 font-medium text-brand-navy placeholder:text-text-faint dark:bg-[#1a293a] dark:text-text-primary dark:border-[#2e4257]"
         />
+        <LocationPinInput v-model="draft.pin" @update:invalid="pinInvalid = $event" />
         <div class="grid grid-cols-1 gap-3 mobile:grid-cols-2">
           <div>
             <label class="mb-1.5 block text-[13px] font-bold text-brand-navy dark:text-text-primary" for="umkm-hours">Jam buka</label>

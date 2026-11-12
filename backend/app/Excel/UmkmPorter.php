@@ -157,7 +157,17 @@ class UmkmPorter extends Porter
         ];
     }
 
-    private static function dupKey(string $name, string $location): string
+    /** "barat" / "Kec. Balikpapan Barat" in the Wilayah cell -> "Balikpapan Barat". */
+    protected function normalize(array $raw): array
+    {
+        if (isset($raw['location']) && ($location = UmkmCatalog::normalizeLocation($raw['location']))) {
+            $raw['location'] = $location;
+        }
+
+        return $raw;
+    }
+
+        private static function dupKey(string $name, string $location): string
     {
         return mb_strtolower(trim(preg_replace('/\s+/u', ' ', $name) ?? $name)).'|'.$location;
     }

@@ -49,7 +49,7 @@ export const useUiStore = defineStore('ui', () => {
 
   // Dashboard modals - one generic slot, matching the prototype's single
   // modalKind/modalItem pair reused by all 5 dashboard modals.
-  type ModalKind = 'editUmkm' | 'manageUser' | 'submissionDetail' | 'replyReview' | null
+  type ModalKind = 'editUmkm' | 'manageUser' | 'purgeUser' | 'submissionDetail' | 'replyReview' | null
   const modalKind = ref<ModalKind>(null)
   const modalItem = ref<any>(null)
   function openModal(kind: ModalKind, item: unknown = null) {

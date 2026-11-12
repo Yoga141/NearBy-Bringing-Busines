@@ -3,16 +3,24 @@ import { computed } from 'vue'
 import FavoriteButton from '@/components/shared/FavoriteButton.vue'
 import ExternalLinkIcon from '@/components/shared/ExternalLinkIcon.vue'
 import type { Umkm } from '@/types'
+import { googleMapsPinUrl, googleMapsSearchUrl, isWithinBalikpapan, osmEmbedUrl, type LatLng } from '@/lib/geo'
 
 const props = defineProps<{ umkm: Umkm; waLink: string }>()
 
-// A real search link for the address - the UMKM table stores no coordinates,
-// so there is no map to embed.
-const mapsLink = computed(() =>
-  props.umkm.address
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${props.umkm.address}, Balikpapan`)}`
-    : '',
-)
+// With a saved pin the map and link open exactly on it. Without one we can
+// only search the address text - scoped to the kecamatan and province, so a
+// vague address ("RT 34") isn't matched to a namesake in another city.
+const pin = computed<LatLng | null>(() => {
+  const { lat, lng } = props.umkm
+  if (lat == null || lng == null) return null
+  const point = { lat, lng }
+  // A stray pin from before validation existed would show the wrong place - treat it as unset.
+  return isWithinBalikpapan(point) ? point : null
+})
+const mapsLink = computed(() => {
+  if (pin.value) return googleMapsPinUrl(pin.value)
+  return props.umkm.address ? googleMapsSearchUrl(props.umkm.address, props.umkm.loc) : ''
+})
 const igHandle = computed(() => props.umkm.ig.trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/$/, ''))
 </script>
 
@@ -23,6 +31,15 @@ const igHandle = computed(() => props.umkm.ig.trim().replace(/^@/, '').replace(/
     <div class="border-b border-[#F2ECDF] py-[11px]">
       <div class="text-xs font-bold text-text-faint uppercase">Alamat</div>
       <div class="text-[14px] wrap-break-word text-brand-navy">{{ umkm.address || 'Belum diisi pemilik' }}</div>
+      <div v-if="pin" class="mt-2 overflow-hidden rounded-xl border border-border-card">
+        <iframe
+          :src="osmEmbedUrl(pin)"
+          :title="`Peta lokasi ${umkm.name}`"
+          class="block h-[170px] w-full border-0"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+        />
+      </div>
       <a
         v-if="mapsLink"
         :href="mapsLink"
@@ -30,7 +47,7 @@ const igHandle = computed(() => props.umkm.ig.trim().replace(/^@/, '').replace(/
         rel="noopener"
         class="mt-1 inline-flex items-center gap-1 text-[13px] font-bold text-brand-blue"
       >
-        Buka di Google Maps <ExternalLinkIcon size="12px" />
+        {{ pin ? 'Buka di Google Maps' : 'Cari alamat di Google Maps' }} <ExternalLinkIcon size="12px" />
       </a>
     </div>
     <div class="border-b border-[#F2ECDF] py-[11px]">
